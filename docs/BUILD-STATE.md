@@ -21,11 +21,11 @@ Started 2026-10-03. Baseline: f1d8719. Owner authorized autonomous implementatio
 - [x] P3.1 Spec Kit AI coding artifacts and analysis.
 - [~] P3.2 Backends, schemas, routing, budget, cache and egress ledger.
 - [~] P3.3 Review UI and feedback, I4/I5/budget gate; converge.
-- [ ] P4.1 Spec Kit evaluation artifacts and analysis.
-- [ ] P4.2 Metrics, benchmarks, pinned demo data and split manifests.
-- [ ] P4.3 Evaluation UI, metric/oracle/idempotency gate; converge.
-- [ ] P5.1 Spec Kit improvement artifacts and analysis.
-- [ ] P5.2 Protected experiment protocol, policy and operator lanes.
+- [x] P4.1 Spec Kit evaluation artifacts and analysis.
+- [x] P4.2 Metrics, benchmarks, pinned demo data and split manifests.
+- [x] P4.3 Evaluation UI, metric/oracle/idempotency gate; converge.
+- [x] P5.1 Spec Kit improvement artifacts and analysis.
+- [~] P5.2 Protected experiment protocol, policy and operator lanes.
 - [ ] P5.3 History UI, I2/I3 and MVP browser gate; converge.
 - [ ] P6.1 Security/hygiene audits, CI and secret/data checks.
 - [ ] P6.2 Live Claude/Codex experiment parity.
@@ -38,7 +38,7 @@ Started 2026-10-03. Baseline: f1d8719. Owner authorized autonomous implementatio
 - [ ] P7.D6 Motion, accessibility and mobile checks.
 - [ ] P7.D7 Design acceptance, final screenshots and bounded critique loop.
 - [ ] P8 Portfolio Spec Kit artifacts, snapshot, demo, README, Pages and performance gate (sacrificial).
-- [ ] P9 Jev Spec Kit artifacts, adapter, fixture tests and owner setup guide (sacrificial).
+- [~] P9 Jev Spec Kit artifacts, adapter, fixture tests and owner setup guide (sacrificial).
 - [ ] P10 Full acceptance sweep, subscription policy recheck, final evidence/report.
 
 ## Workstream audit
@@ -106,3 +106,19 @@ Phase2 final: 60 Python tests passed; Ruff clean; frontend 7 Vitest tests, TypeS
 Phase3 analysis: 11 FR, 5 SC, 13 tasks; 100% coverage. One necessary main-owned schema addition (002_attempt_accounting.sql) supplies CLI version and immutable reservation/completion linkage, preserving migration001/triggers. Atomic BEGIN IMMEDIATE admission precedes provider dispatch and egress; no in-memory budget-only lock. Implementers own disjoint AI backend/coordination and WEB lanes. Codex live classification remains unavailable pending honest generation-bound decision; operator confinement adaptation remains gated. Offline features proceed; no load-bearing external acceptance claimed.
 
 Phase2 main CI SUCCESS at bed61f6: https://github.com/WilliamEbong/qualia/actions/runs/37160288072. Phase3 Store atomic reservation/concurrent admission tests: 2 passed; migration/provenance/workspace/CLI regressions: 15 passed. Open launcher now waits for Uvicorn's verified started signal (after socket bind) before opening browser; failed startup cancels the launcher. Context7 plus installed0.54 source verified API.
+
+Phase3 isolation interpretation: mandatory Claude --json-schema exposes exactly one internal StructuredOutput serialization tool despite --tools empty. Localhost wire capture proves this is the output format mechanism; tests must require its exact supplied schema and no action/file/shell/network/MCP/agent tools. Do not claim a literally empty Claude tool registry. Dropping the mandated JSON-schema flag would violate the runbook. Codex still requires an empty action/tool registry. This is a documented implementation distinction, not authorization for arbitrary tools. Native Windows setup and Codex output-token/profile exceptions remain owner-pending in OWNER-NEEDED.md; all independent implementation continues.
+
+Phase3 browser/API progress: full fake classify -> accept/reject -> cached rerun -> blocked external -> export API regression passed. Playwright produced5 fake suggestions from5 segments/1call, confirmed dashed markers and explicit model-reported0.60/ECE-unavailable labels, accepted with a and rejected with r, retained a synthetic reviewer note, and displayed accepted solid+m. Egress count0. A second real offline rules->fake escalation made2calls and produced below-threshold/disagreement/QC groups with every suggestion caption present. Screenshots design-review/phase-3/. Independent review found wrong offending-record error identity and missing co-batch context in cache keys; lane is repairing both with exact fixtures. Codex capture additionally rejected reserved built-in provider retry overrides before any request; native supported configuration is under investigation, readiness remains false.
+
+Phase3 offline convergence evidence: engine/ledger/cache/schema/API/concurrent-review47 tests pass; CLI38 tests pass with3 live deselected. Independent findings repaired with red-before-green fixtures: batch-complete cache context, trusted offending-record identity, reviewed20/4000/8192 limits. Localhost Codex native custom provider retries0 gives one request on400/500 for both configured models, but upstream0.160 auth401 recovery can still issue a second request. Codex remains disabled; native setup and output-token/retry accounting decisions remain pending. No unsupported workaround or live-isolation pass claimed. Claude serialization-only StructuredOutput registry is tested. Phase3 load-bearing live gates remain open; doc02 blocked ladder authorizes independent later work.
+
+Phase4 analysis: 10 FR,5 SC,13 tasks with full coverage and no critical gaps. check-prerequisites resolves004-evaluation. Plan entry wording is subordinate to doc02's continue-unaffected-work rule; evaluation/demo and offline metrics do not depend on unresolved Codex setup. Frozen JSONL/metric/API contracts appended to CONTRACTS.32 metric/alpha/sealed tests pass including3 oracle fixtures within1e-9. Benchmark11 tests and main evaluation4 tests pass; complete predictions required before publishing, reference labels never enter provider inputs, coding_events unchanged, protected API selector rejected. Demo imports only dev/validation into the visible DB, protected data only in sibling vault. DATA-LICENSES records primary licensing evidence; no fallback needed. Remembered theme logic landed before future design freeze. Real-data idempotency/browser/full-suite gates remain in progress.
+
+Phase4 convergence:10 FR,5 SC,13 tasks reviewed; offline gate passes.282 Python tests passed,3 Windows capability skips,3 live deselected (improvement orchestrator under independent implementation excluded).16 web tests passed; TypeScript/build passed. Playwright verified5-record synthetic evaluation, macro1/ECE.400/undefined kappa-alpha n/a, frozen per-code support, exact-identity ECE vs unavailable older-pipeline suggestions, and dark-theme persistence after reload. Pinned real AnnoMI fetch SHA verified; demo106 sources8017 segments/human events; repeat0/0/0. Splits6759/1258/1682 match independent research counts. Demo baseline commits only its generated benchmark/index/marker paths in its own local Git repository. Screenshots phase-4/.
+
+Independent audit repair: protected evaluation rationale/cache leak fixed by disabling all protected cache access/writes and keeping full predictions only in a manifested vault artifact; ordinary DB stores aggregate protected metrics with empty predictions. Manifest publication now extends pinned old hashes with exact authorized new bytes, never rebaselines concurrent edits.39 targeted tests passed,2 capability skips; reviewer-confirmed sentinels remain confined. Store restoration requires actual matching operation lock and rejects pending-recovery workspaces. Windows open SQLite handles prevented WAL removal; diagnosed by verifier, repaired with same-file identity/single-link in-place backup and replaced-file atomic restore branch.5 exact lock/restore tests pass. No guard/test weakening.
+
+Independent phase analysis:005 improvement12 FR/5 SC/13 tasks;006 portfolio8 FR/5 SC/11 tasks;007 Jev10 FR/5 SC/11 tasks, full task coverage. Prerequisite script resolves each supplied directory, current pointer005. Codex/Claude native operator accounting gates remain pending; doc02 blocked ladder authorizes fake loop, optional Jev and pre-design demo seam. Literal request-level accounting cannot be honestly claimed for internal CLI auth retries or multistep editing. Operator local synthetic native confinement probes pass, but readiness remains false.
+
+Jev checkpoint:46 offline adapter/router tests pass with1 opt-in live deselected, forced-key redaction and every privacy/budget denial proved. Root local readiness: key_configured false, external false, Jev false, network requests0. Installed CLI jev check/enable/disable tested; setup guide has exact synthetic instructions. Live compatibility/recorded response remains sacrificial-deferred until owner saves a key locally. No account/billing changes made.

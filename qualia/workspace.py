@@ -5,6 +5,8 @@ import json
 import os
 import re
 import subprocess
+import uuid
+from contextlib import contextmanager
 from pathlib import Path
 
 from qualia.store.db import Store, canonical
@@ -84,23 +86,86 @@ def pipeline_hash(project: Path) -> str:
     return digest.hexdigest()
 
 
+def protected_artifact_path(project: Path, relative: str) -> Path:
+    """Resolve a named vault artifact without following symlinks or junctions."""
+    if (not isinstance(relative, str) or '\\' in relative or ':' in relative
+            or any(part in ('', '.', '..') for part in relative.split('/'))):
+        raise ValueError('invalid protected artifact path')
+    root = project.resolve().parent.parent / 'vault' / project.name
+    path = root.joinpath(*relative.split('/'))
+    if root.resolve() != root or path.resolve() != path:
+        raise ValueError('protected artifact path escapes vault')
+    for ancestor in (root.parent, root, *path.relative_to(root).parents):
+        candidate = ancestor if ancestor.is_absolute() else root / ancestor
+        if candidate.is_symlink() or candidate.is_junction():
+            raise ValueError('protected artifact path must not use links')
+    if path.is_symlink() or path.is_junction():
+        raise ValueError('protected artifact path must not use links')
+    return path
+
+
 def protected_hashes(project: Path) -> dict[str, str]:
-    result = {name: hashlib.sha256((project / name).read_bytes()).hexdigest() for name in PROTECTED}
-    vault = vault_dir(project)
+    result = {}
+    for name in PROTECTED:
+        path = project / name
+        if path.is_symlink() or path.resolve().parent != project.resolve():
+            raise ValueError('protected project file path escapes project')
+        result[name] = hashlib.sha256(path.read_bytes()).hexdigest()
+    manifest = protected_artifact_path(project, 'manifest.sha256')
+    vault = manifest.parent
     for file in sorted(vault.rglob('*')):
-        if file.is_file() and file.name != 'manifest.sha256':
+        if file.is_symlink() or file.is_junction():
+            raise ValueError('protected vault must not contain links')
+        if file.is_file() and file != manifest:
             result['vault/' + file.relative_to(vault).as_posix()] = hashlib.sha256(file.read_bytes()).hexdigest()
     return result
 
 
 def write_manifest(project: Path):
-    (vault_dir(project) / 'manifest.sha256').write_text(canonical(protected_hashes(project)), encoding='utf-8')
+    with protected_artifact_path(project, 'manifest.sha256').open('x', encoding='utf-8') as stream:
+        stream.write(canonical(protected_hashes(project)))
+
+
+def _read_manifest(project: Path) -> dict[str, str]:
+    value = json.loads(protected_artifact_path(project, 'manifest.sha256').read_text(encoding='utf-8'))
+    if (not isinstance(value, dict) or any(not isinstance(name, str) or not isinstance(digest, str)
+            or not re.fullmatch('[0-9a-f]{64}', digest) for name, digest in value.items())):
+        raise ValueError('invalid protected manifest')
+    return value
+
+
+def manifest_snapshot(project: Path) -> dict[str, str]:
+    expected = _read_manifest(project)
+    if expected != protected_hashes(project):
+        raise ValueError('protected manifest mismatch')
+    return expected
+
+
+def extend_manifest(project: Path, expected: dict[str, str], additions: dict[str, str]):
+    """Publish pinned old hashes plus hashes of explicitly authorized new bytes."""
+    if not additions or set(expected) & set(additions):
+        raise ValueError('protected publication requires only new artifacts')
+    for name, digest in additions.items():
+        if (not name.startswith('vault/') or name == 'vault/manifest.sha256'
+                or not isinstance(digest, str) or not re.fullmatch('[0-9a-f]{64}', digest)):
+            raise ValueError('invalid protected artifact addition')
+        protected_artifact_path(project, name.removeprefix('vault/'))
+    combined = {**expected, **additions}
+    if _read_manifest(project) != expected or protected_hashes(project) != combined:
+        raise ValueError('protected manifest changed during publication')
+    target = protected_artifact_path(project, 'manifest.sha256')
+    temporary = protected_artifact_path(project, '.manifest-next-' + uuid.uuid4().hex)
+    with temporary.open('x', encoding='utf-8') as stream:
+        stream.write(canonical(combined))
+    os.replace(temporary, target)
+    if manifest_snapshot(project) != combined:
+        raise ValueError('protected manifest changed during publication')
 
 
 def check_manifest(project: Path) -> bool:
     try:
-        expected = json.loads((vault_dir(project) / 'manifest.sha256').read_text(encoding='utf-8'))
-        return expected == protected_hashes(project)
+        manifest_snapshot(project)
+        return True
     except (OSError, ValueError):
         return False
 
@@ -144,6 +209,23 @@ def init_project(slug: str, home: Path | None = None) -> Path:
 def write_missing(path: Path, content: str):
     if not path.exists():
         path.write_text(content, encoding='utf-8')
+
+
+@contextmanager
+def operation_lock(project: Path):
+    """Exclude concurrent app writers; abandoned locks require explicit recovery."""
+    lock = project / '.qualia-operation.lock'
+    identity = uuid.uuid4().hex
+    try:
+        with lock.open('x', encoding='utf-8') as stream:
+            stream.write(identity)
+    except FileExistsError:
+        raise ValueError('project has an active or interrupted operation') from None
+    try:
+        yield identity
+    finally:
+        if lock.is_file() and lock.read_text(encoding='utf-8') == identity:
+            lock.unlink()
 
 
 def list_projects(home: Path | None = None) -> list[dict]:

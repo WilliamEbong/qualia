@@ -1,6 +1,7 @@
 """Qualia command line."""
 
 import json
+import subprocess
 import threading
 import time
 import webbrowser
@@ -16,6 +17,10 @@ from qualia.workspace import init_project, list_projects, local_setting, pipelin
 app = typer.Typer(no_args_is_help=True, help='Qualitative coding you can audit.')
 codebook_app = typer.Typer(no_args_is_help=True)
 app.add_typer(codebook_app, name='codebook')
+benchmark_app = typer.Typer(no_args_is_help=True)
+app.add_typer(benchmark_app, name='benchmark')
+jev_app = typer.Typer(no_args_is_help=True)
+app.add_typer(jev_app, name='jev')
 
 
 def resolve_project(slug: str) -> Path:
@@ -213,6 +218,122 @@ def review_command(suggestion: int, decision: str, project: str = 'demo',
         with Store(path / 'project.db') as db:
             typer.echo(db.review(suggestion, decision, actor, pipeline_hash(path), note))
     except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+
+@benchmark_app.command('import')
+def benchmark_import(file: Path, project: str = 'demo', split: str = 'validation',
+                     version: int | None = None):
+    """Import a complete JSONL split once, bound to a frozen codebook."""
+    from qualia.io.benchmarks import import_benchmark
+
+    path = resolve_project(project)
+    try:
+        with Store(path / 'project.db') as db:
+            frozen = (db.one('SELECT * FROM codebook_versions WHERE id=?', (version,)) if version else
+                      db.one('SELECT * FROM codebook_versions ORDER BY id DESC LIMIT 1'))
+            if frozen is None:
+                raise ValueError('freeze the benchmark codebook first')
+            codes = [code['id'] for code in json.loads(frozen['snapshot_json'])
+                     if code.get('status', 'active') == 'active']
+            result = import_benchmark(path, file.read_bytes(), split, frozen['id'], codes)
+        typer.echo(json.dumps(result, ensure_ascii=False))
+    except (OSError, ValueError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+
+@jev_app.command('check')
+def jev_check(project: str = 'demo'):
+    """Check local Jev readiness without sending a request or displaying the key."""
+    from qualia.ai.backends.jev import INPUT_RATE, MODEL, RESERVED_INPUT_TOKENS, JevBackend
+    from qualia.workspace import read_config
+
+    provider = JevBackend()
+    config = read_config(resolve_project(project))
+    typer.echo(json.dumps({'key_configured': provider.available(), 'model': MODEL,
+                           'allow_external': config.get('allow_external', False),
+                           'jev_enabled': config.get('jev_enabled', False),
+                           'daily_usd_limit': config.get('jev_daily_usd', 1.0),
+                           'maximum_reserved_usd_per_request': RESERVED_INPUT_TOKENS * INPUT_RATE,
+                           'network_requests': 0}))
+
+
+@jev_app.command('enable')
+def jev_enable(project: str = 'demo'):
+    """Explicitly permit external AI and Jev in the selected project; leave budget limits intact."""
+    _jev_policy(project, True)
+
+
+@jev_app.command('disable')
+def jev_disable(project: str = 'demo'):
+    """Disable external AI and Jev in the selected project."""
+    _jev_policy(project, False)
+
+
+def _jev_policy(slug: str, enabled: bool):
+    from qualia.ai.schemas import routing_config
+    from qualia.store.db import canonical
+    from qualia.workspace import read_config
+
+    path = resolve_project(slug)
+    with Store(path / 'project.db') as db:
+        with db.immediate():
+            config = read_config(path)
+            config.update(allow_external=enabled, jev_enabled=enabled)
+            routing_config(config)
+            (path / 'config/routing.yaml').write_text(canonical(config), encoding='utf-8')
+    typer.echo('External AI and Jev ' + ('enabled' if enabled else 'disabled') + f' for {slug}.')
+
+
+@app.command('evaluate')
+def evaluate_command(project: str = 'demo', split: str = 'validation', protected: bool = False,
+                     backend: str | None = None, model: str | None = None,
+                     output: Path | None = None):
+    """Evaluate a complete split and write JSON/Markdown reports; protected access is explicit."""
+    from qualia.evaluation import evaluate_project, write_reports
+
+    path = resolve_project(project)
+    try:
+        if protected and split != 'validation':
+            raise ValueError('use --protected without --split')
+        with Store(path / 'project.db') as db:
+            result = evaluate_project(db, path, split='protected' if protected else split,
+                                      protected=protected, backend=backend, model=model)
+        paths = write_reports(result, output or path / 'reports')
+        typer.echo(json.dumps(result, ensure_ascii=False))
+        for report in paths:
+            typer.echo(str(report))
+    except (OSError, ValueError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+
+@app.command('demo')
+def demo_command(project: str = 'demo', file: Path | None = None):
+    """Create the licensed, pinned AnnoMI demo. Fetch its raw CSV first with scripts/fetch_demo.py."""
+    from qualia.io.demo import import_demo
+    from qualia.workspace import REPO
+
+    try:
+        content = (file or REPO / 'demo/data/AnnoMI-simple.csv').read_bytes()
+        path = init_project(project)
+        with Store(path / 'project.db') as db:
+            result = import_demo(db, path, content)
+        staged = subprocess.run(['git', '-C', str(path), 'diff', '--cached', '--quiet'], capture_output=True)
+        if staged.returncode != 0:
+            raise ValueError('demo imported; commit or unstage existing staged changes before preparing its baseline')
+        subprocess.run(['git', '-C', str(path), 'add', '--', '.annomi-demo.json', 'benchmarks'],
+                       check=True, capture_output=True)
+        changed = subprocess.run(['git', '-C', str(path), 'diff', '--cached', '--quiet'], capture_output=True)
+        if changed.returncode == 1:
+            subprocess.run(['git', '-C', str(path), '-c', 'user.name=Qualia', '-c',
+                            'user.email=qualia@localhost', 'commit', '-qm', 'Import pinned AnnoMI demo benchmarks'],
+                           check=True, capture_output=True)
+        elif changed.returncode != 0:
+            raise ValueError('demo imported but its baseline could not be checked')
+        typer.echo(json.dumps(result, ensure_ascii=False))
+    except subprocess.CalledProcessError:
+        raise typer.BadParameter('demo imported but its Git baseline could not be committed') from None
+    except (OSError, ValueError) as exc:
         raise typer.BadParameter(str(exc)) from exc
 
 

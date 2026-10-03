@@ -98,6 +98,22 @@ Leakage checks: assert pairwise-disjoint transcript IDs and complete coverage. B
 
 Store protected examples only under `QUALIA_HOME/vault/<slug>/`, covered by the manifest. Neither the improvement operator nor public snapshot receives protected text or labels. Dev/validation benchmark records likewise live in the project workspace, never in the application repository.
 
+### Measured proposed split and budget compatibility
+
+On 2026-10-03, rechecked the SHA-256 of the original temporary raw download, parsed it with Python `csv.DictReader` over `io.StringIO(..., newline='')` (preserving quoted newlines), and applied the exact SHA-256 ranking and allocations above. Pairwise transcript disjointness and complete coverage of all 133 transcripts passed. These are aggregate measurements of the public upstream corpus before application ingestion, not reads from a protected application vault.
+
+| Split | Transcripts | Utterances | High-quality utterances | Low-quality utterances | Longest utterance, code points | Base calls at 20/batch |
+|---|---:|---:|---:|---:|---:|---:|
+| Dev | 80 | 6759 | 6089 | 670 | 1212 | 338 |
+| Validation | 26 | 1258 | 1188 | 70 | 687 | 63 |
+| Protected | 27 | 1682 | 1562 | 120 | 1174 | 85 |
+
+Validation and protected evaluation each fit the default `run_segments: 2000` and `max_segment_chars: 4000` without changing bounds or dropping records. Together their 148 base calls fit `daily_calls: 300` only when enough daily budget remains; retries, escalation, or other calls still consume the normal ledger budget. Actual admission must stay in the router rather than rely on this estimate.
+
+The full dev split and full 9699-utterance project exceed the default run limit. Preserve the explicit budget error for those requested runs; do not silently chunk a single run into additional runs, truncate the sample, or raise demo defaults. The validation evaluator should select the entire validation manifest (1258 utterances) explicitly, not classify all project segments and filter afterward.
+
+Source-video URL intersections are 3 between dev/validation, 1 between dev/protected, and 2 between validation/protected. The transcript-level isolation claim must retain the previously documented video-level limitation.
+
 ## Licensing evidence
 
 The pinned repository root contains exactly `AnnoMI-full.csv`, `AnnoMI-simple.csv`, and `README.md`; there is **no LICENSE file**. The original authors' 2023 paper's Data Availability Statement explicitly identifies AnnoMI as available under a **Public Domain License**. This verifies the documentary basis stated in the build brief; it does not identify a particular SPDX dedication such as CC0. Avoid asserting “CC0-1.0” unless a primary source supplies it. [Paper, Data Availability Statement](https://www.mdpi.com/1999-5903/15/3/110)

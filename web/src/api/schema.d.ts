@@ -311,6 +311,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/projects/{slug}/evaluate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Evaluate */
+        post: operations["evaluate_api_projects__slug__evaluate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -373,6 +390,8 @@ export interface components {
             calls: number;
             /** Cache Hits */
             cache_hits: number;
+            /** Escalated Segments */
+            escalated_segments: number;
             /** Suggestion Ids */
             suggestion_ids: number[];
             /** Predictions */
@@ -442,6 +461,34 @@ export interface components {
              * @default researcher
              */
             actor: string;
+        };
+        /** EvaluateInput */
+        EvaluateInput: {
+            /** Backend */
+            backend?: string | null;
+            /** Model */
+            model?: string | null;
+        };
+        /** EvaluationResult */
+        EvaluationResult: {
+            /** Id */
+            id: number;
+            /** Split */
+            split: string;
+            /** Backend */
+            backend: string;
+            /** Model */
+            model: string;
+            /** Codebook Version Id */
+            codebook_version_id: number;
+            /** Pipeline Version */
+            pipeline_version: string;
+            /** Metrics */
+            metrics: {
+                [key: string]: unknown;
+            };
+            /** Created At */
+            created_at: string;
         };
         /** ExportResult */
         ExportResult: {
@@ -1245,6 +1292,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["IdResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    evaluate_api_projects__slug__evaluate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EvaluateInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvaluationResult"];
                 };
             };
             /** @description Validation Error */

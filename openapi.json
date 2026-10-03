@@ -900,6 +900,55 @@
           }
         }
       }
+    },
+    "/api/projects/{slug}/evaluate": {
+      "post": {
+        "summary": "Evaluate",
+        "operationId": "evaluate_api_projects__slug__evaluate_post",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvaluateInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaluationResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1063,6 +1112,10 @@
             "type": "integer",
             "title": "Cache Hits"
           },
+          "escalated_segments": {
+            "type": "integer",
+            "title": "Escalated Segments"
+          },
           "suggestion_ids": {
             "items": {
               "type": "integer"
@@ -1099,6 +1152,7 @@
           "segments",
           "calls",
           "cache_hits",
+          "escalated_segments",
           "suggestion_ids",
           "predictions",
           "status",
@@ -1240,6 +1294,85 @@
           "code_id"
         ],
         "title": "CodingInput"
+      },
+      "EvaluateInput": {
+        "properties": {
+          "backend": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Backend"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "EvaluateInput"
+      },
+      "EvaluationResult": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "split": {
+            "type": "string",
+            "title": "Split"
+          },
+          "backend": {
+            "type": "string",
+            "title": "Backend"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "codebook_version_id": {
+            "type": "integer",
+            "title": "Codebook Version Id"
+          },
+          "pipeline_version": {
+            "type": "string",
+            "title": "Pipeline Version"
+          },
+          "metrics": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Metrics"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "split",
+          "backend",
+          "model",
+          "codebook_version_id",
+          "pipeline_version",
+          "metrics",
+          "created_at"
+        ],
+        "title": "EvaluationResult"
       },
       "ExportResult": {
         "properties": {

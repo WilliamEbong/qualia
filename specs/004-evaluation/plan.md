@@ -8,6 +8,12 @@ Main owns migrations, openapi.json and backend protocol. Reconcile against the l
 
 ## Architecture and file responsibilities
 
+Main analysis on2026-10-03: required preceding offline contracts are verified. Native Codex setup/live
+gates remain owner-pending; doc02's blocked-work ladder explicitly authorizes these independent
+evaluation/demo tasks. No live gate is waived. The demo's visible database contains dev/validation
+transcripts only; protected texts and gold stay in the sibling vault. Full source remains ignored.
+Transcript split rounding/quality strata and known video overlap are fixed in docs/research/demo-data.md.
+
 1. qualia/eval/{metrics,alpha,calibration}.py are sealed deterministic functions; qualia/io/benchmarks.py validates JSONL and orchestration outside eval obtains predictions through the Phase 3 router.
 2. qualia/cli.py exposes benchmark import/evaluate/demo; Store records evaluation runs atomically. Filesystem orchestration handles split creation and manifests outside sealed modules.
 3. scripts/fetch_demo.py pins remote source/checksum and writes only ignored data; qualia/io/demo.py translates dataset records into existing import/codebook/human-event operations. Main session owns contract changes.

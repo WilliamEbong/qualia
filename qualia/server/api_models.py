@@ -117,6 +117,7 @@ class ClassifyResult(Record):
     segments: int
     calls: int
     cache_hits: int
+    escalated_segments: int
     suggestion_ids: list[int]
     predictions: list[dict]
     status: str
@@ -140,3 +141,19 @@ class ReviewInput(Record):
     decision: Literal['accept', 'reject']
     actor: str = Field(default='researcher', min_length=1, max_length=200)
     note: str = Field(default='', max_length=10000)
+
+
+class EvaluateInput(Record):
+    backend: str | None = None
+    model: str | None = None
+
+
+class EvaluationResult(Record):
+    id: int
+    split: str
+    backend: str
+    model: str
+    codebook_version_id: int
+    pipeline_version: str
+    metrics: dict
+    created_at: str

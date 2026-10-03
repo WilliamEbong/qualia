@@ -1,0 +1,33 @@
+# Phase 3 CLI classification evidence
+
+Audited 2026-10-03 on Windows with Claude Code 2.1.284 and Codex 0.160.0. No paid calls, real credential reads, credential copies, global configuration changes or native sandbox setup were performed for these tests.
+
+## Implemented transport
+
+The vendor adapters resolve Windows native executables or the official Node launcher, never a command shell. Each invocation receives an allowlisted environment that preserves login locations but drops API keys, endpoint overrides and executable injection variables. Classification uses a fresh empty working directory, stdin JSON prompt, a pinned audited CLI version, bounded input/output, a deadline, and process-tree cleanup. Windows uses a private kill-on-close Job Object assigned before sending the prompt; POSIX uses a new process group. Neither mechanism claims filesystem isolation.
+
+Both adapters return predictions, observed input/output usage and CLI version. Failures expose safe codes and the trusted input segment identity, retain known usage/version, and never echo provider text, stderr or secrets. JSON decoding rejects duplicate properties at every nesting level and nonfinite numbers. The router owns full prediction/schema/ID/span validation and rejects configurations above the shared 20-segment, 4000-character and 8192-output-token ceilings before reserving a call.
+
+## Claude registry and bounds
+
+The mandated `--json-schema` creates exactly one internal `StructuredOutput` serializer even with `--tools ''`. The agreed interpretation is no **action** capabilities: no file, shell, network, browser, agent or MCP tools. The offline request test asserts exactly that serializer, with the exact supplied schema. A synthetic successful tool response yields only the structured prediction data; an invalid schema response is rejected. Neither case triggers an extra model request with `MAX_STRUCTURED_OUTPUT_RETRIES=1`.
+
+The actual outgoing request carries `max_tokens=128` in the synthetic bound test. HTTP400 and HTTP500 each produce one request with `CLAUDE_CODE_MAX_RETRIES=0`. Production sets the configured token ceiling and disables the retry watchdog by environment omission. These are provider generation bounds for Claude, separate from local process limits. See [Claude environment variables](https://code.claude.com/docs/en/env-vars) and [CLI reference](https://code.claude.com/docs/en/cli-reference).
+
+Availability requires exactly 2.1.284. New CLI versions require a fresh registry/bounds audit. Subscription login/quota remains a live smoke-test question; localhost evidence is not a subscription authentication test.
+
+## Codex registry, native subscription provider and remaining gate
+
+Production argv retains the mandated `-s read-only`, ignores user configuration, disables actions/features, supplies a restricted copy of the current genuine model catalog, and preserves the real auth home. Localhost tests for both `gpt-6-luna` and `gpt-6-astra` inspect the nested `additional_tools` registry: it is empty. Merely checking the top-level `tools` key would miss capabilities.
+
+Codex rejects overrides under the reserved `model_providers.openai` ID. The supported candidate instead defines a per-run `qualia-subscription` provider with `name='OpenAI'`, `requires_openai_auth=true`, Responses transport, WebSockets off, and request/stream retries zero. It omits `base_url`, `env_key`, bearer tokens and auth commands; `forced_login_method='chatgpt'` restricts login mode. Native provider code selects the official ChatGPT endpoint from the existing login. No proxy or copied token is involved. [Version-pinned provider definition and endpoint selection](https://raw.githubusercontent.com/openai/codex/rust-v0.160.0/codex-rs/model-provider-info/src/lib.rs), [native auth resolution](https://raw.githubusercontent.com/openai/codex/rust-v0.160.0/codex-rs/model-provider/src/auth.rs).
+
+The localhost fixture overrides only the candidate endpoint and auth requirement, using a fresh credential-free home. HTTP400 and HTTP500 each result in one request, for both models. This proves ordinary transport retry behavior, not every authentication path. The tagged [authentication recovery test](https://github.com/openai/codex/blob/rust-v0.160.0/codex-rs/core/tests/suite/auth_recovery_policy.rs) expects two requests on401: initial plus credential disk reload, even when refresh is denied. No public switch disabling that recovery has been verified. Thus literal zero internal retries and one HTTP request per reservation remain unproven for subscription authentication failures.
+
+The outgoing Codex Responses request has no `max_output_tokens`, consistent with the previously audited request types. Local timeout/byte/schema limits do not impose a generation-token cap. `CodexCLIBackend.available()` remains unconditionally false with no environment, constructor or context bypass. Complete dispatch/schema/output/usage/error handling exists behind that gate and is exercised only by injected synthetic runners. Activation requires the owner's generation-limit decision **and** resolution of auth retry accounting; approving a token exception that promises zero retries does not resolve this second issue. Operator filesystem permissions are a separate gate described in agent-isolation.md.
+
+## Reproducible checks
+
+Run `.venv/Scripts/python.exe -m pytest tests/test_cli_backends.py -q -p no:cacheprovider`. The suite uses only fixture runners, local child processes and HTTP listeners bound to127.0.0.1; it never records request headers. Installed-CLI tests skip when the exact executable/catalog is unavailable. Run `ruff check` on the three transport modules and the two test files.
+
+`tests/live/test_classification.py` carries the `live` marker and is excluded by default. Even when selected, it skips unless `QUALIA_RUN_LIVE_CLASSIFICATION=1`; Codex additionally skips its hard readiness gate. These tests use synthetic text through the normal router, reserve one call, record egress and observed usage, and assert no coding events were written. They have not been run against a provider in this lane.

@@ -11,3 +11,13 @@ Frozen at Phase 1; changes require the main session. Source of truth: `qualia/st
 - External backends declare `external=True`; availability never sends research text. Router owns policy and admission; ledger.py is the sole usage/egress write coordinator and delegates SQL to Store.
 - Configuration uses JSON syntax in YAML files (a valid YAML subset); no arbitrary YAML tags. Privacy/budget bounds are protected during optimizer runs even though routing.yaml is otherwise mutable.
 - Web data, state, selection, keyboard and derived views live under lib; components/pages render markup. Design changes cannot alter lib or generated API.
+
+Phase4 additive contract: benchmark JSONL records contain `segment_id`/`text`/`transcript_id` strings,
+`codes` integer arrays and optional `coders` arrays of integer arrays or null missing ratings.
+Per-split metadata binds SHA-256 and frozen `codebook_version_id`. Imports validate all records,
+publish once, reject changed replacements and transcript overlap. Only explicit protected evaluation
+loads protected examples; the regular project contains dev/validation only.
+Evaluation publishes complete coverage only; predictions append to evaluation_runs, never coding_events.
+Validation API returns aggregate metrics plus prompt/benchmark/codebook/CLI identity, never protected rows.
+ECE lookup requires backend, model, frozen codebook, pipeline and prompt identity to match.
+Classification summaries add `escalated_segments`, the count of distinct successful strong-tier results.

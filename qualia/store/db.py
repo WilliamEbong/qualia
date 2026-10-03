@@ -3,7 +3,9 @@
 import hashlib
 import json
 import math
+import os
 import sqlite3
+import uuid
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -21,8 +23,11 @@ def canonical(value) -> str:
 
 
 class Store:
-    def __init__(self, path: Path):
+    def __init__(self, path: Path, operation_id: str | None = None):
         self.path = Path(path)
+        self._project_root = self.path.parent.resolve()
+        self.operation_id = operation_id
+        self._check_operation()
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.connection = sqlite3.connect(self.path, timeout=5, check_same_thread=False)
         self.connection.row_factory = sqlite3.Row
@@ -30,12 +35,82 @@ class Store:
         self.connection.execute('PRAGMA busy_timeout=5000')
         self.connection.execute('PRAGMA journal_mode=WAL')
         self.migrate()
+        stat = self.path.stat() if str(self.path) != ':memory:' else None
+        self._file_identity = (stat.st_dev, stat.st_ino) if stat else None
 
     def __enter__(self):
         return self
 
     def __exit__(self, *args):
         self.connection.close()
+
+    def _check_operation(self):
+        lock = self.path.parent / '.qualia-operation.lock'
+        if self.operation_id and (not lock.is_file() or lock.read_text(encoding='utf-8') != self.operation_id):
+            raise ValueError('exclusive operation lock is missing or changed')
+        journal = self.path.parent.parent.parent / 'recovery' / self.path.parent.name / 'pending.json'
+        if not self.operation_id and journal.exists():
+            raise ValueError('project has an interrupted operation requiring recovery')
+        if lock.exists():
+            if not self.operation_id or lock.read_text(encoding='utf-8') != self.operation_id:
+                raise ValueError('project has an active or interrupted operation')
+
+    def backup_to(self, path: Path):
+        self._check_operation()
+        if self.connection.in_transaction:
+            raise ValueError('database backup requires no active transaction')
+        target = sqlite3.connect(path)
+        try:
+            self.connection.backup(target)
+        finally:
+            target.close()
+
+    def restore_from(self, path: Path):
+        self._check_operation()
+        if not self.operation_id or self.connection.in_transaction or not path.is_file():
+            raise ValueError('database restoration requires an exclusive operation and a valid backup')
+        if self.path.parent.resolve() != self._project_root:
+            raise ValueError('database directory changed during operation')
+        source = sqlite3.connect(f'{path.resolve().as_uri()}?mode=ro', uri=True)
+        stat = self.path.stat() if self.path.is_file() and not self.path.is_symlink() else None
+        if stat and stat.st_nlink == 1 and (stat.st_dev, stat.st_ino) == self._file_identity:
+            try:
+                source.backup(self.connection)
+            finally:
+                source.close()
+            return
+        replacement = self.path.with_name('.qualia-restore-' + uuid.uuid4().hex + '.db')
+        target = sqlite3.connect(replacement)
+        try:
+            source.backup(target)
+        finally:
+            target.close()
+            source.close()
+        self.connection.close()
+        # Exact sibling sidecars only. Never follow an operator-created symlink.
+        for suffix in ('-wal', '-shm'):
+            sidecar = self.path.with_name(self.path.name + suffix)
+            if sidecar.parent.resolve() != self._project_root:
+                raise ValueError('database sidecar escapes project')
+            if sidecar.is_file() or sidecar.is_symlink():
+                sidecar.unlink()
+        os.replace(replacement, self.path)
+        self.connection = sqlite3.connect(self.path, timeout=5, check_same_thread=False)
+        self.connection.row_factory = sqlite3.Row
+        self.connection.execute('PRAGMA foreign_keys=ON')
+        self.connection.execute('PRAGMA busy_timeout=5000')
+        self.connection.execute('PRAGMA journal_mode=WAL')
+        stat = self.path.stat()
+        self._file_identity = (stat.st_dev, stat.st_ino)
+
+    def fingerprint(self) -> str:
+        """Trusted integrity digest; no row contents leave the Store boundary."""
+        digest = hashlib.sha256()
+        for statement in self.connection.iterdump():
+            digest.update(statement.encode('utf-8'))
+            digest.update(b'\n')
+        digest.update(str(self.connection.execute('PRAGMA user_version').fetchone()[0]).encode())
+        return digest.hexdigest()
 
     def migrate(self):
         version = self.connection.execute('PRAGMA user_version').fetchone()[0]
@@ -44,7 +119,7 @@ class Store:
             number = int(file.name.split('_')[0])
             if number <= version:
                 continue
-            if version:
+            if version and str(self.path) != ':memory:':
                 backup = sqlite3.connect(str(self.path) + f'.v{version}.bak')
                 try:
                     self.connection.backup(backup)
@@ -68,13 +143,21 @@ class Store:
     @contextmanager
     def transaction(self):
         # Callers compose store methods atomically; SQLite serializes independent connections.
-        self.connection.execute('SAVEPOINT qualia_transaction')
+        outer = not self.connection.in_transaction
+        self.connection.execute('BEGIN IMMEDIATE' if outer else 'SAVEPOINT qualia_transaction')
         try:
+            self._check_operation()
             yield self
-            self.connection.execute('RELEASE qualia_transaction')
+            if outer:
+                self.connection.commit()
+            else:
+                self.connection.execute('RELEASE qualia_transaction')
         except Exception:
-            self.connection.execute('ROLLBACK TO qualia_transaction')
-            self.connection.execute('RELEASE qualia_transaction')
+            if outer:
+                self.connection.rollback()
+            else:
+                self.connection.execute('ROLLBACK TO qualia_transaction')
+                self.connection.execute('RELEASE qualia_transaction')
             raise
 
     @contextmanager
@@ -83,6 +166,7 @@ class Store:
             raise ValueError('admission requires an independent transaction')
         self.connection.execute('BEGIN IMMEDIATE')
         try:
+            self._check_operation()
             yield self
             self.connection.commit()
         except Exception:

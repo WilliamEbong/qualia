@@ -48,9 +48,41 @@ git -C "C:\Users\Owner\OneDrive\Documents\Qualia" check-ignore .env
 
 Expected output is `.env`. If it prints nothing, do not stage or commit the file; ask the coding agent to repair the ignore configuration. Never edit `.env.example` to contain the real key. These are Qualia's local secret-handling rules, not TypeSafe account requirements.
 
-## 4. Verify through Qualia when its Jev phase is ready
+## 4. Verify the installed adapter
 
-Once saved, tell the coding agent only: **“The Jev key is saved in .env; run the synthetic live check.”** Do not include the value. The agent must verify the installed adapter, environment loading, and live-test command against the actual build before running it; this guide does not invent a command for unfinished code.
+From PowerShell in the application folder, run:
+
+```powershell
+Set-Location "C:\Users\Owner\OneDrive\Documents\Qualia"
+uv run qualia jev check --project demo
+```
+
+This sends **zero network requests** and prints only readiness, the pinned model and budget settings.
+After saving a valid-looking key, `key_configured` should be `true`; this does not yet prove authentication
+or credit balance. `allow_external` and `jev_enabled` stay `false` until you explicitly enable a project.
+The per-request reservation is at most $0.002752512 under the currently published input-token rate;
+the default daily local limit is $1.00. The ledger charges the returned usage, or conservatively retains
+the reservation when actual usage is unknown. These are local safeguards, not changes to account billing.
+
+For a first tiny, non-sensitive live check, use a separate synthetic project:
+
+```powershell
+uv run qualia init jev-check
+uv run qualia codebook add Possibility --definition "Language describing a possible positive change." --project jev-check
+uv run qualia codebook freeze --project jev-check
+$samplePath = Join-Path $env:TEMP 'qualia-jev-smoke.txt'
+Set-Content -LiteralPath $samplePath -Value 'I could try a different approach tomorrow.' -Encoding utf8
+uv run qualia import $samplePath --project jev-check
+uv run qualia jev enable --project jev-check
+uv run qualia classify --project jev-check --backend jev --model jev-1.13.0
+uv run qualia jev disable --project jev-check
+```
+
+`enable` is the explicit choice to permit external processing for that project; it preserves the budgets.
+`disable` turns external AI and Jev off again. The main demo and other projects are unaffected.
+If you prefer the agent to perform the live check, say only **“The Jev key is saved in .env; run the
+synthetic live check.”** Never include the key. No live Jev request was made during setup because the
+local readiness check found no configured key.
 
 Success means a synthetic, non-sensitive request returns a validated answer, records the returned model ID and token usage, and never prints the key. Jev remains off by default. Saving a key must not turn on external processing for existing projects; a project still needs an explicit egress setting and a deliberate backend choice.
 
