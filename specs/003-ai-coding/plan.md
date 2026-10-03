@@ -27,3 +27,5 @@ Main owns migrations, openapi.json and backend protocol. Reconcile against the l
 ## Validation and handoff
 
 Implement tasks in listed dependency order; a main-owned contract update must finish before consumers change. Re-run exact failed checks during repair. Use the spec success criteria and verbatim excerpts as the gate checklist, then run converge (at most three rounds per runbook), record unresolved issues honestly and preserve the resumable state. Phase-specific test files and evidence locations appear in tasks.md; filenames may follow an equivalent existing owner without adding duplicate abstractions.
+
+Main-owned contract amendment: migration002 adds usage_ledger.cli_version/reservation_id/reserved_usd and egress_log.reservation_id with unique completion/egress indexes. Store.reserve_attempt atomically checks budgets and appends reservation+egress under BEGIN IMMEDIATE; finish_attempt appends completion, preserving all immutable history. Ledger owns orchestration; cache replacement repairs invalid entries. Review check and append now share an immediate transaction.

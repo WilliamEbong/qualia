@@ -9,6 +9,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 
 from qualia import __version__
+from qualia.server.ai_routes import register_ai_routes
 from qualia.server.api_models import Health, ProjectInput, ProjectSummary, Workspace
 from qualia.server.workspace_routes import register_workspace_routes
 from qualia.store.db import Store
@@ -85,12 +86,16 @@ def create_app(home: Path | None = None, token: str | None = None, dist: Path | 
             data = {table: db.rows(f'SELECT * FROM {table}') for table in (
                 'sources', 'segments', 'cases', 'attributes', 'source_cases', 'codes',
                 'codebook_versions', 'coding_events', 'current_codings', 'memos',
-                'experiments', 'evaluation_runs')}
+                'experiments')}
+            data['evaluation_runs'] = db.rows(
+                'SELECT id,split,backend,model,codebook_version_id,pipeline_version,metrics_json,created_at '
+                "FROM evaluation_runs WHERE split='validation'")
             data['suggestions'] = db.rows('SELECT * FROM pending_suggestions')
         return {**data, 'project': {'slug': slug, 'name': slug.replace('-', ' ').title()},
                 'routing': read_config(path), 'pipeline_version': pipeline_hash(path)}
 
     register_workspace_routes(app, home)
+    register_ai_routes(app, home)
 
     @app.get('/{asset:path}', include_in_schema=False)
     def spa(asset: str):

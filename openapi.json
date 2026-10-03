@@ -763,10 +763,198 @@
           }
         }
       }
+    },
+    "/api/projects/{slug}/ai/availability": {
+      "get": {
+        "summary": "Availability",
+        "operationId": "availability_api_projects__slug__ai_availability_get",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Availability"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/projects/{slug}/classify": {
+      "post": {
+        "summary": "Classify",
+        "operationId": "classify_api_projects__slug__classify_post",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClassifyInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClassifyResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/projects/{slug}/review": {
+      "post": {
+        "summary": "Review",
+        "operationId": "review_api_projects__slug__review_post",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "Availability": {
+        "properties": {
+          "allow_external": {
+            "type": "boolean",
+            "title": "Allow External"
+          },
+          "backends": {
+            "items": {
+              "$ref": "#/components/schemas/BackendAvailability"
+            },
+            "type": "array",
+            "title": "Backends"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "allow_external",
+          "backends"
+        ],
+        "title": "Availability"
+      },
+      "BackendAvailability": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "available": {
+            "type": "boolean",
+            "title": "Available"
+          },
+          "external": {
+            "type": "boolean",
+            "title": "External"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "available",
+          "external",
+          "reason"
+        ],
+        "title": "BackendAvailability"
+      },
       "CaseInput": {
         "properties": {
           "name": {
@@ -796,6 +984,127 @@
           "name"
         ],
         "title": "CaseInput"
+      },
+      "ClassifyInput": {
+        "properties": {
+          "backend": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Backend"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "segment_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Segment Ids"
+          },
+          "task": {
+            "type": "string",
+            "enum": [
+              "classification",
+              "escalation"
+            ],
+            "title": "Task",
+            "default": "classification"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "ClassifyInput"
+      },
+      "ClassifyResult": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "backend": {
+            "type": "string",
+            "title": "Backend"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "segments": {
+            "type": "integer",
+            "title": "Segments"
+          },
+          "calls": {
+            "type": "integer",
+            "title": "Calls"
+          },
+          "cache_hits": {
+            "type": "integer",
+            "title": "Cache Hits"
+          },
+          "suggestion_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Suggestion Ids"
+          },
+          "predictions": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Predictions"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "errors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Errors"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "run_id",
+          "backend",
+          "model",
+          "segments",
+          "calls",
+          "cache_hits",
+          "suggestion_ids",
+          "predictions",
+          "status",
+          "errors"
+        ],
+        "title": "ClassifyResult"
       },
       "CodeInput": {
         "properties": {
@@ -1173,6 +1482,43 @@
           "name"
         ],
         "title": "ProjectSummary"
+      },
+      "ReviewInput": {
+        "properties": {
+          "suggestion_id": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Suggestion Id"
+          },
+          "decision": {
+            "type": "string",
+            "enum": [
+              "accept",
+              "reject"
+            ],
+            "title": "Decision"
+          },
+          "actor": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Actor",
+            "default": "researcher"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 10000,
+            "title": "Note",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "suggestion_id",
+          "decision"
+        ],
+        "title": "ReviewInput"
       },
       "ValidationError": {
         "properties": {

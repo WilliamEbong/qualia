@@ -260,10 +260,79 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/projects/{slug}/ai/availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Availability */
+        get: operations["availability_api_projects__slug__ai_availability_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/projects/{slug}/classify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Classify */
+        post: operations["classify_api_projects__slug__classify_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/projects/{slug}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Review */
+        post: operations["review_api_projects__slug__review_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** Availability */
+        Availability: {
+            /** Allow External */
+            allow_external: boolean;
+            /** Backends */
+            backends: components["schemas"]["BackendAvailability"][];
+        };
+        /** BackendAvailability */
+        BackendAvailability: {
+            /** Name */
+            name: string;
+            /** Available */
+            available: boolean;
+            /** External */
+            external: boolean;
+            /** Reason */
+            reason: string;
+        };
         /** CaseInput */
         CaseInput: {
             /** Name */
@@ -274,6 +343,46 @@ export interface components {
             attributes?: {
                 [key: string]: string;
             };
+        };
+        /** ClassifyInput */
+        ClassifyInput: {
+            /** Backend */
+            backend?: string | null;
+            /** Model */
+            model?: string | null;
+            /** Segment Ids */
+            segment_ids?: number[] | null;
+            /**
+             * Task
+             * @default classification
+             * @enum {string}
+             */
+            task: "classification" | "escalation";
+        };
+        /** ClassifyResult */
+        ClassifyResult: {
+            /** Run Id */
+            run_id: string;
+            /** Backend */
+            backend: string;
+            /** Model */
+            model: string;
+            /** Segments */
+            segments: number;
+            /** Calls */
+            calls: number;
+            /** Cache Hits */
+            cache_hits: number;
+            /** Suggestion Ids */
+            suggestion_ids: number[];
+            /** Predictions */
+            predictions: {
+                [key: string]: unknown;
+            }[];
+            /** Status */
+            status: string;
+            /** Errors */
+            errors: string[];
         };
         /** CodeInput */
         CodeInput: {
@@ -425,6 +534,26 @@ export interface components {
             slug: string;
             /** Name */
             name: string;
+        };
+        /** ReviewInput */
+        ReviewInput: {
+            /** Suggestion Id */
+            suggestion_id: number;
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "accept" | "reject";
+            /**
+             * Actor
+             * @default researcher
+             */
+            actor: string;
+            /**
+             * Note
+             * @default
+             */
+            note: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -1015,6 +1144,107 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ExportResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    availability_api_projects__slug__ai_availability_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Availability"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    classify_api_projects__slug__classify_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClassifyInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassifyResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    review_api_projects__slug__review_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdResult"];
                 };
             };
             /** @description Validation Error */

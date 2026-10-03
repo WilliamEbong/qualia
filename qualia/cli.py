@@ -1,6 +1,8 @@
 """Qualia command line."""
 
 import json
+import threading
+import time
 import webbrowser
 from pathlib import Path
 
@@ -175,6 +177,45 @@ def export_command(project: str = 'demo', format: str = 'json',
         typer.echo(content)
 
 
+@app.command('classify')
+def classify_command(project: str = 'demo', backend: str | None = None, model: str | None = None,
+                     segments: str = '', escalate: bool = False):
+    """Generate reviewable suggestions under the project's egress and budget policy."""
+    from qualia.ai.router import classify_project
+
+    try:
+        selected = [int(value.strip()) for value in segments.split(',') if value.strip()] or None
+        path = resolve_project(project)
+        with Store(path / 'project.db') as db:
+            result = classify_project(db, path, backend=backend, model=model, segment_ids=selected,
+                                      task='escalation' if escalate else 'classification')
+        typer.echo(json.dumps(result, ensure_ascii=False))
+        if result['status'] not in ('completed', 'partial'):
+            raise typer.Exit(1)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+
+@app.command('availability')
+def availability_command(project: str = 'demo'):
+    """Show usable classifiers and exact reasons disabled backends cannot run."""
+    from qualia.ai.router import availability
+
+    typer.echo(json.dumps(availability(resolve_project(project)), ensure_ascii=False))
+
+
+@app.command('review')
+def review_command(suggestion: int, decision: str, project: str = 'demo',
+                   actor: str = 'researcher', note: str = ''):
+    """Accept or reject a suggestion and append human feedback atomically."""
+    path = resolve_project(project)
+    try:
+        with Store(path / 'project.db') as db:
+            typer.echo(db.review(suggestion, decision, actor, pipeline_hash(path), note))
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+
 @app.command('open')
 def open_command(port: int = typer.Option(8765, min=1024, max=65535), browser: bool = True):
     """Open the local research interface."""
@@ -184,9 +225,22 @@ def open_command(port: int = typer.Option(8765, min=1024, max=65535), browser: b
         raise typer.BadParameter('QUALIA_PORT must be an integer') from exc
     if not 1024 <= port <= 65535:
         raise typer.BadParameter('QUALIA_PORT must be between 1024 and 65535')
+    server = uvicorn.Server(uvicorn.Config(create_app(), host='127.0.0.1', port=port, access_log=False))
+    stopped = threading.Event()
     if browser:
-        webbrowser.open(f'http://127.0.0.1:{port}')
-    uvicorn.run(create_app(), host='127.0.0.1', port=port, access_log=False)
+        threading.Thread(target=_open_when_ready, args=(server, port, stopped), daemon=True).start()
+    try:
+        server.run()
+    finally:
+        stopped.set()
+
+
+def _open_when_ready(server, port: int, stopped: threading.Event):
+    deadline = time.monotonic() + 30
+    while not stopped.wait(0.05) and time.monotonic() < deadline:
+        if server.started:
+            webbrowser.open(f'http://127.0.0.1:{port}')
+            return
 
 
 if __name__ == '__main__':

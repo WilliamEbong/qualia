@@ -101,3 +101,42 @@ class ExportResult(Record):
     filename: str
     media_type: str
     content: str
+
+
+class ClassifyInput(Record):
+    backend: str | None = None
+    model: str | None = None
+    segment_ids: list[int] | None = None
+    task: Literal['classification', 'escalation'] = 'classification'
+
+
+class ClassifyResult(Record):
+    run_id: str
+    backend: str
+    model: str
+    segments: int
+    calls: int
+    cache_hits: int
+    suggestion_ids: list[int]
+    predictions: list[dict]
+    status: str
+    errors: list[str]
+
+
+class BackendAvailability(Record):
+    name: str
+    available: bool
+    external: bool
+    reason: str
+
+
+class Availability(Record):
+    allow_external: bool
+    backends: list[BackendAvailability]
+
+
+class ReviewInput(Record):
+    suggestion_id: int = Field(gt=0)
+    decision: Literal['accept', 'reject']
+    actor: str = Field(default='researcher', min_length=1, max_length=200)
+    note: str = Field(default='', max_length=10000)

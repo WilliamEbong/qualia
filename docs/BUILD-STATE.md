@@ -18,9 +18,9 @@ Started 2026-10-03. Baseline: f1d8719. Owner authorized autonomous implementatio
 - [x] P2.1 Spec Kit workspace artifacts and analysis.
 - [x] P2.2 Import, segmentation, cases, codebook versions, memos and export.
 - [x] P2.3 Workspace UI, keyboard/span coding, retrieval and matrix; converge.
-- [ ] P3.1 Spec Kit AI coding artifacts and analysis.
-- [ ] P3.2 Backends, schemas, routing, budget, cache and egress ledger.
-- [ ] P3.3 Review UI and feedback, I4/I5/budget gate; converge.
+- [x] P3.1 Spec Kit AI coding artifacts and analysis.
+- [~] P3.2 Backends, schemas, routing, budget, cache and egress ledger.
+- [~] P3.3 Review UI and feedback, I4/I5/budget gate; converge.
 - [ ] P4.1 Spec Kit evaluation artifacts and analysis.
 - [ ] P4.2 Metrics, benchmarks, pinned demo data and split manifests.
 - [ ] P4.3 Evaluation UI, metric/oracle/idempotency gate; converge.
@@ -102,3 +102,7 @@ Phase2 ENGINE/SERVER checkpoint: import TXT/MD/CSV, all three segmentation modes
 Additional routine command correction: npm run api was invoked once from the repository root (no package.json); rerun from web succeeded. No code or detector change. Two non-secret .env launcher settings now load independently; blank lines cannot consume the next setting, proved by regression test. TYPESAFE_API_KEY remains unused pending its isolated backend.
 
 Phase2 final: 60 Python tests passed; Ruff clean; frontend 7 Vitest tests, TypeScript and Vite build pass; dependency audit 0. Playwright MCP verified import, frozen codebook, 5 keyboard-coded segments, emoji/combining span 1:8 with overlapping codes after reload, removal provenance, draft rename retaining frozen event names, memo linked to segment, case matrix count 5 matching retrieval 5 distinct/6 coded excerpts, bundle download, and project-switch filter reset. Screenshots design-review/phase-2/. Review fixes: no-text attributes now redacted and marked; CLI reads exact bytes and supports version_of; UI historical labels use snapshots and project switches reset stale filters. Regression tests pass. Routine test fixture path corrected (home/projects/study); no detector changes. Recogito viewport culling explained full-page screenshot appearance; saved anchors pass with actual visible highlights. Spec Kit convergence: 11 FR, 5 SC, 15 tasks plus plan/constitution reviewed; zero remaining Phase2 gaps. Source docs02–05 unchanged. Phase2 gate PASS; Phase0 live quota/isolation remains separately pending.
+
+Phase3 analysis: 11 FR, 5 SC, 13 tasks; 100% coverage. One necessary main-owned schema addition (002_attempt_accounting.sql) supplies CLI version and immutable reservation/completion linkage, preserving migration001/triggers. Atomic BEGIN IMMEDIATE admission precedes provider dispatch and egress; no in-memory budget-only lock. Implementers own disjoint AI backend/coordination and WEB lanes. Codex live classification remains unavailable pending honest generation-bound decision; operator confinement adaptation remains gated. Offline features proceed; no load-bearing external acceptance claimed.
+
+Phase2 main CI SUCCESS at bed61f6: https://github.com/WilliamEbong/qualia/actions/runs/37160288072. Phase3 Store atomic reservation/concurrent admission tests: 2 passed; migration/provenance/workspace/CLI regressions: 15 passed. Open launcher now waits for Uvicorn's verified started signal (after socket bind) before opening browser; failed startup cancels the launcher. Context7 plus installed0.54 source verified API.

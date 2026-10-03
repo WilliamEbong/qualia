@@ -3,6 +3,25 @@ import json
 from fastapi.testclient import TestClient
 
 from qualia.server.app import create_app
+from qualia.store.db import Store
+from qualia.workspace import init_project
+
+
+def test_workspace_only_exposes_validation_summaries(tmp_path):
+    project = init_project('study', tmp_path)
+    with Store(project / 'project.db') as db:
+        for split in ('validation', 'protected'):
+            db.add('evaluation_runs', dict(split=split, backend='fake', model='fake',
+                   pipeline_version='fixture', metrics_json='{"macro_f1":0.5}',
+                   predictions_json='[{"text":"SYNTHETIC_PRIVATE_PREDICTION"}]'))
+    client = TestClient(create_app(tmp_path, token='test'), base_url='http://127.0.0.1',
+                        headers={'X-Qualia-Token': 'test'})
+    response = client.get('/api/projects/study')
+    assert response.status_code == 200
+    assert 'SYNTHETIC_PRIVATE_PREDICTION' not in response.text
+    rows = response.json()['evaluation_runs']
+    assert len(rows) == 1 and rows[0]['split'] == 'validation'
+    assert 'predictions_json' not in rows[0]
 
 
 def test_human_workflow_and_exports(tmp_path):

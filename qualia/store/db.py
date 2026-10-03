@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import math
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
@@ -76,6 +77,80 @@ class Store:
             self.connection.execute('RELEASE qualia_transaction')
             raise
 
+    @contextmanager
+    def immediate(self):
+        if self.connection.in_transaction:
+            raise ValueError('admission requires an independent transaction')
+        self.connection.execute('BEGIN IMMEDIATE')
+        try:
+            yield self
+            self.connection.commit()
+        except Exception:
+            self.connection.rollback()
+            raise
+
+    def reserve_attempt(self, *, backend, model, run_id, segment_hashes, external,
+                        allow_external, daily_calls, run_segments, daily_usd=1.0,
+                        reserved_usd=0.0, purpose='classification') -> int:
+        """Called only by the usage coordinator, immediately before dispatch."""
+        if external and not allow_external:
+            raise ValueError('external AI disabled for this project')
+        if any(type(value) is not int or value < 0 for value in (daily_calls, run_segments)):
+            raise ValueError('invalid budget limits')
+        if any(not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0
+               for value in (reserved_usd, daily_usd)):
+            raise ValueError('invalid cost limit')
+        with self.immediate():
+            daily = self.one("SELECT coalesce(sum(calls),0) AS calls FROM usage_ledger "
+                             "WHERE substr(created_at,1,10)=date('now')")['calls']
+            used = self.one('SELECT coalesce(sum(segments),0) AS segments FROM usage_ledger WHERE run_id=?',
+                            (run_id,))['segments']
+            cost = self.one("SELECT coalesce(sum(cost_usd),0) AS amount FROM usage_ledger "
+                            "WHERE backend=? AND substr(created_at,1,10)=date('now')", (backend,))['amount']
+            held = self.one("SELECT coalesce(sum(reserved_usd),0) AS amount FROM usage_ledger r "
+                            "WHERE backend=? AND status='reserved' AND substr(created_at,1,10)=date('now') "
+                            'AND NOT EXISTS(SELECT 1 FROM usage_ledger f WHERE f.reservation_id=r.id)',
+                            (backend,))['amount']
+            if daily + 1 > daily_calls or used + len(segment_hashes) > run_segments:
+                raise ValueError('budget reached')
+            if cost + held + reserved_usd > daily_usd:
+                raise ValueError('budget reached: daily cost limit')
+            row_id = self.add('usage_ledger', dict(backend=backend, model=model, calls=1,
+                              segments=len(segment_hashes), status='reserved', run_id=run_id,
+                              reserved_usd=reserved_usd))
+            if external:
+                self.add('egress_log', dict(backend=backend, model=model,
+                         segment_hashes_json=canonical(segment_hashes), purpose=purpose,
+                         reservation_id=row_id))
+            return row_id
+
+    def finish_attempt(self, reservation_id: int, *, input_tokens=0, output_tokens=0,
+                       cost_usd=0.0, latency_ms=0.0, status='ok', cli_version=None) -> int:
+        if status not in ('ok', 'error'):
+            raise ValueError('completion status must be ok or error')
+        if any(type(value) is not int or value < 0 for value in (input_tokens, output_tokens)):
+            raise ValueError('invalid usage totals')
+        if any(not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0
+               for value in (cost_usd, latency_ms)):
+            raise ValueError('invalid cost or latency')
+        with self.immediate():
+            reservation = self.one("SELECT * FROM usage_ledger WHERE id=? AND status='reserved'",
+                                   (reservation_id,))
+            if reservation is None:
+                raise ValueError('attempt reservation not found')
+            if self.one('SELECT id FROM usage_ledger WHERE reservation_id=?', (reservation_id,)):
+                raise ValueError('attempt already finalized')
+            return self.add('usage_ledger', dict(backend=reservation['backend'], model=reservation['model'],
+                            run_id=reservation['run_id'], calls=0, segments=0, status=status,
+                            input_tokens=input_tokens, output_tokens=output_tokens, cost_usd=cost_usd,
+                            latency_ms=latency_ms, cli_version=cli_version, reservation_id=reservation_id))
+
+    def record_suggestions(self, events: list[dict]) -> list[int]:
+        if any(event.get('action') != 'suggest' for event in events):
+            raise ValueError('suggestion events required')
+        with self.transaction():
+            return [self.add('coding_events', event) for event in events]
+
     def rows(self, query: str, parameters=()) -> list[dict]:
         if not query.lstrip().upper().startswith(('SELECT ', 'WITH ')):
             raise ValueError('read query required')
@@ -130,21 +205,24 @@ class Store:
     def cache_put(self, key: str, result: dict):
         with self.transaction():
             self.connection.execute(
-                'INSERT INTO result_cache(key,result_json) VALUES(?,?) ON CONFLICT(key) DO NOTHING',
+                'INSERT INTO result_cache(key,result_json) VALUES(?,?) '
+                'ON CONFLICT(key) DO UPDATE SET result_json=excluded.result_json',
                 (key, canonical(result)),
             )
 
     def review(self, suggestion_id: int, decision: str, actor: str, pipeline: str, note='') -> int:
         if decision not in ('accept', 'reject'):
             raise ValueError('review must accept or reject')
-        suggestion = self.one('SELECT * FROM pending_suggestions WHERE id=?', (suggestion_id,))
-        if suggestion is None:
-            raise ValueError(f'suggestion {suggestion_id} is absent or already reviewed')
-        values = {k: v for k, v in suggestion.items() if k not in ('id', 'created_at')}
-        values.update(action=decision, actor_type='human', actor=actor, suggestion_id=suggestion_id,
-                      reviewed_by=actor, review_status='accepted' if decision == 'accept' else 'rejected',
-                      pipeline_version=pipeline)
-        with self.transaction():
+        if not actor.strip():
+            raise ValueError('reviewer identity required')
+        with self.immediate():
+            suggestion = self.one('SELECT * FROM pending_suggestions WHERE id=?', (suggestion_id,))
+            if suggestion is None:
+                raise ValueError(f'suggestion {suggestion_id} is absent or already reviewed')
+            values = {k: v for k, v in suggestion.items() if k not in ('id', 'created_at')}
+            values.update(action=decision, actor_type='human', actor=actor, suggestion_id=suggestion_id,
+                          reviewed_by=actor, review_status='accepted' if decision == 'accept' else 'rejected',
+                          pipeline_version=pipeline)
             event = self.add('coding_events', values)
             self.add('feedback_events', {'coding_event_id': event, 'decision': decision,
                                         'actor': actor, 'note': note})

@@ -27,7 +27,7 @@ def test_migration_is_idempotent_and_settings(project):
     with Store(project / 'project.db') as db:
         db.migrate()
         db.migrate()
-        assert db.connection.execute('PRAGMA user_version').fetchone()[0] == 1
+        assert db.connection.execute('PRAGMA user_version').fetchone()[0] == 2
         assert db.connection.execute('PRAGMA journal_mode').fetchone()[0] == 'wal'
         assert db.connection.execute('PRAGMA busy_timeout').fetchone()[0] == 5000
         event = seed(db)
