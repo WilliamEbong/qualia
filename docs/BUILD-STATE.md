@@ -11,7 +11,7 @@ Started 2026-10-03. Baseline: f1d8719. Owner authorized autonomous implementatio
 - [ ] P0.3 Repo comparison and workstream classification.
 - [ ] P0.4 Project safety kit, entrypoints, rule probes.
 - [ ] P0.5 Constitution verification, private remote, subagent probe.
-- [ ] P1.1 Spec Kit foundations specification → plan → tasks → analyze.
+- [~] P1.1 Spec Kit foundations specification → plan → tasks → analyze.
 - [ ] P1.2 Python/web scaffolds, CI, environment template.
 - [ ] P1.3 SQLite schema, migrations, append-only provenance and workspace initialization.
 - [ ] P1.4 Secure local API skeleton, generated contract; I1/I7 gate; converge.
@@ -54,7 +54,7 @@ Started 2026-10-03. Baseline: f1d8719. Owner authorized autonomous implementatio
 | uv | 0.11.29 |
 | Python | CPython 3.14.3, C:/Python314/python.exe |
 | Node / npm | 24.14.1 / 11.11.0 |
-| Codex | 0.144.6; ChatGPT authenticated outside sandbox; model catalog pending |
+| Codex | 0.160.0 after authorized update; gpt-6-astra and gpt-6-luna listed |
 | Claude Code | 2.1.284; claude.ai subscription authenticated |
 | Windows PowerShell | 5.1.19041.7725; current tool shell also has PowerShell 7.6.5 |
 | Toolbelt | Playwright, Context7, Firecrawl callable in desktop; CLI configuration checks pending |
@@ -73,3 +73,6 @@ Started 2026-10-03. Baseline: f1d8719. Owner authorized autonomous implementatio
 ## Evidence and remaining gates
 
 Implementation, live calls, private remote and acceptance gates are pending. No claim of completion.
+
+Spec Kit analysis (001): 7 FR, 3 SC, 8 tasks; 100% coverage; no critical findings. Prerequisite script passed; no extensions configured. Independent P0 pings/kit finishing. Two harmless preflight command issues: DOCX console encoding requires UTF-8; invalid inline here-string replaced by apply_patch before any write.
+

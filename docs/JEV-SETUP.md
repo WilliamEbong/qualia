@@ -1,0 +1,65 @@
+# Jev setup for Qualia
+
+Checked 2026-10-03 (America/Denver). You already created your TypeSafe account. The remaining personal steps are checking credits, creating a key, and saving it locally. Jev is optional; the rest of Qualia's build continues without it.
+
+This guide records setup instructions, not a claim that your account, billing, or a live API call has been verified. Implementation and test status belong in [BUILD-STATE.md](BUILD-STATE.md).
+
+## 1. Check your account and spending settings
+
+1. Open the [TypeSafe console](https://console.typesafe.ai/) in your own browser and sign in to the account you created.
+2. Find the account's billing or credits area. Check the available balance and the purchase amount before paying. The authenticated screen and its exact labels have not been inspected here.
+3. If the balance is zero and the console requires purchased credits, choose the smallest amount you are comfortable spending and complete payment yourself. Account creation alone does not prove that usable credits exist.
+4. Leave automatic credit refills disabled unless you deliberately want recurring replenishment. Check for an existing refill setting as well as a checkbox during checkout.
+
+TypeSafe's agreement describes purchased credits, discretionary promotional credits, and opt-in automatic refills. It does **not** establish that every new account receives free credit. Your actual balance, minimum purchase, taxes, and payment status are account-specific. [Customer agreement, §8.2](https://typesafe.ai/legal/mca)
+
+The published Jev 1.13 rate is **$0.042 per million input tokens**, with output tokens free. At that rate, 10,000 billed input tokens cost $0.00042; this is an estimate of token usage charges, not the minimum amount you can purchase. Check the displayed account terms before payment. [Current model pricing](https://docs.typesafe.ai/models)
+
+## 2. Create a dedicated key
+
+1. In the console, locate **API Keys** (the project owner's manual uses this label; the current signed-in layout is unverified).
+2. Create a key for this installation. If a name is offered, use `Qualia local` so you can identify and revoke it later.
+3. Save the full key in your password manager when it is shown. Do not assume the console will show it again.
+4. Do not paste the key in this chat, a screenshot, a GitHub issue, or any frontend configuration file.
+
+The official quick start directs you to obtain the key from the dashboard; API authentication uses a bearer key. [TypeSafe quick start](https://docs.typesafe.ai/introduction/quickstart)
+
+## 3. Put the key in the local environment file
+
+Open PowerShell and run:
+
+```powershell
+notepad "C:\Users\Owner\OneDrive\Documents\Qualia\.env"
+```
+
+If Notepad asks to create the file, allow it. Preserve any existing lines. Find the existing `TYPESAFE_API_KEY=` line and replace only its value, or add the line once if it is absent:
+
+```dotenv
+TYPESAFE_API_KEY=PASTE_YOUR_ACTUAL_KEY_HERE
+```
+
+Replace the placeholder in Notepad, then save. Do not put the actual key into a PowerShell command; that can leave it in shell history. If using **Save As**, choose **All Files**, filename `.env`, and the Qualia folder shown above; avoid `.env.txt`.
+
+The repository's `.gitignore` excludes `.env`. To check this without displaying its contents:
+
+```powershell
+git -C "C:\Users\Owner\OneDrive\Documents\Qualia" check-ignore .env
+```
+
+Expected output is `.env`. If it prints nothing, do not stage or commit the file; ask the coding agent to repair the ignore configuration. Never edit `.env.example` to contain the real key. These are Qualia's local secret-handling rules, not TypeSafe account requirements.
+
+## 4. Verify through Qualia when its Jev phase is ready
+
+Once saved, tell the coding agent only: **“The Jev key is saved in .env; run the synthetic live check.”** Do not include the value. The agent must verify the installed adapter, environment loading, and live-test command against the actual build before running it; this guide does not invent a command for unfinished code.
+
+Success means a synthetic, non-sensitive request returns a validated answer, records the returned model ID and token usage, and never prints the key. Jev remains off by default. Saving a key must not turn on external processing for existing projects; a project still needs an explicit egress setting and a deliberate backend choice.
+
+If verification fails, report only the sanitized status: `401` means missing or invalid authentication; `422` means an invalid request; `429` means rate limiting; `529` means temporary overload. Billing failures need the console's balance checked. Never paste a raw request header or full error dump containing research text. [API errors](https://docs.typesafe.ai/api)
+
+## 5. Choose suitable data
+
+For ordinary accounts, do not assume zero retention. TypeSafe publicly offers zero data retention for enterprise customers through sales. Its privacy policy describes US hosting and retention according to business need rather than a fixed deletion window. [Enterprise ZDR](https://docs.typesafe.ai/legal), [privacy policy](https://typesafe.ai/legal/privacy-policy)
+
+Qualia's default is therefore synthetic or non-sensitive/de-identified material only for this optional backend. The app should keep external processing disabled for a project until you choose otherwise. De-identification is your research decision; an API key or a low price does not establish permission to send a transcript.
+
+For technical details and what was independently verified, see [Jev API research](research/jev.md).

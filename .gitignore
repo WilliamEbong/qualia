@@ -22,3 +22,11 @@ __pycache__/
 *.pyc
 graphify-out/
 graph.json
+.pytest_cache/
+.ruff_cache/
+.uv-cache/
+*.egg-info/
+web/test-results/
+web/playwright-report/
+vault/
+.coverage
