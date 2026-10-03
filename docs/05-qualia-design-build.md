@@ -48,7 +48,7 @@ toggle; FIXED semantics as named variables (`--code-1`…`--code-8`, `--stripe-h
 `uv run --with numpy --with pillow python "$HOME/.claude/skills/archive-of-looking/scripts/gen_art.py" --out
 web/public/plates --only title_dome,star_chart,paper --seed 3` — script missing → plain ivory ground + horizon rule.
 Distill doc 04 §§3–5 into repo-root **DESIGN.md** (Stitch format: atmosphere, palette roles, type rules, component
-states, do/don'ts). This phase alone should visibly transform the app. Shots → `design-review/D1/`.
+states, do/don'ts). This phase alone visibly transforms the app. Shots → `design-review/D1/`.
 
 ## 5. D2–D5 — Screen phases (trust and wow first; one screen lane each when subagents run)
 - **D2 Workspace + review queue** (the trust): rails, transcript measure, provenance stripes and popover, suggestion
