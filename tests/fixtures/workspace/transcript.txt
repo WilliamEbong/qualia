@@ -1,0 +1,3 @@
+First synthetic paragraph with 😀.
+
+Second synthetic paragraph.

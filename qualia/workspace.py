@@ -25,8 +25,21 @@ POLICY = {'primary': 'macro_f1', 'min_delta': 0.01, 'priority_tolerance': 0.02,
           'confirmation_required': True}
 
 
+def local_setting(name: str) -> str:
+    """Read only the two non-secret launcher settings. Jev owns key access."""
+    if name not in ('QUALIA_HOME', 'QUALIA_PORT'):
+        raise ValueError('unsupported launcher setting')
+    if os.environ.get(name):
+        return os.environ[name]
+    env_file = REPO / '.env'
+    if not env_file.is_file():
+        return ''
+    match = re.search(rf'(?m)^[ \t]*{name}[ \t]*=[ \t]*([^\r\n]*)', env_file.read_text(encoding='utf-8'))
+    return match.group(1).strip().strip('"\'') if match else ''
+
+
 def home_dir(home: Path | None = None) -> Path:
-    result = Path(home or os.environ.get('QUALIA_HOME') or Path.home() / 'Qualia').resolve()
+    result = Path(home or local_setting('QUALIA_HOME') or Path.home() / 'Qualia').resolve()
     if result == REPO or REPO in result.parents:
         raise ValueError('QUALIA_HOME must be outside the application checkout')
     return result
@@ -35,6 +48,9 @@ def home_dir(home: Path | None = None) -> Path:
 def project_dir(slug: str, home: Path | None = None) -> Path:
     if not re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*', slug):
         raise ValueError('project name must contain lowercase letters, digits and hyphens')
+    if slug in {'con', 'prn', 'aux', 'nul', *(f'com{i}' for i in range(1, 10)),
+                *(f'lpt{i}' for i in range(1, 10))}:
+        raise ValueError('project name is reserved by Windows')
     root = home_dir(home) / 'projects'
     result = (root / slug).resolve()
     if result.parent != root.resolve() or result == REPO or REPO in result.parents:

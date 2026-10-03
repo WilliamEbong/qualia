@@ -110,7 +110,7 @@ every backend call (bounds in `config/routing.yaml`) · cheapest tier by default
 as backstop with paid extra usage OFF (doc 03 §0). Single write-path: `qualia/ai/ledger.py`.
 
 ## 10. Current state (update each session)
-SHIPPED: nothing built; Spec Kit initialized (Claude + Codex, lean); constitution v1.0.0 ratified. KNOWN ISSUES: none. NEXT: doc 02 Phase 0.
+SHIPPED: Phase 1 foundations (immutable SQLite store, secure loopback API, workspace initialization, CLI/web scaffold, private repository and passing CI); Spec Kit and ratified constitution preserved. Phase 2 import/manual-coding/workspace implementation is in progress. KNOWN ISSUES: Claude live preflight is quota-deferred until 18:10 Denver on 2026-10-03; CLI tool isolation is under verification before AI integration. NEXT: finish Phase 2 and its browser/CI gates; see BUILD-STATE for evidence.
 
 ## 11. Tooling conventions
 Executor: Codex CLI, GPT-6 Astra, reasoning high (0.144.6 lacks Astra — doc 03 §0 updates). Improvement: Claude Code,

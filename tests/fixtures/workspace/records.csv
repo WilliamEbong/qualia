@@ -1,0 +1,3 @@
+text,case,speaker,group
+"First synthetic sentence. Second one!",case-a,Interviewer,A
+"Unicode 😀 synthetic answer.",case-b,Participant,B

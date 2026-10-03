@@ -1,6 +1,7 @@
 """Authenticated loopback API and bundled SPA."""
 
 import secrets
+import sqlite3
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -9,6 +10,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 
 from qualia import __version__
 from qualia.server.api_models import Health, ProjectInput, ProjectSummary, Workspace
+from qualia.server.workspace_routes import register_workspace_routes
 from qualia.store.db import Store
 from qualia.workspace import (
     REPO,
@@ -57,6 +59,10 @@ def create_app(home: Path | None = None, token: str | None = None, dist: Path | 
     async def invalid_record(request, exc):
         return JSONResponse({'detail': str(exc)}, status_code=400)
 
+    @app.exception_handler(sqlite3.IntegrityError)
+    async def invalid_reference(request, exc):
+        return JSONResponse({'detail': 'Record conflicts with workspace constraints or references.'}, status_code=400)
+
     @app.get('/api/health', response_model=Health)
     def health():
         return Health(version=__version__)
@@ -83,6 +89,8 @@ def create_app(home: Path | None = None, token: str | None = None, dist: Path | 
             data['suggestions'] = db.rows('SELECT * FROM pending_suggestions')
         return {**data, 'project': {'slug': slug, 'name': slug.replace('-', ' ').title()},
                 'routing': read_config(path), 'pipeline_version': pipeline_hash(path)}
+
+    register_workspace_routes(app, home)
 
     @app.get('/{asset:path}', include_in_schema=False)
     def spa(asset: str):
