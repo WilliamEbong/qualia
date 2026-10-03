@@ -57,10 +57,13 @@ def export_data(db, project, format='json', no_text=True, bundle=None) -> str:
               'codebook_versions', 'coding_events', 'current_codings', 'memos', 'feedback_events']
     if bundle:
         tables += ['experiments', 'evaluation_runs', 'usage_ledger', 'egress_log']
-    data = {'format_version': 1, 'text_excluded': no_text, 'bundle': bundle}
+    data = {'format_version': 1, 'text_excluded': no_text,
+            'attribute_values_redacted': no_text, 'bundle': bundle}
     with db.transaction():
         for table in tables:
             rows = db.rows(f'SELECT * FROM {table}')
+            if table == 'attributes' and no_text:
+                rows = [{key: value for key, value in row.items() if key != 'value'} for row in rows]
             if table == 'evaluation_runs':
                 rows = [{key: value for key, value in row.items() if key != 'predictions_json'}
                         for row in rows]

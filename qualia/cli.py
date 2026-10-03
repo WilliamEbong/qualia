@@ -42,18 +42,19 @@ def list_command():
 @app.command('import')
 def import_command(file: Path, project: str = 'demo', text_column: str = 'text',
                    case_column: str = 'case', speaker_column: str = 'speaker',
-                   attribute_columns: str = ''):
+                   attribute_columns: str = '', version_of: int | None = None):
     """Import UTF-8 TXT, Markdown or CSV with explicit column mapping."""
     from qualia.io.imports import import_text
 
     path = resolve_project(project)
     try:
-        content = file.read_text(encoding='utf-8-sig')
+        content = file.read_bytes()
         with Store(path / 'project.db') as db:
             result = import_text(db, path, file.name, content, file.suffix.lstrip('.').lower(),
                                  text_column=text_column, case_column=case_column,
                                  speaker_column=speaker_column,
-                                 attribute_columns=[x.strip() for x in attribute_columns.split(',') if x.strip()])
+                                 attribute_columns=[x.strip() for x in attribute_columns.split(',') if x.strip()],
+                                 version_of=version_of)
         typer.echo(f"{result['new_sources']} new sources; {result['new_segments']} new segments")
     except (OSError, ValueError) as exc:
         raise typer.BadParameter(str(exc)) from exc

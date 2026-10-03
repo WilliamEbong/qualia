@@ -17,7 +17,7 @@ Started 2026-10-03. Baseline: f1d8719. Owner authorized autonomous implementatio
 - [x] P1.4 Secure local API skeleton, generated contract; I1/I7 gate; converge.
 - [x] P2.1 Spec Kit workspace artifacts and analysis.
 - [x] P2.2 Import, segmentation, cases, codebook versions, memos and export.
-- [~] P2.3 Workspace UI, keyboard/span coding, retrieval and matrix; converge.
+- [x] P2.3 Workspace UI, keyboard/span coding, retrieval and matrix; converge.
 - [ ] P3.1 Spec Kit AI coding artifacts and analysis.
 - [ ] P3.2 Backends, schemas, routing, budget, cache and egress ledger.
 - [ ] P3.3 Review UI and feedback, I4/I5/budget gate; converge.
@@ -100,3 +100,5 @@ Phase2 analysis: 11 FR, 5 SC and 15 tasks; all obligations covered, no critical 
 Phase2 ENGINE/SERVER checkpoint: import TXT/MD/CSV, all three segmentation modes, atomic case/attribute/lineage writes, cycle-safe human codebook edits/freeze, exact overlapping Unicode spans, memos, retrieval, distinct-segment matrix, CSV/JSON and no-text/reproducibility exports implemented. Added matching CLI/API operations and regenerated OpenAPI/TypeScript types. Independent lane reports 57 passing engine/foundation/API tests; root complete suite includes launcher-setting regression. UI integration and browser gate remain in progress. No-text bundles explicitly mark redacted snapshots; full textual reproduction requires explicit include-text. CSV text fields neutralize formula prefixes.
 
 Additional routine command correction: npm run api was invoked once from the repository root (no package.json); rerun from web succeeded. No code or detector change. Two non-secret .env launcher settings now load independently; blank lines cannot consume the next setting, proved by regression test. TYPESAFE_API_KEY remains unused pending its isolated backend.
+
+Phase2 final: 60 Python tests passed; Ruff clean; frontend 7 Vitest tests, TypeScript and Vite build pass; dependency audit 0. Playwright MCP verified import, frozen codebook, 5 keyboard-coded segments, emoji/combining span 1:8 with overlapping codes after reload, removal provenance, draft rename retaining frozen event names, memo linked to segment, case matrix count 5 matching retrieval 5 distinct/6 coded excerpts, bundle download, and project-switch filter reset. Screenshots design-review/phase-2/. Review fixes: no-text attributes now redacted and marked; CLI reads exact bytes and supports version_of; UI historical labels use snapshots and project switches reset stale filters. Regression tests pass. Routine test fixture path corrected (home/projects/study); no detector changes. Recogito viewport culling explained full-page screenshot appearance; saved anchors pass with actual visible highlights. Spec Kit convergence: 11 FR, 5 SC, 15 tasks plus plan/constitution reviewed; zero remaining Phase2 gaps. Source docs02–05 unchanged. Phase2 gate PASS; Phase0 live quota/isolation remains separately pending.

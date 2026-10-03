@@ -20,6 +20,7 @@ def test_no_text_export_preserves_provenance_without_free_text_or_vault(tmp_path
         _, _, event = seed_coding(db)
         db.assign({**event, 'rationale': secret})
         db.save_memo({'title': secret, 'text': secret})
+        db.save_case({'name': 'Case', 'attributes': {'text': secret}, 'source_ids': []})
         db.save_code({'examples_pos': [secret], 'definition': secret}, event['code_id'])
         db.freeze_codebook()
         db.add('evaluation_runs', {'split': 'validation', 'backend': 'fake', 'model': 'fake',
@@ -33,6 +34,8 @@ def test_no_text_export_preserves_provenance_without_free_text_or_vault(tmp_path
         assert 'predictions_json' not in output
         if format == 'json':
             data = json.loads(output)
+            assert data['attribute_values_redacted'] is True
+            assert 'value' not in data['attributes'][0]
             exported = data['coding_events'][0]
             assert all(exported[k] == event[k] for k in (
                 'segment_id', 'codebook_version_id', 'actor', 'pipeline_version'))

@@ -1,0 +1,20 @@
+:root {
+  --background: #f3efe4; --surface: #e9e1cd; --foreground: #1d1c1a;
+  --secondary: #3c3a35; --caption: #6b665c; --border: #1d1c1a4d;
+  --accent: #a2573b; --focus: #236292;
+  --code-1: #236292; --code-2: #a2573b; --code-3: #2c9a88; --code-4: #ba9232;
+  --code-5: #4e6a58; --code-6: #6e8496; --code-7: #b98a3e; --code-8: #a5b096;
+  --heat-rgb: 35 98 146;
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'Libre Franklin', system-ui, sans-serif;
+  --font-caption: 'IBM Plex Mono', Consolas, monospace;
+  --radius: 0;
+}
+@theme inline {
+  --color-background: var(--background); --color-foreground: var(--foreground);
+  --color-border: var(--border); --color-primary: var(--accent); --color-ring: var(--focus);
+  --font-sans: var(--font-body); --font-mono: var(--font-caption);
+}
+html { font-family: var(--font-body); }
+h1, h2, h3 { font-family: var(--font-display); }
+pre, .caption, .provenance, .matrix-cell { font-family: var(--font-caption); }
