@@ -1,0 +1,24 @@
+# secrets and local-only files
+.env
+.env.*
+!.env.example
+*.local
+OWNER-NEEDED.md
+OWNER-ANSWERS.md
+logs/
+.claude/settings.local.json
+
+# research data never enters this repo (projects live in QUALIA_HOME)
+*.db
+*.sqlite
+*.sqlite3
+demo/data/
+
+# build output and tooling
+node_modules/
+dist/
+.venv/
+__pycache__/
+*.pyc
+graphify-out/
+graph.json
