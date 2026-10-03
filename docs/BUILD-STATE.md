@@ -15,9 +15,9 @@ Started 2026-10-03. Baseline: f1d8719. Owner authorized autonomous implementatio
 - [x] P1.2 Python/web scaffolds, CI, environment template.
 - [x] P1.3 SQLite schema, migrations, append-only provenance and workspace initialization.
 - [x] P1.4 Secure local API skeleton, generated contract; I1/I7 gate; converge.
-- [~] P2.1 Spec Kit workspace artifacts and analysis.
-- [ ] P2.2 Import, segmentation, cases, codebook versions, memos and export.
-- [ ] P2.3 Workspace UI, keyboard/span coding, retrieval and matrix; converge.
+- [x] P2.1 Spec Kit workspace artifacts and analysis.
+- [~] P2.2 Import, segmentation, cases, codebook versions, memos and export.
+- [~] P2.3 Workspace UI, keyboard/span coding, retrieval and matrix; converge.
 - [ ] P3.1 Spec Kit AI coding artifacts and analysis.
 - [ ] P3.2 Backends, schemas, routing, budget, cache and egress ledger.
 - [ ] P3.3 Review UI and feedback, I4/I5/budget gate; converge.
@@ -92,3 +92,6 @@ Repair cycles: pytest failed before fixtures due sandbox temp-directory access; 
 
 
 Phase1 convergence: 7 FR, 3 SC, 8 tasks and six implementation-plan decisions reviewed. Independent verifier confirms I1/I7, sole writer, exact generated schema, core boundary and protected source preservation. Sidecar/backup data guard gap corrected with 8 forbidden-path fixtures and matching ignores; suite now 21 tests. Foundation main-branch CI SUCCESS at ae770ec: https://github.com/WilliamEbong/qualia/actions/runs/37157791283. Contracts FROZEN (001_initial.sql, current OpenAPI and backend protocol); additive API mutations remain main-owned. Converged for Phase1. Phase0 Claude live/hook probes still quota-deferred; no blocker to offline workspace implementation.
+
+
+Phase2 analysis: 11 FR, 5 SC and 15 tasks; all obligations covered, no critical or high conflicts. Phase2 consumers retain frozen schema and code-point offsets; main adds typed mutation endpoints. Engine lane started, frontend follows regenerated API. Sidecar guard now also covers sqlite3 variants.

@@ -8,7 +8,8 @@ from scripts.check_no_data import forbidden
 
 @pytest.mark.parametrize('path', ['project.db', 'project.db-wal', 'project.db.v1.bak',
                                  'vault/test.jsonl', 'demo/data/sample.csv', '.env',
-                                 '.env.production', 'scripts/ntfy-topic.local'])
+                                 '.env.production', 'scripts/ntfy-topic.local', 'study.sqlite3-wal',
+                                 'study.sqlite3-shm', 'study.sqlite3.v1.bak'])
 def test_data_guard_rejects_private_artifacts(path):
     assert forbidden(path)
 

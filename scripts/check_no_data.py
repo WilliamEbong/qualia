@@ -8,7 +8,8 @@ def forbidden(path: str) -> bool:
     lower = path.lower().replace('\\', '/')
     parts = lower.split('/')
     return (lower.endswith(('.db', '.sqlite', '.sqlite3', '.local'))
-            or any(suffix in parts[-1] for suffix in ('.db-', '.db.', '.sqlite-', '.sqlite.'))
+            or any(suffix in parts[-1] for suffix in
+                   ('.db-', '.db.', '.sqlite-', '.sqlite.', '.sqlite3-', '.sqlite3.'))
             or 'vault' in parts or lower.startswith('demo/data/')
             or (parts[-1].startswith('.env') and parts[-1] != '.env.example')
             or parts[-1] in ('owner-needed.md', 'owner-answers.md'))
