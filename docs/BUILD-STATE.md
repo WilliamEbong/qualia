@@ -6,15 +6,15 @@ Started 2026-10-03. Baseline: f1d8719. Owner authorized autonomous implementatio
 
 ## Adjusted plan and checkpoints
 
-- [~] P0.1 Tooling, login, model and toolbelt audit.
-- [ ] P0.2 Environment schema, service/classification pings.
-- [ ] P0.3 Repo comparison and workstream classification.
-- [ ] P0.4 Project safety kit, entrypoints, rule probes.
-- [ ] P0.5 Constitution verification, private remote, subagent probe.
-- [~] P1.1 Spec Kit foundations specification → plan → tasks → analyze.
-- [ ] P1.2 Python/web scaffolds, CI, environment template.
-- [ ] P1.3 SQLite schema, migrations, append-only provenance and workspace initialization.
-- [ ] P1.4 Secure local API skeleton, generated contract; I1/I7 gate; converge.
+- [x] P0.1 Tooling, login, model and toolbelt audit.
+- [~] P0.2 Environment schema, service/classification pings.
+- [x] P0.3 Repo comparison and workstream classification.
+- [x] P0.4 Project safety kit, entrypoints, rule probes.
+- [x] P0.5 Constitution verification, private remote, subagent probe.
+- [x] P1.1 Spec Kit foundations specification → plan → tasks → analyze.
+- [x] P1.2 Python/web scaffolds, CI, environment template.
+- [x] P1.3 SQLite schema, migrations, append-only provenance and workspace initialization.
+- [~] P1.4 Secure local API skeleton, generated contract; I1/I7 gate; converge.
 - [ ] P2.1 Spec Kit workspace artifacts and analysis.
 - [ ] P2.2 Import, segmentation, cases, codebook versions, memos and export.
 - [ ] P2.3 Workspace UI, keyboard/span coding, retrieval and matrix; converge.
@@ -76,3 +76,16 @@ Implementation, live calls, private remote and acceptance gates are pending. No 
 
 Spec Kit analysis (001): 7 FR, 3 SC, 8 tasks; 100% coverage; no critical findings. Prerequisite script passed; no extensions configured. Independent P0 pings/kit finishing. Two harmless preflight command issues: DOCX console encoding requires UTF-8; invalid inline here-string replaced by apply_patch before any write.
 
+
+
+## Phase 0/1 evidence, 2026-10-03
+- Private repository verified: https://github.com/WilliamEbong/qualia (`visibility: PRIVATE`). Codex updated using owner runbook from 0.144.6 to 0.160.0; catalog includes gpt-6-astra. Existing runner unmodified; explicitly pass `-Model gpt-6-astra` when launching it.
+- Constitution verification complete, unchanged. Safety kit JSON/TOML and Node syntax validated; 10 build + 6 design guard probes passed. Five mandated Codex rules return forbidden. Fresh Claude hook activation remains pending its quota reset; scripted guard proof is not a claim of hook activation.
+- Claude toolbelt: Context7/Firecrawl present; standalone Claude Playwright process failed to connect. Desktop Playwright MCP works and is used. No duplicate servers installed; no user config changes.
+- AI preflight details: docs/research/preflight-ai.md. Codex Luna synthetic classification and Astra subagent probe passed. Claude authenticated but quota-limited until 18:10 Denver; this defers only Claude live checks. Additive Codex isolation skips user config and disables agents for classification.
+- Foundation test command `.venv/Scripts/python.exe -m pytest -q`: **11 passed**. I1 append-only tables and required provenance, I7 Host/token/origin/headers, migration idempotency, review atomicity and manifest tampering verified. Ruff clean.
+- Web: generated API types, tsc, Vitest (1), Vite production build passed; npm install audit 0 vulnerabilities. Playwright navigated http://127.0.0.1:8765, confirmed title and foundation content. Screenshot: design-review/foundations.png. Final product UI is not yet built.
+- No tracked research/local secret files. Source docs 02–05 diff empty. Runtime dependencies match requested release families (FastAPI 0.142.2, Typer 0.27.2, pydantic 2.13.5, uvicorn 0.54.0, sklearn 1.9.1).
+- Contracts documented in docs/CONTRACTS.md; database/API/backend lane ownership stays with main.
+
+Repair cycles: pytest failed before fixtures due sandbox temp-directory access; exact command passed with scoped escalation (no changed tests). Independent verifier reproduced CTE-prefixed write in read helper and incomplete model provenance; fixed with SQLite authorizer and conditional constraints; regression test passes. Also repaired project/vault resolved-path containment, migration backup version advancement and partial-init retry preservation before schema freeze. Two benign warnings remain: installed Starlette deprecates httpx TestClient (works); pytest cache access warning from mixed sandbox ownership (tests still execute).

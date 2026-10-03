@@ -1,0 +1,25 @@
+{
+  "mode": "build",
+  "alwaysProtected": [
+    "docs/01-qualia-context.md",
+    "docs/02-qualia-build.md",
+    "docs/03-qualia-owner.md",
+    "docs/04-qualia-design.md",
+    "docs/05-qualia-design-build.md",
+    "qualia_project_spec.docx",
+    ".specify/memory/constitution.md",
+    "demo/data/"
+  ],
+  "designProtected": [
+    "qualia/",
+    "tests/",
+    "web/src/api/",
+    "web/src/lib/",
+    "qualia/store/migrations/",
+    "scripts/",
+    ".codex/",
+    ".claude/",
+    ".githooks/",
+    "docs/0*.md"
+  ]
+}

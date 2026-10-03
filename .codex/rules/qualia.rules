@@ -1,0 +1,9 @@
+# Project trust and restart are required. Literal prefixes are not a full shell parser.
+# https://developers.openai.com/codex/rules/
+prefix_rule(pattern = ["git", "push", ["-f", "--force", "--force-with-lease"]], decision = "forbidden", justification = "Preserve remote history. Use an ordinary push.", match = ["git push --force", "git push -f", "git push --force-with-lease"], not_match = ["git push"])
+prefix_rule(pattern = ["git", "push", "origin", ["-f", "--force", "--force-with-lease"]], decision = "forbidden", justification = "Preserve remote history. Use an ordinary push.", match = ["git push origin --force"])
+prefix_rule(pattern = ["git", "reset", "--hard"], decision = "forbidden", justification = "Preserve local work. Ask the owner before destructive reset.", match = ["git reset --hard HEAD"])
+prefix_rule(pattern = ["git", "clean"], decision = "forbidden", justification = "Preserve untracked work. Qualia's scoped rollback belongs in tested application code.", match = ["git clean -fd"])
+prefix_rule(pattern = ["git", "branch", "-D"], decision = "forbidden", justification = "Preserve branches. Ask the owner before forced deletion.", match = ["git branch -D work"])
+prefix_rule(pattern = ["rm", ["-rf", "-fr"]], decision = "forbidden", justification = "Preserve files. Ask the owner before recursive deletion.", match = ["rm -rf work", "rm -fr work"])
+prefix_rule(pattern = ["gh", "repo", ["edit", "delete"]], decision = "forbidden", justification = "Repository visibility and deletion are owner actions.", match = ["gh repo edit", "gh repo delete qualia"])

@@ -1,0 +1,13 @@
+# Implementation contracts
+
+Frozen at Phase 1; changes require the main session. Source of truth: `qualia/store/migrations/001_initial.sql`, `openapi.json`, `qualia/ai/protocol.py`.
+
+- SQLite row IDs are integers. Segment start/end are offsets into immutable source text; event span_start/span_end are offsets relative to the segment. All API/storage offsets count Unicode code points, end-exclusive. Web converts Recogito UTF-16 selectors explicitly using `web/src/lib/offsets.ts`.
+- `Store` is the only database writer. `rows`/`one` are authorizer-enforced read-only. Writes use `add`, `update`, `freeze_codebook`, `review`, `cache_put` and `transaction`; only mutable code/memo/case/attribute records can update. Review creates a new event plus feedback atomically.
+- Frozen snapshot_json is a JSON array of code records. A coding event must refer to a code present in that frozen snapshot. Model events require backend, model, CLI version and prompt hash. Accepted model events retain model details but identify the human reviewer.
+- `/api/projects` GET/POST lists/creates slugs; `/api/projects/{slug}` GET is the typed workspace snapshot. The snapshot returns all entity arrays named in api_models.Workspace, plus routing and pipeline_version. Main adds typed mutation endpoints during their feature phase and regenerates OpenAPI.
+- Every `/api/` call carries `X-Qualia-Token`; HTML bootstrap meta is read into browser memory. Browser client never stores the token persistently. Foreign hosts/origins rejected. External assets unavailable by CSP.
+- Backend classify(segments, schema, context) receives immutable text records `{id: string, text: string}`; context includes frozen `codebook` array, `model`, `prompt`, bounded `max_output_tokens`. Returns `{predictions: [{segment_id: string, codes: [{code_id: integer, score: number, rationale: string, span_start: integer, span_end: integer}]}], input_tokens: integer, output_tokens: integer, cli_version: string}`. Prediction validation must reject unknown/missing/duplicate segments and unknown codes or out-of-range spans. Evaluation predictions do not enter coding_events.
+- External backends declare `external=True`; availability never sends research text. Router owns policy and admission; ledger.py is the sole usage/egress write coordinator and delegates SQL to Store.
+- Configuration uses JSON syntax in YAML files (a valid YAML subset); no arbitrary YAML tags. Privacy/budget bounds are protected during optimizer runs even though routing.yaml is otherwise mutable.
+- Web data, state, selection, keyboard and derived views live under lib; components/pages render markup. Design changes cannot alter lib or generated API.
