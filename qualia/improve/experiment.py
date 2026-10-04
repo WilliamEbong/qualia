@@ -17,6 +17,7 @@ from qualia.ai import ledger
 from qualia.ai.backends.fake import FakeBackend
 from qualia.ai.backends.process import BackendError
 from qualia.ai.schemas import routing_config
+from qualia.eval.metrics import tune_thresholds
 from qualia.evaluation import evaluate_project
 from qualia.improve.policy import decide
 from qualia.improve.proposal import BOUNDS, apply_proposal, prepare_proposal
@@ -164,9 +165,36 @@ def _fake_operator(project, prompt, report_path):
     return {'hypothesis': hypothesis, 'cli_version': 'fake-operator-v1', 'input_tokens': 0, 'output_tokens': 0}
 
 
+def _threshold_operator(db, project, backend, model):
+    """No-AI operator: fit per-code suggestion thresholds on dev; validation decides KEEP/REVERT."""
+    dev = evaluate_project(db, project, split='dev', backend=backend, model=model, with_candidates=True)
+    current = routing_config(read_config(project))['code_thresholds']
+    tuned = tune_thresholds(dev['references'], dev['candidates'], dev['code_ids'], current)
+    frozen = db.one('SELECT snapshot_json FROM codebook_versions WHERE id=?', (dev['codebook_version_id'],))
+    names = {str(code['id']): code.get('name') or str(code['id']) for code in json.loads(frozen['snapshot_json'])}
+    changes = [f"{names.get(code, code)} {f'{current[code]:.2f}' if code in current else 'default'} -> {value:.2f}"
+               for code, value in sorted(tuned.items(), key=lambda item: int(item[0])) if current.get(code) != value]
+    hypothesis = ('Per-code suggestion thresholds fitted for maximum F1 on the dev split: ' + '; '.join(changes)
+                  if changes else 'The dev split suggests no threshold change.')
+
+    def invoke(root, prompt, report_path):
+        if changes:
+            config = read_config(root)
+            config['code_thresholds'] = tuned
+            (root/'config/routing.yaml').write_text(canonical(config), encoding='utf-8')
+        return {'hypothesis': hypothesis[:2000], 'cli_version': 'thresholds-operator-v1',
+                'input_tokens': 0, 'output_tokens': 0}
+
+    return invoke
+
+
 def _operator(agent, injected):
     if agent == 'fake':
         return injected or _fake_operator, FakeBackend(), 'fake-operator-v1'
+    if agent == 'thresholds':
+        if injected is not None:
+            raise ValueError('injected operators are supported only by the fake agent')
+        return None, FakeBackend(), 'thresholds-operator-v1'
     if agent not in ('claude', 'codex'):
         raise ValueError('unknown improvement agent')
     module = importlib.import_module(f'qualia.ai.backends.{agent}_cli')
@@ -251,6 +279,9 @@ def improve_project(project, agent='fake', budget=1, *, operator=None, backend=N
             coding_count = db.one('SELECT count(*) AS n FROM coding_events')['n']
             prompt = (project/'IMPROVEMENT.md').read_text(encoding='utf-8')
             proposal_context = prepare_proposal(project, prompt) if agent == 'codex' else None
+            if agent == 'thresholds':
+                # Fitting data is read and recorded before the database pin below.
+                invoke = _threshold_operator(db, project, backend, model)
             if proposal_context is not None:
                 prompt = proposal_context.prompt
             reservation = ledger.reserve(db, backend=provider, model=operator_model,

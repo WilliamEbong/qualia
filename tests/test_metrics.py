@@ -5,7 +5,7 @@ import math
 import pytest
 
 from qualia.eval.calibration import expected_calibration_error
-from qualia.eval.metrics import evaluate_metrics
+from qualia.eval.metrics import evaluate_metrics, tune_thresholds
 
 
 def reference(identity, codes, **extra):
@@ -136,3 +136,17 @@ def test_metric_definitions_cover_uncertainty_additions():
     definitions = evaluate_metrics([], [], [1])['definitions']
     assert {'ci95', 'review_share', 'review_cutoff'} <= set(definitions)
     assert 'Wilson' in definitions['ci95'] and '90%' in definitions['review_share']
+
+
+def test_tune_thresholds_maximises_each_code_f1_on_the_tuning_split():
+    records = [reference('a', [1]), reference('b', [1]), reference('c', [3]), reference('d', [])]
+    candidates = [prediction('a', [(1, .9), (1, .2)]), prediction('b', [(1, .4)]),
+                  prediction('c', [(1, .3)]), prediction('d', [])]
+    # Code 1: any cutoff in (0.3, 0.4] is perfect; ties resolve toward 0.5, so 0.40 wins.
+    # Code 2 has no reference positives and keeps its current value; code 3 can never be found.
+    assert tune_thresholds(records, candidates, [1, 2, 3], {'2': .7}) == {'1': .4, '2': .7}
+
+
+def test_tune_thresholds_requires_complete_candidates():
+    with pytest.raises(ValueError, match='exactly one prediction'):
+        tune_thresholds([reference('a', [1])], [], [1], {})

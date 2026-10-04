@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from qualia.ai.schemas import response_schema, validate_result
+from qualia.ai.schemas import response_schema, routing_config, validate_result
 
 FIXTURES = Path(__file__).parent / 'fixtures/ai'
 SEGMENTS = [{'id': 's1', 'text': 'A😀B'}]
@@ -52,3 +52,15 @@ def test_invalid_predictions_rejected(mutation):
         prediction['codes'].append(copy.deepcopy(code))
     with pytest.raises(ValueError, match='segment s1'):
         validate_result(result, SEGMENTS, CODES)
+
+
+def test_code_thresholds_accept_code_ids_with_probabilities():
+    assert routing_config({'code_thresholds': {'3': .7, '12': 1}})['code_thresholds'] == {'3': .7, '12': 1}
+    assert routing_config({})['code_thresholds'] == {}
+
+
+@pytest.mark.parametrize('thresholds', [{'x': .5}, {'0': .5}, {'03': .5}, {'3': 0}, {'3': 1.1},
+                                        {'3': float('nan')}, {'3': True}, {'3': '0.5'}, ['3']])
+def test_invalid_code_thresholds_are_rejected(thresholds):
+    with pytest.raises(ValueError, match='invalid routing configuration'):
+        routing_config({'code_thresholds': thresholds})

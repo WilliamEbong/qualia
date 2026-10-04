@@ -353,3 +353,76 @@ def test_one_poisoned_cache_entry_refreshes_whole_batch():
         assert refreshed['calls'] == 1 and refreshed['cache_hits'] == 0
         assert refreshed['segments'] == 2
         assert invoke()['cache_hits'] == 2
+
+
+class Scored(CountingBackend):
+    """Emits every code with a fixed score, like a probability backend."""
+    scores = {1: .9, 2: .4, 3: .6}
+
+    def classify(self, segments, schema, context):
+        self.calls += 1
+        return {'predictions': [{'segment_id': segment['id'], 'codes': [
+            {'code_id': code, 'score': score, 'rationale': 'Synthetic.', 'span_start': 0,
+             'span_end': len(segment['text'])} for code, score in self.scores.items()]}
+            for segment in segments], 'input_tokens': 0, 'output_tokens': 0, 'cli_version': 'scored-v1'}
+
+
+THREE = [{'id': code, 'name': f'Code {code}', 'status': 'active'} for code in (1, 2, 3)]
+
+
+def scored_run(db, registry, config=None, **options):
+    return classify_segments(db, [{'id': 's1', 'text': 'Synthetic.'}], THREE, {**ROUTING, **(config or {})},
+                             prompt='Classify', codebook_version_id=1, pipeline_version='pipeline',
+                             backend='fixture', model='fixture-v1', registry=registry, **options)
+
+
+def assigned(result):
+    return [code['code_id'] for code in result['predictions'][0]['codes']]
+
+
+def test_code_thresholds_apply_to_fresh_and_cached_results():
+    backend = Scored()
+    with Store(':memory:') as db:
+        plain = scored_run(db, {'fixture': backend})
+        assert assigned(plain) == [1, 2, 3] and 'candidates' not in plain  # no threshold: keep all
+        cached = scored_run(db, {'fixture': backend}, {'code_thresholds': {'2': .3, '3': .7}})
+        assert cached['cache_hits'] == 1 and backend.calls == 1
+        assert assigned(cached) == [1, 2]
+        raw = scored_run(db, {'fixture': backend}, {'code_thresholds': {'3': .7}}, with_candidates=True)
+        assert assigned(raw) == [1, 2]
+        assert [code['code_id'] for code in raw['candidates'][0]['codes']] == [1, 2, 3]
+
+
+def test_backend_default_threshold_applies_until_a_code_overrides_it():
+    class Probabilistic(Scored):
+        default_threshold = .5
+
+    with Store(':memory:') as db:
+        assert assigned(scored_run(db, {'fixture': Probabilistic()})) == [1, 3]
+        assert assigned(scored_run(db, {'fixture': Probabilistic()}, {'code_thresholds': {'2': .3}})) == [1, 2, 3]
+
+
+def test_escalation_reads_thresholded_codes():
+    class Probabilistic(Scored):
+        default_threshold = .5
+
+    tiers = {'escalate_below': .7, 'tiers': {'strong': {'backend': 'strong', 'model': 'strong-v1'}}}
+    for thresholds, escalated in (({}, 1), ({'3': .65}, 0)):
+        strong = CountingBackend()
+        with Store(':memory:') as db:
+            result = scored_run(db, {'fixture': Probabilistic(), 'strong': strong},
+                                {**tiers, 'code_thresholds': thresholds})
+        assert result['escalated_segments'] == strong.calls == escalated
+
+
+def test_thresholds_filter_persisted_suggestions(tmp_path):
+    project = init_project('thresholds', tmp_path)
+    with Store(project/'project.db') as db:
+        import_text(db, project, 'synthetic', 'First.', 'txt')
+        first = db.save_code({'name': 'First'})
+        second = db.save_code({'name': 'Second'})
+        db.freeze_codebook()
+        (project/'config/routing.yaml').write_text(json.dumps(
+            {**ROUTING, 'fake_mode': 'all', 'code_thresholds': {str(second): .7}}))
+        classify_project(db, project, backend='fake')
+        assert [row['code_id'] for row in db.rows('SELECT code_id FROM pending_suggestions')] == [first]

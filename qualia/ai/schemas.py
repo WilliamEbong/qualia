@@ -1,7 +1,7 @@
 """Strict provider adapters; failures identify input records without printing responses."""
 
 import json
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
@@ -73,6 +73,9 @@ class Routing(Record):
     fake_mode: Literal['first', 'all', 'none'] = 'first'
     tiers: dict[str, Tier] = Field(default_factory=dict)
     tasks: dict[str, Tier] = Field(default_factory=dict)
+    # Minimum model-reported score per frozen code ID for a code to become a suggestion.
+    code_thresholds: dict[Annotated[str, Field(pattern=r'^[1-9][0-9]*$')],
+                          Annotated[float, Field(gt=0, le=1)]] = Field(default_factory=dict)
 
 
 def routing_config(value: dict) -> dict:

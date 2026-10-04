@@ -181,6 +181,8 @@ def _build_request(segments, context):
 class JevBackend:
     name = 'jev'
     external = True
+    # The router applies this noul cutoff unless a project sets a per-code threshold.
+    default_threshold = .5
     unavailable_reason = ('Jev is unavailable: save your key in the ignored local .env file '
                           'using docs/JEV-SETUP.md. Key presence does not verify credits or access.')
 
@@ -276,14 +278,12 @@ class JevBackend:
             lengths = {segment['id']: len(segment['text']) for segment in segments}
             for identity, answer in answers.items():
                 segment_id, code_id = mapping[identity]
-                probability = answer['noul']
-                if probability >= .5:
-                    predictions[segment_id]['codes'].append({
-                        'code_id': code_id, 'score': float(probability), 'span_start': 0,
-                        'span_end': lengths[segment_id],
-                        'rationale': ('Jev noul probability of code applicability; whole segment '
-                                      'scored, no narrower evidence span extracted.'),
-                    })
+                predictions[segment_id]['codes'].append({
+                    'code_id': code_id, 'score': float(answer['noul']), 'span_start': 0,
+                    'span_end': lengths[segment_id],
+                    'rationale': ('Jev noul probability of code applicability; whole segment '
+                                  'scored, no narrower evidence span extracted.'),
+                })
         except (KeyError, ValueError, TypeError, AttributeError, UnicodeError, RecursionError):
             raise BackendError('invalid_response', record, input_tokens=inputs,
                                output_tokens=outputs, cli_version=version) from None

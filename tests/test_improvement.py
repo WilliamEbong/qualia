@@ -413,3 +413,57 @@ def test_codex_proposal_full_dispatch_accounting_and_recovery(project, monkeypat
         assert len(egress) == 1
         assert json.loads(egress[0]['segment_hashes_json']) == [hashlib.sha256(dispatched[0].encode()).hexdigest()]
         assert not db.rows('SELECT * FROM coding_events')
+
+
+def thresholds_project(tmp_path, monkeypatch):
+    """Code 1 is scored 0.9 on 'marked' text and 0.6 otherwise; code 2 always 0.9."""
+    project = init_project('thresholds', tmp_path)
+    (project/'config/routing.yaml').write_text(json.dumps({**ROUTING, 'backend': 'fake', 'model': 'fake-v1'}))
+    with Store(project/'project.db') as db:
+        first, second = db.save_code({'name': 'Marked'}), db.save_code({'name': 'Always'})
+        version = db.freeze_codebook()['id']
+
+    def split(name, offset):
+        return [{'segment_id': f'{name}{i}', 'text': f'{"marked" if i % 2 else "plain"} {name} {i}',
+                 'codes': [first, second] if i % 2 else [second], 'transcript_id': f't{offset + i}'}
+                for i in range(4)]
+    import_benchmark(project, split('dev', 0), 'dev', version, [first, second])
+    import_benchmark(project, split('val', 10), 'validation', version, [first, second])
+    git(project, 'add', '.')
+    git(project, '-c', 'user.name=Qualia', '-c', 'user.email=qualia@localhost', 'commit', '-qm', 'Synthetic baseline')
+
+    def classify(self, segments, schema, context):
+        return {'predictions': [{'segment_id': segment['id'], 'codes': [
+            {'code_id': first, 'score': .9 if 'marked' in segment['text'] else .6, 'rationale': 'Synthetic.',
+             'span_start': 0, 'span_end': len(segment['text'])},
+            {'code_id': second, 'score': .9, 'rationale': 'Synthetic.', 'span_start': 0,
+             'span_end': len(segment['text'])}]} for segment in segments],
+            'input_tokens': 0, 'output_tokens': 0, 'cli_version': 'fake-v1'}
+    monkeypatch.setattr(FakeBackend, 'classify', classify)
+    return project, first
+
+
+def test_thresholds_agent_fits_dev_and_keeps_only_measured_gain(tmp_path, monkeypatch):
+    project, first = thresholds_project(tmp_path, monkeypatch)
+    row = improve(project, agent='thresholds')[0]
+    assert row['decision'] == 'KEEP' and row['agent'] == 'thresholds'
+    assert 'Marked default -> 0.65' in row['hypothesis']
+    config = json.loads((project/'config/routing.yaml').read_text())
+    assert config['code_thresholds'][str(first)] == .65
+    assert git(project, 'tag', '--list') == row['tag'] and git(project, 'status', '--porcelain') == ''
+    with Store(project/'project.db') as db:
+        splits = [entry['split'] for entry in db.rows('SELECT split FROM evaluation_runs ORDER BY id')]
+        assert splits == ['validation', 'dev', 'validation', 'validation']
+        assert not db.rows('SELECT * FROM coding_events')
+        assert db.one("SELECT count(*) AS n FROM usage_ledger WHERE model='thresholds-operator-v1' AND status='reserved'")['n'] == 1
+
+
+def test_thresholds_agent_without_dev_split_fails_before_snapshot(project):
+    with pytest.raises(ValueError, match='dev benchmark has not been imported'):
+        improve(project, agent='thresholds')
+    assert git(project, 'status', '--porcelain') == ''
+    assert not (project.parent.parent/'recovery'/project.name/'pending.json').exists()
+    with Store(project/'project.db') as db:
+        assert not db.rows('SELECT * FROM experiments')
+    with pytest.raises(ValueError, match='injected operators'):
+        experiment.improve_project(project, agent='thresholds', operator=lambda *args: {})

@@ -5,6 +5,7 @@ import math
 from scipy.stats import binomtest
 from sklearn.metrics import (
     cohen_kappa_score,
+    f1_score,
     precision_recall_curve,
     precision_recall_fscore_support,
 )
@@ -13,6 +14,7 @@ from qualia.eval.alpha import nominal_alpha
 from qualia.eval.calibration import expected_calibration_error
 
 REVIEW_PRECISION = .9
+THRESHOLD_GRID = [step / 20 for step in range(1, 20)]
 
 
 def _wilson(successes, total):
@@ -149,3 +151,30 @@ def evaluate_metrics(records, predictions, code_ids, *, calls=0, latency_ms=0, e
             'review_cutoff': 'Lowest model-reported score at which assignments scoring at or above it reach 90% precision on this evaluation set; null when unreachable or unscored.',
         },
     }
+
+
+def tune_thresholds(records, candidates, code_ids, current):
+    """Per-code score cutoff maximising that code's F1 on tuning data (ties toward 0.5).
+
+    Codes without reference positives, or that no cutoff can find, keep their current value.
+    ponytail: a small dev split can overfit; validation KEEP/REVERT is the guard.
+    """
+    ids = [record['segment_id'] for record in records]
+    by_id = {candidate['segment_id']: candidate for candidate in candidates}
+    if len(set(ids)) != len(ids) or len(by_id) != len(candidates) or set(ids) != set(by_id):
+        raise ValueError('tuning requires exactly one prediction for every reference segment')
+    tuned = dict(current)
+    for code_id in code_ids:
+        truth = [int(code_id in record['codes']) for record in records]
+        if not any(truth):
+            continue
+        scores = [max((code['score'] for code in by_id[identity]['codes'] if code['code_id'] == code_id),
+                      default=0.0) for identity in ids]
+
+        def f1_at(threshold):
+            return f1_score(truth, [int(score >= threshold) for score in scores], zero_division=0)
+
+        best = max(THRESHOLD_GRID, key=lambda threshold: (f1_at(threshold), -abs(threshold - .5)))
+        if f1_at(best) > 0:
+            tuned[str(code_id)] = best
+    return tuned

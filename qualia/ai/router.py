@@ -97,7 +97,8 @@ def _summary(run_id, backend, model):
 
 def classify_segments(db, segments, codebook, config, *, prompt, codebook_version_id,
                       pipeline_version, backend=None, model=None, task='classification',
-                      run_id=None, persist=False, registry=None, use_cache=True, cache_results=True):
+                      run_id=None, persist=False, registry=None, use_cache=True, cache_results=True,
+                      with_candidates=False):
     config = routing_config(config)
     name, selected_model = _select(config, backend, model, task)
     run_id = run_id or uuid.uuid4().hex
@@ -138,6 +139,13 @@ def classify_segments(db, segments, codebook, config, *, prompt, codebook_versio
             failures.append(('unavailable', f'backend {backend_name} is unavailable'))
             return {}
         collected = {}
+        default = getattr(provider, 'default_threshold', None) or 0
+
+        def assign(prediction):
+            # Thresholds act on raw (cached) scores, so changing them never needs a new call.
+            return {**prediction, 'codes': [code for code in prediction['codes'] if code['score'] >=
+                    config['code_thresholds'].get(str(code['code_id']), default)]}
+
         context = {'codebook': codebook, 'model': model_name, 'prompt': prompt,
                    'max_output_tokens': config['max_output_tokens'], 'fake_mode': config['fake_mode'],
                    'task': task}
@@ -170,8 +178,9 @@ def classify_segments(db, segments, codebook, config, *, prompt, codebook_versio
                         failures.append(('budget_reached', 'budget reached'))
                         return collected
                     result['cache_hits'] += 1
-                    collected[segment['id']] = (cached['predictions'][0], backend_name, model_name,
-                                                cached['cli_version'])
+                    raw = cached['predictions'][0]
+                    collected[segment['id']] = (assign(raw), backend_name, model_name,
+                                                cached['cli_version'], raw)
                 continue
             if provider.external and not config['allow_external']:
                 failures.append(('blocked', 'external AI disabled for this project'))
@@ -232,7 +241,8 @@ def classify_segments(db, segments, codebook, config, *, prompt, codebook_versio
                               'cli_version': validated['cli_version']}
                     if cache_results:
                         db.cache_put(keys[identity], single)
-                    collected[identity] = (prediction, backend_name, model_name, validated['cli_version'])
+                    collected[identity] = (assign(prediction), backend_name, model_name,
+                                           validated['cli_version'], prediction)
                 break
         return collected
 
@@ -254,6 +264,8 @@ def classify_segments(db, segments, codebook, config, *, prompt, codebook_versio
                     disagreed.add(identity)
                 outcomes[identity] = outcome
     result['predictions'] = [outcomes[segment['id']][0] for segment in segments if segment['id'] in outcomes]
+    if with_candidates:
+        result['candidates'] = [outcomes[segment['id']][4] for segment in segments if segment['id'] in outcomes]
     result['segments'] = len(result['predictions'])
     chosen = {(outcome[1], outcome[2]) for outcome in outcomes.values()}
     if len(chosen) == 1:
@@ -269,7 +281,7 @@ def classify_segments(db, segments, codebook, config, *, prompt, codebook_versio
             identity = segment['id']
             if identity not in outcomes:
                 continue
-            prediction, actual_backend, actual_model, cli_version = outcomes[identity]
+            prediction, actual_backend, actual_model, cli_version, _ = outcomes[identity]
             sampled = int(hashlib.sha256(f'{run_id}:{identity}'.encode()).hexdigest(), 16) / 2**256 < config['qc_sample_rate']
             for code in prediction['codes']:
                 triggers = []

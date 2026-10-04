@@ -50,6 +50,7 @@ def test_evaluation_complete_provenance_no_gold_sent_or_coding_writes(tmp_path):
         assert again['metrics']['calls'] == 0
         assert again['metrics']['cache_hits'] == 1
         assert len(db.rows('SELECT * FROM evaluation_runs')) == 2
+    assert 'candidates' not in result
     report = report_markdown(result)
     assert '| kappa | n/a |' in report and '| review_share |' in report
     assert '| Precision 95% CI |' in report and '| [' in report
@@ -107,3 +108,13 @@ def test_protected_cli_explicit_and_tampering_blocks(tmp_path, monkeypatch):
     tampered = runner.invoke(app, ['evaluate', '--project', 'study', '--protected', '--backend', 'fake'])
     assert tampered.exit_code != 0
     assert 'manifest' in tampered.output.lower()
+
+
+def test_candidates_are_returned_only_on_request_and_never_stored(tmp_path):
+    project, records, _ = setup_project(tmp_path)
+    with Store(project / 'project.db') as db:
+        result = evaluate_project(db, project, backend='fake', with_candidates=True)
+        assert result['references'] == records and result['code_ids'] == records[0]['codes']
+        assert result['candidates'][0]['segment_id'] == 'example-1'
+        stored = json.loads(db.one('SELECT metrics_json FROM evaluation_runs')['metrics_json'])
+        assert 'candidates' not in stored

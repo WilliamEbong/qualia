@@ -299,6 +299,21 @@ def test_default_batch_over_request_bound_is_split_not_failed():
         assert len(db.rows('SELECT * FROM egress_log')) == len(calls)
 
 
+def test_all_probabilities_returned_and_router_applies_default_threshold():
+    backend = jev.JevBackend(transport=httpx.MockTransport(
+        lambda request: httpx.Response(200, json=response_for(request, probability=.2))))
+    raw = validate_result(backend.classify(SEGMENTS, response_schema(), CONTEXT), SEGMENTS, CODEBOOK)
+    assert raw['predictions'][0]['codes'][0]['score'] == .2
+    assert backend.default_threshold == .5
+    config = {**ROUTING, 'allow_external': True, 'jev_enabled': True}
+    for thresholds, expected in (({}, []), ({'9': .1}, [9])):
+        with Store(':memory:') as db:
+            result = classify_segments(db, SEGMENTS, CODEBOOK, {**config, 'code_thresholds': thresholds},
+                prompt='Synthetic.', codebook_version_id=1, pipeline_version='fixture', backend='jev',
+                model='jev-1.13.0', registry={'jev': backend})
+        assert [code['code_id'] for code in result['predictions'][0]['codes']] == expected
+
+
 def test_rejected_http_response_does_not_log_key_or_body(caplog):
     caplog.set_level('DEBUG')
     backend = jev.JevBackend(transport=httpx.MockTransport(lambda request: httpx.Response(

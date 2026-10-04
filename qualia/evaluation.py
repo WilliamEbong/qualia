@@ -19,7 +19,7 @@ from qualia.workspace import (
 
 
 def evaluate_project(db, project, *, split='validation', protected=False,
-                     backend=None, model=None, registry=None, use_cache=True):
+                     backend=None, model=None, registry=None, use_cache=True, with_candidates=False):
     from qualia.io.benchmarks import load_benchmark
 
     if split not in ('dev', 'validation', 'protected') or (split == 'protected') != protected:
@@ -44,7 +44,8 @@ def evaluate_project(db, project, *, split='validation', protected=False,
                                codebook, read_config(project), prompt=prompt,
                                codebook_version_id=frozen['id'], pipeline_version=pipeline,
                                backend=backend, model=model, persist=False, registry=registry,
-                               use_cache=use_cache and not protected, cache_results=not protected)
+                               use_cache=use_cache and not protected, cache_results=not protected,
+                               with_candidates=with_candidates)
     elapsed = (time.monotonic() - started) * 1000
     if result['status'] != 'completed':
         raise ValueError('evaluation incomplete: ' + '; '.join(result['errors']))
@@ -78,9 +79,13 @@ def evaluate_project(db, project, *, split='validation', protected=False,
                     codebook_version_id=frozen['id'], pipeline_version=pipeline,
                     metrics_json=canonical(metrics), predictions_json=canonical(predictions)))
     row = db.one('SELECT created_at FROM evaluation_runs WHERE id=?', (row_id,))
-    return dict(id=row_id, split=split, backend=result['backend'], model=result['model'],
-                codebook_version_id=frozen['id'], pipeline_version=pipeline, metrics=metrics,
-                created_at=row['created_at'])
+    summary = dict(id=row_id, split=split, backend=result['backend'], model=result['model'],
+                   codebook_version_id=frozen['id'], pipeline_version=pipeline, metrics=metrics,
+                   created_at=row['created_at'])
+    if with_candidates:
+        # In memory only: raw scores for tuning never enter stored rows, reports or API responses.
+        summary.update(candidates=result['candidates'], references=records, code_ids=code_ids)
+    return summary
 
 
 def report_markdown(result):
