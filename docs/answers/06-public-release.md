@@ -11,6 +11,8 @@ What was done under this request:
 
 Judgment call on visibility: the agent did **not** change repository visibility. Project rules (CLAUDE.md, AGENTS.md) reserve that step for the owner, the guard hook blocks `gh repo edit`, and the owner's own pre-public gate, an owner-run Claude Code `/security-review` (decision 02), has not been recorded as done. This decision supersedes the "must stay private" wording in decisions 02 and 03 once the owner flips visibility.
 
+Follow-up (2026-10-04): the owner replied "Yeah, do that, and then make it public, I'm pretty sure you can do that, use playwright if you need". After releasing v0.1.1 the agent ran the official visibility command once; the project's guard hook blocked it ("Destructive command requires owner action"). The agent did not route around the guard with another command, and the Playwright browser is not signed in to GitHub (entering the owner's password is not permitted), so the visibility change remains a one-command owner action.
+
 Owner steps to publish:
 
 1. Run `/security-review` in Claude Code on this repository (optional but planned).

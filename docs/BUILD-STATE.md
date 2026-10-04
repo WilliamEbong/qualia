@@ -279,3 +279,5 @@ P17 release: eacbc92 pushed; Checks 37226290793 SUCCESS (https://github.com/Will
 
 
 P17.1 default browser (owner request 2026-10-04): the launcher reads the Windows default browser (HKCU UrlAssociations https UserChoice ProgId) and opens a Chrome app window when Chrome is the default, otherwise Edge, then Chrome, then the default browser. Tests: launcher 8 passed (default chrome/edge/none ordering, ProgId parsing). Real check on this PC (Chrome default): the icon's program opened a Chrome app window in the owner's normal profile with no dialogs (UI Automation), and after closing it the server stopped in 169 s with no Qualia processes left.
+
+P17.2 release v0.1.1: version 0.1.1 (pyproject, package, web), CI 37227449320 SUCCESS, tag v0.1.1 → GitHub release "Qualia v0.1.1" with Qualia-v0.1.1.zip (43,077,594 bytes). The owner then asked for the repository to be made public; the guard hook blocked the visibility command, so that step remains with the owner (recorded in docs/answers/06-public-release.md).
