@@ -151,6 +151,9 @@ th { font-size: var(--type-caption); line-height: 1.4; }
 .table-scroll table { border-top: 0; }
 .table-scroll thead th { border-top: 0; }
 .metric-value { font-size: var(--type-caption); }
+.metric-help { display: block; margin-top: 4px; font-size: var(--type-xs); font-weight: 400; color: var(--caption); }
+.review-budget { margin-top: 16px; padding-left: 16px; border-left: 3px solid var(--foreground); max-width: 64ch; }
+.version h4 { margin: 24px 0 4px; font-size: var(--type-caption); font-weight: 500; }
 .version { margin-top: 16px; }
 .version > summary { font-size: var(--type-caption); line-height: 1.4; padding: 12px 0; }
 .version[open] { padding-bottom: 16px; }

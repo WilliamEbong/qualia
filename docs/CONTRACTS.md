@@ -22,6 +22,7 @@ Evaluation publishes complete coverage only; predictions append to evaluation_ru
 Validation API returns aggregate metrics plus prompt/benchmark/codebook/CLI identity, never protected rows.
 ECE lookup requires backend, model, frozen codebook, pipeline and prompt identity to match.
 Classification summaries add `escalated_segments`, the count of distinct successful strong-tier results.
+Feature 010 additive metrics: each `per_code` row adds `precision_ci95`/`recall_ci95` (95% Wilson `[low, high]`, null for a zero denominator); top level adds `review_share` and `review_cutoff` (90% precision target over scored predicted assignments). Older evaluation rows without these keys stay valid and are never rewritten.
 
 ## Analysis contract (008, owner-added scope)
 

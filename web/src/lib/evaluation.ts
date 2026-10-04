@@ -5,7 +5,7 @@ import type { WorkspaceController } from './workspace'
 import type { ReviewController } from './review'
 import { request } from './client'
 import { eventCodeName } from './entities'
-import { formatMetric, metricRows, parseEvaluations } from './evaluation-state'
+import { calibrationRows, formatInterval, formatMetric, metricRows, parseEvaluations, reviewSentence } from './evaluation-state'
 import type { EvaluationRecord } from './evaluation-state'
 
 export function useEvaluation(w: WorkspaceController, review: ReviewController) {
@@ -30,7 +30,10 @@ export function useEvaluation(w: WorkspaceController, review: ReviewController) 
   const metrics = selected?.metrics
   return { runs, selected, select: setSelectedId, backend, setBackend, blockedReason, evaluate, formatMetric,
     metricRows: metrics ? metricRows(metrics) : [],
-    perCode: (metrics?.per_code ?? []).map(row => ({ ...row, name: eventCodeName({ code_id: row.code_id, codebook_version_id: selected!.codebook_version_id }, w.data?.codebook_versions ?? []), precisionText: formatMetric(row.precision), recallText: formatMetric(row.recall), f1Text: formatMetric(row.f1) })),
+    reviewSentence: metrics ? reviewSentence(metrics, w.data?.routing?.human_review_below) : '',
+    calibrationRows: metrics ? calibrationRows(metrics) : [],
+    perCode: (metrics?.per_code ?? []).map(row => ({ ...row, name: eventCodeName({ code_id: row.code_id, codebook_version_id: selected!.codebook_version_id }, w.data?.codebook_versions ?? []), precisionText: formatInterval(row.precision, row.precision_ci95), recallText: formatInterval(row.recall, row.recall_ci95), f1Text: formatMetric(row.f1) })),
+    hasIntervals: (metrics?.per_code ?? []).some(row => Array.isArray(row.precision_ci95) || Array.isArray(row.recall_ci95)),
     definitions: Object.entries(metrics?.definitions ?? {}),
     alphaBasis: metrics?.alpha_basis === 'human_coders' ? 'Human coder code-set agreement' : metrics?.alpha_basis === 'reference_vs_prediction' ? 'Reference vs. prediction code-set agreement (not human intercoder reliability)' : 'Agreement basis not recorded',
   }

@@ -501,6 +501,23 @@ The demo validation split contains 1,258 utterances. Privacy and call budgets st
 
 Read macro/micro F1, exact code-set match, partial match and per-code support together. They answer different questions. The displayed alpha basis distinguishes human-coder agreement from reference-versus-prediction agreement; the latter is not human intercoder reliability. **n/a** means undefined or unavailable.
 
+### Read the results in plain language
+
+Each metric in the table has a one-line explanation under its name. The most useful ones:
+
+| Term | What it tells you |
+|---|---|
+| Precision | Of the codes the AI suggested, how many matched the reference. |
+| Recall | Of the reference codes, how many the AI found. |
+| F1 | One number balancing precision and recall. Macro F1 averages it over every code, so rare codes count equally. |
+| Range in brackets | `0.82 (0.61–0.94)` is a 95% Wilson interval. A wide range means the code had few examples, so treat its number with caution. |
+| Cohen kappa / Nominal alpha | Agreement beyond chance. Qualia adds a word: kappa uses Landis & Koch (slight, fair, moderate, substantial, almost perfect); alpha uses Krippendorff (reliable at 0.800 or more, tentative at 0.667 or more, otherwise insufficient). |
+| Validation ECE | How far model-reported scores are from how often those suggestions were actually right. 0 means they match. |
+
+Below the metrics, a sentence turns the scores into a workload: for example, *reviewing suggestions with a model-reported score below 0.64 (35% of them) leaves the rest at 90% precision or better on this validation set*, followed by your current review threshold. If no score cutoff reaches 90%, Qualia says every suggestion needs review. These figures describe this validation set, not guaranteed future accuracy.
+
+Open **Evaluation provenance and metric definitions** for the exact definitions and a **Calibration by score band** table showing, for each model-reported score band, how many suggestions fell there and how often they were correct.
+
 ### Import your own benchmark
 
 This is an advanced workflow. Prepare UTF-8 JSONL, one record per line, bound to a frozen codebook. For example:

@@ -172,6 +172,7 @@ The [MVP Playwright spec](tests/e2e/mvp.spec.ts) requires explicit URL, project,
 - External AI and Jev are off by default. Unknown priced-call usage retains its conservative reservation rather than releasing spend capacity.
 - Real validation measurements decide KEEP/REVERT. Operator claims never substitute for metrics, tests or confirmation.
 - Subscription limitations and incomplete live gates are reported explicitly; local research work continues through manual, rules and fake paths.
+- Evaluation reports uncertainty instead of bare point estimates: 95% Wilson intervals (scipy, declared under owner decision05 and already required by scikit-learn) and the share of AI suggestions to review for 90% precision. Agreement words follow Landis & Koch (kappa) and Krippendorff (alpha) and never change a decision.
 - Owner-approved native accounting counts CLI invocations, retains failed attempts, and reports known aggregate tokens without pretending to measure internal HTTP requests or exact remaining subscription quota. Jev keeps separate direct-request accounting.
 
 Software: [MIT](LICENSE). Dataset provenance and permissions: [DATA-LICENSES.md](DATA-LICENSES.md).
