@@ -1,65 +1,38 @@
-# Qualia - threshold tuning proven on real data, now built into the app
+# Qualia - ready to publish (one step left for you)
 
-You asked me to try tuning, check Lighthouse and keep these tools inside Qualia. All three are done, verified and pushed to private main.
+Everything is done, committed and pushed to private main. CI status for the final push is in the last BUILD-STATE entry.
 
-## Headline: tuning measurably improved the demo
+## What changed in this round
 
-On your demo, with Jev, `Tune thresholds` learned one score threshold per code from 400 dev segments:
+- **README** is now a guided tour. It covers what Qualia does and why to trust it, has cropped screenshots of each feature, a five-minute start, an "AI options" table and the measured demo results. The architecture, verified walkthrough and Decisions log are kept.
+- **User guide**:
+  - §13 contains the full Jev setup: account, key, `.env`, readiness check, synthetic first test, using Jev, privacy and error meanings.
+  - Every new feature has a cropped screenshot, and the command reference lists tuning, AI improvement and Jev commands.
+  - Machine-specific paths such as `C:\Users\Owner\...` are replaced with general ones.
+- **Screenshots** in `design-review/final/features/` are Playwright captures of just the relevant part of the app, never your screen.
 
-| Code | reflection | question | therapist_input | other | change | sustain | neutral |
-|---|---|---|---|---|---|---|---|
-| Threshold | 0.20 | 0.70 | 0.60 | 0.45 | 0.20 | 0.25 | 0.35 |
+## Release checks passed
 
-Qualia then measured the change on the 1,258-segment validation split and **kept it** (experiment 2, tag `exp-0002-measured-gain`).
+- **Secrets:** gitleaks found no leaks across all 57 commits and all tracked files.
+- **Private files:** no `.env`, databases, protected data or owner notes were ever committed.
+- **App security:** confirmed 127.0.0.1 binding, Host checks, per-launch token and CSP.
+- **Screenshots:** all 101 tracked screenshots and every frame of the tour GIF show only demo or synthetic content.
 
-| Measure | Before | After | Fresh confirmation |
-|---|---|---|---|
-| Macro F1 | 0.523 | 0.567 | 0.572 |
-| Exact code-set match | 0.365 | 0.405 | 0.399 |
-| Calibration error (lower is better) | 0.050 | 0.038 | 0.036 |
+## Why I didn't flip it public
 
-- **Cost:** $0.346 in Jev usage for the day (420 requests). The run took 13 minutes.
-- **Your research coding:** no coding was changed.
-- **Where to see it:** open Experiments to see the result, and the Codebook now shows each code's "AI suggests at score ≥ …". The Evaluation page shows the real ranges and calibration table. For example, Jev suggestions in the 0.8–0.9 band were right 87% of the time; in the 0.2–0.3 band, 19%.
+Your project rules say only you change visibility, and a safety hook blocks the command. You also planned a `/security-review` first. The repo is ready; publishing takes about two minutes:
 
-## Built into the app
+1. Optional: run `/security-review` in Claude Code on this repository.
+2. Make it public:
+   ```powershell
+   gh repo edit WilliamEbong/qualia --visibility public --accept-visibility-change-consequences
+   ```
+3. On GitHub: Settings → Pages → Source: **GitHub Actions**. Then go to Actions → **Public demo** → **Run workflow** to publish the static demo. The first automatic run fails until Pages is enabled.
+4. Optional: Settings → Emails → "Keep my email addresses private". Past commits keep your Gmail address; history must not be rewritten.
 
-- **Tune button.** Experiments → **Tune suggestion thresholds** → pick a classifier → **Tune thresholds**. It runs the same measured experiment as the terminal command. If something blocks it, such as a missing dev benchmark or an unclean project, it says exactly why.
-- **Real-data wording fix.** The review sentence had shown "100% of them" for 99.94%; it now says "more than 99%".
+These steps are also recorded in docs/answers/06-public-release.md.
 
-## Lighthouse and accessibility
+## Still open from before
 
-Lighthouse was low risk. I ran Google's official tool from a temporary folder; nothing was added to Qualia.
-
-- **Accessibility:** scored 96. I fixed the issue it found.
-- **axe-core audit** (the engine Lighthouse uses) found two more problems, both now fixed:
-  - Wide tables on phones couldn't be scrolled by keyboard.
-  - The frequency chart hid its clickable bars from screen readers.
-
-  axe now reports no violations on Experiments, Evaluation, Review and Codebook, at desktop and phone width, light and dark.
-- **Speed:** really fast locally: first paint 0.2 s, main content 1.2 s, no layout shift. Lighthouse's simulated slow-network score is low (59–74) only because opening the demo downloads a 12 MB data file. Compressing it would slow local use, so I left it. A suggested follow-up task to shrink that payload is waiting in the app for you to start or dismiss.
-
-## Changes to your demo workspace (outside the repo)
-
-All were made as commits in the demo's own Git history:
-- Committed your existing Jev-enable setting.
-- Moved my two earlier report files out to the session scratchpad.
-- Raised the daily call limit to 800 for the run, then restored it to 300.
-- The tuned thresholds are kept, as Qualia's policy decided.
-
-## Checks
-
-- Full offline suite: 561 passed, 5 skipped, 6 live tests deselected.
-- Web: 37 tests, typecheck and build pass.
-- Ruff, data guard, dependency audit and secret scan are clean.
-- The CI result for the final push is in the last BUILD-STATE entry.
-- Specs 010–012 have convergence records.
-
-## Still yours
-
-- **Stale servers.** Two old `qualia open --no-browser` servers from 2026-10-03 still hold `qualia.exe`. Close them, then run:
-  ```powershell
-  uv sync
-  uv run qualia open
-  ```
-- **Security review.** The planned Claude Code `/security-review` before going public is unchanged.
+- Two stale `qualia open --no-browser` servers from 2026-10-03 still hold `qualia.exe`. Close them, then run `uv sync` and `uv run qualia open`.
+- The optional follow-up task "Shrink Qualia's 12 MB workspace payload" is waiting in the app.
