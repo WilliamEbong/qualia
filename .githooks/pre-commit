@@ -1,0 +1,55 @@
+#!/usr/bin/env node
+'use strict';
+
+// D0 staged-path gate. The shared configuration owns the design boundary.
+const fs = require('node:fs');
+const path = require('node:path');
+const { execFileSync } = require('node:child_process');
+
+const normalize = value => value.replaceAll('\\', '/').toLowerCase();
+const escape = value => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function matches(file, pattern) {
+  const rule = normalize(pattern);
+  if (rule.endsWith('/')) return file === rule.slice(0, -1) || file.startsWith(rule);
+  return new RegExp('^' + rule.split('*').map(escape).join('.*') + '$').test(file);
+}
+function git(args, cwd) {
+  return execFileSync('git', args, {
+    cwd, encoding: 'utf8', timeout: 10000, maxBuffer: 16 * 1024 * 1024,
+    windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'],
+  });
+}
+function validRules(rules) {
+  return Array.isArray(rules) && rules.length > 0 && rules.every(rule => {
+    if (typeof rule !== 'string' || !rule.length || /[\x00-\x1f]/.test(rule)) return false;
+    const normalized = normalize(rule);
+    return !normalized.startsWith('/') && !normalized.includes(':') &&
+      !normalized.split('/').some(part => part === '.' || part === '..');
+  });
+}
+
+try {
+  const root = git(['rev-parse', '--show-toplevel'], process.cwd()).trim();
+  if (!root) throw new Error('Missing repository root');
+  const config = JSON.parse(fs.readFileSync(
+    path.join(root, '.claude', 'hooks', 'guard-config.json'), 'utf8',
+  ).replace(/^\uFEFF/, ''));
+  if (!config || !['build', 'design'].includes(config.mode) ||
+      !validRules(config.alwaysProtected) || !validRules(config.designProtected)) {
+    throw new Error('Invalid guard configuration');
+  }
+  // Disabling rename detection checks both old and new paths of a staged move.
+  const staged = git(['diff', '--cached', '--name-only', '-z', '--no-renames'], root);
+  if (staged && !staged.endsWith('\0')) throw new Error('Invalid staged path output');
+  const blocked = staged.split('\0').filter(Boolean).filter(file =>
+    config.mode === 'design' && config.designProtected.some(rule => matches(normalize(file), rule)),
+  );
+  if (blocked.length) {
+    process.stderr.write('Qualia design guard: protected staged paths; unstage them and record required changes in DESIGN-NOTES.md.\n');
+    for (const file of blocked) process.stderr.write(`  ${JSON.stringify(file)}\n`);
+    process.exitCode = 1;
+  }
+} catch {
+  process.stderr.write('Qualia design guard could not validate the commit. Check Git and .claude/hooks/guard-config.json; the commit is blocked.\n');
+  process.exitCode = 1;
+}

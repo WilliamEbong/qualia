@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 
 from qualia.core.analysis_models import AnalysisExportRequest, AnalysisOptions, AnalysisReport
 from qualia.server.api_models import ExportResult
@@ -26,4 +26,6 @@ def register_analysis_routes(app: FastAPI, home: Path | None):
         path = existing_project(slug, home)
         with Store(path / 'project.db') as db:
             report = read_analysis(db, path, request.options)
+        if request.expected_input_hash is not None and report.input_hash != request.expected_input_hash:
+            raise HTTPException(409, 'Research data changed. Refresh analysis before downloading this report.')
         return export_analysis(report, request.format)

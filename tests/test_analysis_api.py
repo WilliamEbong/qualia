@@ -91,3 +91,22 @@ def test_analysis_cli_reproduces_read_only_report(study):
     assert exported['text_excluded'] is True
     bad = CliRunner().invoke(app, ['analyze', '--project', 'study', '--format', 'html'])
     assert bad.exit_code != 0
+
+
+def test_analysis_export_rejects_stale_displayed_input(study):
+    client, prefix, _ = study
+    report = client.post(prefix + '/analysis', json={}).json()
+    payload = {'format': 'csv', 'expected_input_hash': report['input_hash']}
+    assert client.post(prefix + '/analysis/export', json=payload).status_code == 200
+    assert client.post(prefix + '/cases', json={
+        'name': 'Participant 0', 'source_ids': [], 'attributes': {'age': '21'},
+    }).status_code == 200
+    stale = client.post(prefix + '/analysis/export', json=payload)
+    assert stale.status_code == 409
+    assert 'Refresh analysis' in stale.json()['detail']
+    assert 'content' not in stale.json()
+    fresh = client.post(prefix + '/analysis', json={}).json()
+    payload['expected_input_hash'] = fresh['input_hash']
+    assert client.post(prefix + '/analysis/export', json=payload).status_code == 200
+    payload['expected_input_hash'] = 'invalid'
+    assert client.post(prefix + '/analysis/export', json=payload).status_code == 422

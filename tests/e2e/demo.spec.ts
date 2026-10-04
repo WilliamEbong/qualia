@@ -7,7 +7,7 @@ test.describe('Read-only static demo', () => {
     page.on('request', request => requests.push(request.url()))
     await page.goto(process.env.QUALIA_DEMO_URL!)
     await expect(page.getByText('Read-only public snapshot', { exact: false }).first()).toBeVisible()
-    for (const view of ['Home', 'Workspace', 'Codebook', 'Memos', 'Retrieval', 'Matrix', 'Review', 'Evaluation', 'Experiments']) {
+    for (const view of ['Home', 'Workspace', 'Codebook', 'Memos', 'Retrieval', 'Matrix', 'Analysis', 'Review', 'Evaluation', 'Experiments']) {
       await page.getByRole('button', { name: new RegExp(`^${view}(?: \\(|$)`) }).click()
       await expect(page.locator('main')).toBeVisible()
     }

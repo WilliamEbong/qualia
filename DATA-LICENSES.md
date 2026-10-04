@@ -32,3 +32,9 @@ the bytes, split identities and frozen codebook; it excludes validation/protecte
 user edits, memos, generated rationales, evaluations, experiments and local configuration.
 Seventeen offline snapshot tests cover integrity and disclosure boundaries. The snapshot
 is approved for the prepared static demo on this documented licensing basis; it is not deployed.
+
+The artwork under web/public/plates was generated locally by the owner's approved
+archive-of-looking generator, seed3, on2026-10-03; no external photography is shipped.
+PNG originals and WebP delivery copies are retained. The self-hosted Cormorant Garamond,
+Libre Franklin variable and IBM Plex Mono fonts use Fontsource5.3.0; their OFL1.1
+copyright/license notices ship in web/public/licenses/ with the site.

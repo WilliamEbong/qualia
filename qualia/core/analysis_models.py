@@ -146,3 +146,4 @@ class AnalysisExportRequest(BaseModel):
     model_config = ConfigDict(extra='forbid', strict=True)
     options: AnalysisOptions = Field(default_factory=AnalysisOptions)
     format: Literal['json', 'csv', 'python', 'r'] = 'json'
+    expected_input_hash: str | None = Field(default=None, pattern=r'^[0-9a-f]{64}$')

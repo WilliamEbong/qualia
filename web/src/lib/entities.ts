@@ -18,7 +18,7 @@ export type Workspace = Omit<components['schemas']['Workspace'], 'sources' | 'se
 export type Span = { segmentId: number; start: number; end: number }
 export type MatrixCell = { code_id: number; case_id: number; count: number }
 export type Retrieval = Coding & { source_id: number; segment_text: string; excerpt: string; source_name: string }
-export type View = 'home' | 'workspace' | 'codebook' | 'memos' | 'retrieval' | 'matrix' | 'review' | 'evaluation' | 'experiments'
+export type View = 'home' | 'workspace' | 'codebook' | 'memos' | 'retrieval' | 'matrix' | 'review' | 'evaluation' | 'experiments' | 'analysis'
 
 export function segmentText(data: Workspace, segment: Segment): string {
   const source = data.sources.find(item => item.id === segment.source_id)

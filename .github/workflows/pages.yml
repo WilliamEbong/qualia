@@ -26,8 +26,12 @@ jobs:
           cache-dependency-path: web/package-lock.json
       - run: npm ci
         working-directory: web
-      - run: node scripts/build-demo.mjs /${{ github.event.repository.name }}/
-      - uses: actions/configure-pages@v5
+      - id: pages
+        uses: actions/configure-pages@v5
+      - run: node scripts/build-demo.mjs "$BASE_PATH/"
+        env:
+          BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          PUBLIC_SITE_URL: ${{ steps.pages.outputs.base_url }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: web/dist-demo

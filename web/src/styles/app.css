@@ -99,3 +99,18 @@ th, td { border: 1px solid var(--border); text-align: left; padding: 0; } th { p
 @media (max-width: 900px) { .workspace-grid { grid-template-columns: minmax(0,1fr); } .source-panel { border-right: 0; min-height: 0; } .source-list { display: flex; flex-wrap: wrap; gap: 8px; } .coding-panel { border-left: 0; border-top: 1px solid var(--border); } .two-column { grid-template-columns: minmax(0,1fr); gap: 24px; } .content-page { padding: 24px 16px; } .operation-panel { margin: 16px; } }
 @media (max-width: 500px) { .app-header { padding: 20px 16px; } .project-controls { width: 100%; flex-wrap: wrap; } .project-controls label { min-width: 0; } .project-controls > label { flex: 1; } .project-create form { right: 0; max-width: calc(100vw - 32px); } .workspace-nav { padding: 0 8px; } .workspace-nav .export-action { margin-left: 0; } .form-grid, .filters { grid-template-columns: minmax(0,1fr); } .section-heading { flex-wrap: wrap; } .segment { padding: 16px 8px; } .segment-heading { flex-wrap: wrap; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; scroll-behavior: auto !important; } }
+
+.analysis-choices { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 0 20px; max-height: 320px; overflow: auto; }
+.analysis-chart-scroll { overflow-x: auto; margin: 24px 0; }
+.analysis-chart { display: block; width: 100%; min-width: 640px; background: var(--background); color: var(--foreground); }
+.analysis-chart text { fill: var(--foreground); font-size: 13px; }
+.analysis-chart [role=button] { cursor: pointer; }
+.chart-hit { fill: transparent; }
+.chart-bar, .chart-point { fill: var(--accent); }
+.chart-axis { fill: none; stroke: var(--foreground); stroke-width: 1; }
+.analysis-chart [role=button]:focus .chart-hit { stroke: var(--focus); stroke-width: 2; }
+.analysis-page td > .button { min-width: 40px; }
+#analysis-evidence { scroll-margin-top: 24px; }
+
+.analysis-page { overflow-wrap: anywhere; }
+.analysis-page fieldset { min-width: 0; }

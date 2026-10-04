@@ -25,11 +25,11 @@ The fetch verifies the pinned AnnoMI CSV checksum before publication. Repeating 
 
 Research projects live outside this checkout, under `%USERPROFILE%/Qualia` on Windows by default. Set `QUALIA_HOME` in a local, ignored `.env` to choose another directory outside the app repository. The browser receives a per-launch API token; the server checks its token and Host header.
 
-For your own study, run `uv run qualia init my-study`, open the app, choose that project, import TXT/Markdown or mapped CSV, define codes, and freeze a codebook version before coding. See the [owner manual](docs/03-qualia-owner.md) for the longer workflow.
+For your own study, run `uv run qualia init my-study`, open the app, choose that project, import TXT/Markdown or mapped CSV, define codes, and freeze a codebook version before coding. See the [step-by-step user guide](docs/USER-GUIDE.md) for the complete workflows.
 
 ## Work with evidence
 
-1. In **Workspace**, select a transcript. Use ↑/↓ to move between segments and 1–9 to assign a code. Select text to code a narrower span. Memos, retrieval and the case-by-code matrix keep related evidence accessible.
+1. In **Workspace**, select a transcript. Use Up/Down to move between segments and 1–9 to assign a code. Select text to code a narrower span. Memos, retrieval and the case-by-code matrix keep related evidence accessible.
 2. In **Review**, choose `rules` or `fake` and **Current source** to try suggestions offline. Select a suggestion and press `a` to accept or `r` to reject. Dashed suggestion marks become solid accepted marks with an `m`; the original suggestion and human feedback remain in the history.
 3. Use **Evaluation** for validation metrics and calibration evidence. Scores beside suggestions are model-reported; an ECE value is shown only when a matching validation result exists.
 4. Use **Export → Reproducibility bundle** to include coding history, versions, experiments, evaluations, usage and configuration hashes. Text is excluded by default. A no-text export preserves identifiers and provenance; it is not a de-identification guarantee.
@@ -42,6 +42,35 @@ uv run qualia classify --project demo --backend fake --segments 1,2,3
 uv run qualia evaluate --project demo --split validation --backend fake
 uv run qualia history --project demo
 ```
+
+## Mixed-methods analysis and data science
+
+The **Analysis** workbench adds read-only coding frequencies, case-attribute comparisons,
+co-occurrence, literal text/code queries and Unicode word frequencies. Bars, heat tables
+and numeric scatter plots retain exact data tables and links to contributing excerpts.
+Choose numeric case attributes explicitly to see valid/missing/invalid counts, mean,
+median, sample standard deviation, range and pairwise-complete Pearson correlation.
+The report states its denominator, filter criteria and input fingerprint.
+
+```powershell
+uv run qualia analyze --project demo --group-by mi_quality
+uv run qualia analyze --project my-study --numeric age --numeric score --format csv
+uv run qualia analyze --project my-study --numeric age --numeric score --format python
+```
+
+Download the case CSV and matching Python or R starter from the same analysis criteria.
+Run scripts yourself outside Qualia; the application never executes arbitrary analysis code.
+The Python starter uses its standard library, and the R starter uses base R. Exported JSON
+includes the column dictionary, criteria and provenance. CSV values have reversible formula
+escaping. Transcript text is excluded, but case names, attributes and query criteria may
+still be sensitive: no-text export is not anonymization.
+
+Repeated spans do not inflate segment/case presence. Same-segment co-occurrence and actual
+span overlap are distinct; Jaccard is always labeled segment-presence similarity. Missing
+data is not zero, and correlation is not causation. Pearson is unavailable below three
+complete pairs or for constant values. Advanced inference/model fitting, audio/video,
+real-time collaboration and proprietary NVivo project import are not implemented.
+See [the researched conventions](docs/research/research-analysis.md).
 
 ## Measured implementation experiments
 
@@ -67,7 +96,7 @@ The verified local MVP used the actual pinned AnnoMI demo:
 | Validation records | 1,258 |
 | Macro F1: rules baseline → fake candidate → confirmation | 0.01058468 → 0.24242447 → 0.24242447 |
 | Classification calls per evaluation | 63 |
-| Recorded decision and tag | KEEP · `exp-0001-measured-gain` |
+| Recorded decision and tag | KEEP Â· `exp-0001-measured-gain` |
 
 This is a scripted fake-backend smoke test of measurement, policy and provenance. It is not evidence of trained-model quality. Predicting all seven codes improved macro F1 in this run while exact match fell from approximately 0.00477 to 0. The before/after table retains both outcomes.
 

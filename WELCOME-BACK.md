@@ -1,13 +1,11 @@
 # Qualia — build in progress
 
-The offline workspace, AI review, evaluation and guarded improvement loop are implemented and verified. The real AnnoMI demo passed the five-code/review/KEEP/export browser workflow with a scripted fake backend. Native Claude and Codex readiness remains disabled pending the recorded request-accounting, isolation and output-bound decisions. Research projects remain outside this repository. Last pushed checkpoint: 8029a36, private CI success. Presentation and portfolio verification are in progress. Read `docs/BUILD-STATE.md` for exact evidence.
+The offline research workspace, review, evaluation, guarded fake improvement loop, and mixed-methods/data-science analysis are built. Full offline regression: 390 passed; browser checks cover analytics, chart/evidence links, exports, and the static demo without API calls. Native Claude/Codex activation remains gated; no live parity claim is made.
 
-Run `uv run qualia open` to use the populated demo, or `uv run qualia init my-study` for a new study. Jev account exists; billing/key remain owner-managed and optional. Follow [the detailed Jev setup guide](docs/JEV-SETUP.md); never paste a key in chat. Native setup/accounting decisions are recorded in ignored OWNER-NEEDED.md. Automatic review rejected a private live Claude diagnostic after quota reset; no live call started. No live parity or build-complete claim is made.
+Current work: finish the final analysis refresh check, commit the functional baseline, activate the preauthorized D0 design guard, then complete the presentation pass and final documentation. The detailed user guide is drafted at docs/USER-GUIDE.md. Source documents 02–05 and the constitution remain unchanged. See docs/BUILD-STATE.md for exact evidence.
 
-Resume from this folder with `codex` and the recovery prompt in `scripts/prompts/recovery.md`, or use the existing runner after its preflight gates pass:
+Run `uv run qualia open` to use the populated demo. Jev is installed but off with a blank key; follow docs/JEV-SETUP.md. Research projects live under %USERPROFILE%\Qualia, outside this checkout. Do not paste a key into chat.
 
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts/run-build.ps1
-```
+Last pushed checkpoint: 8029a36, private CI success. Newer local commits are preserved; automatic review requires explicit owner approval before another main push. The owner authorized the optional official source security review, but its Windows drive-ancestor permission check blocked analysis; no permissions were modified. Native setup/accounting decisions and exact owner steps are in ignored OWNER-NEEDED.md.
 
-Do not mark BUILD COMPLETE until all load-bearing acceptance checks have evidence.
+Resume in this folder with `codex` and scripts/prompts/recovery.md. The existing runner is scripts/run-build.ps1; its known model override is `-Model gpt-6-astra`. Do not mark BUILD COMPLETE until all load-bearing checks have evidence.

@@ -439,6 +439,8 @@ export interface components {
              * @enum {string}
              */
             format: "json" | "csv" | "python" | "r";
+            /** Expected Input Hash */
+            expected_input_hash?: string | null;
         };
         /** AnalysisFrequency */
         AnalysisFrequency: {

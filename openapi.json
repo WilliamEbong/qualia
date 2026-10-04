@@ -1254,6 +1254,18 @@
             ],
             "title": "Format",
             "default": "json"
+          },
+          "expected_input_hash": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Input Hash"
           }
         },
         "additionalProperties": false,
