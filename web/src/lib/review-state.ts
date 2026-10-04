@@ -14,12 +14,26 @@ export function reviewReasons(value: string | null): string[] {
   return ['Human review']
 }
 
+export function reasonCaption(value: string | null, threshold: unknown): string {
+  // The trigger was recorded at classification time; the threshold shown is today's project setting.
+  const current = typeof threshold === 'number' && Number.isFinite(threshold) ? ` (current threshold ${threshold.toFixed(2)})` : ''
+  return reviewReasons(value).map(reason => reason === reasonLabels.below_threshold ? reason + current : reason).join(' · ')
+}
+
+export function thresholdCaption(routing: unknown, codeId: number): string {
+  const thresholds = routing && typeof routing === 'object' ? (routing as { code_thresholds?: unknown }).code_thresholds : undefined
+  const value = thresholds && typeof thresholds === 'object' ? (thresholds as Record<string, unknown>)[String(codeId)] : undefined
+  return typeof value === 'number' && Number.isFinite(value) ? `AI suggests at score ≥ ${value.toFixed(2)}` : ''
+}
+
+const leastCertainFirst = (left: Coding, right: Coding) => (left.score ?? Infinity) - (right.score ?? Infinity)
+
 export function groupSuggestions(suggestions: Coding[]) {
   const groups = new Map<string, Coding[]>()
   for (const suggestion of suggestions) {
     for (const reason of reviewReasons(suggestion.review_trigger)) groups.set(reason, [...(groups.get(reason) ?? []), suggestion])
   }
-  return [...groups].map(([reason, items]) => ({ reason, items }))
+  return [...groups].map(([reason, items]) => ({ reason, items: items.sort(leastCertainFirst) }))
 }
 
 export function modelScore(score: number | null): string {

@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 import type { WorkspaceController } from '../lib/workspace'
 import { exampleLines } from '../lib/workspace'
+import { thresholdCaption } from '../lib/review-state'
 import { Button } from './ui/button'
 
 export function Codebook({ w }: { w: WorkspaceController }) {
@@ -9,7 +10,7 @@ export function Codebook({ w }: { w: WorkspaceController }) {
     <p>Draft edits apply to the next frozen version. Existing coding always retains the version used for its decision.</p>
     <div className="two-column"><div>
       {!w.codes.length && <div className="empty"><h3>No codes yet</h3><p>Describe the first idea you want to track, then freeze a version to begin coding.</p></div>}
-      {w.codes.map(code => <article key={code.id} className="code-card" style={{ '--depth': code.depth } as CSSProperties}><div className="section-heading"><h3>{code.name}</h3><span className="caption">{code.status}</span></div><p className="code-definition">{code.definition || 'No definition supplied.'}</p><dl className="code-fields"><dt>Include</dt><dd>{code.include || '—'}</dd><dt>Exclude</dt><dd>{code.exclude || '—'}</dd><dt>Positive examples</dt><dd className="preserve-lines">{code.positive || '—'}</dd><dt>Negative examples</dt><dd className="preserve-lines">{code.negative || '—'}</dd></dl><Button disabled={w.readOnly} onClick={() => w.setEditCode(code)}>Edit {code.name}</Button></article>)}
+      {w.codes.map(code => <article key={code.id} className="code-card" style={{ '--depth': code.depth } as CSSProperties}><div className="section-heading"><h3>{code.name}</h3><span className="caption">{code.status}</span></div>{thresholdCaption(w.data?.routing, code.id) && <p className="caption">{thresholdCaption(w.data?.routing, code.id)}</p>}<p className="code-definition">{code.definition || 'No definition supplied.'}</p><dl className="code-fields"><dt>Include</dt><dd>{code.include || '—'}</dd><dt>Exclude</dt><dd>{code.exclude || '—'}</dd><dt>Positive examples</dt><dd className="preserve-lines">{code.positive || '—'}</dd><dt>Negative examples</dt><dd className="preserve-lines">{code.negative || '—'}</dd></dl><Button disabled={w.readOnly} onClick={() => w.setEditCode(code)}>Edit {code.name}</Button></article>)}
       <h3>Frozen versions</h3>{w.data?.codebook_versions.map(version => <details key={version.id} className="version"><summary>cb_v{version.id} · frozen {version.frozen_at}</summary><p className="caption hash">{version.hash}</p><pre>{version.snapshot_json}</pre></details>)}
     </div><form className="editor" key={w.editCode?.id ?? 'new'} onSubmit={w.saveCode}><fieldset disabled={w.readOnly}>
       <div className="section-heading"><h3>{w.editCode ? `Edit ${w.editCode.name}` : 'Create code'}</h3>{w.editCode && <Button onClick={() => w.setEditCode(null)}>New code</Button>}</div>

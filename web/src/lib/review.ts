@@ -5,7 +5,7 @@ import { request } from './client'
 import { eventCodeName, isEditingTarget, segmentText } from './entities'
 import type { Coding } from './entities'
 import type { WorkspaceController } from './workspace'
-import { groupSuggestions, isAcceptedModel, modelScore, reviewReasons, reviewShortcut } from './review-state'
+import { groupSuggestions, isAcceptedModel, modelScore, reasonCaption, reviewReasons, reviewShortcut } from './review-state'
 import { calibrationCaption, parseEvaluations } from './evaluation-state'
 import type { EvaluationRecord } from './evaluation-state'
 
@@ -65,7 +65,8 @@ export function useReview(w: WorkspaceController) {
     return segment && w.data ? Array.from(segmentText(w.data, segment)).slice(item.span_start, item.span_end).join('') : ''
   }
   return { availability, availabilityError, backend, setBackend, blockedReason, selected, select: (id: number) => { if (selected?.id !== id) setNote(''); setSelectedId(id) },
-    suggestions, activeSuggestions, groups, note, setNote, result, review, classify, excerpt, modelScore, reviewReasons, eceCaption: (item: Coding) => calibrationCaption(item, evaluations), isAcceptedModel,
+    suggestions, activeSuggestions, groups, note, setNote, result, review, classify, excerpt, modelScore, reviewReasons,
+    reasonCaption: (value: string | null) => reasonCaption(value, w.data?.routing?.human_review_below), eceCaption: (item: Coding) => calibrationCaption(item, evaluations), isAcceptedModel,
     codeName: (item: Coding) => eventCodeName(item, w.data?.codebook_versions ?? []),
   }
 }

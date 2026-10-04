@@ -356,6 +356,7 @@ th { font-size: var(--type-caption); line-height: 1.4; }
 
 /* D6 — quiet states and legible research tables. */
 .empty { position: relative; isolation: isolate; overflow: hidden; min-height: 240px; padding: 36px 28px; border: 1px solid var(--border); background: var(--surface); color: var(--foreground); }
+.empty code { white-space: nowrap; color: var(--foreground); }
 .empty::before { content: ''; position: absolute; inset: 0; z-index: -1; opacity: .07; background: url('../../public/plates/star_chart.webp') center / cover; pointer-events: none; }
 .empty::after { content: ''; position: absolute; top: 63.3%; left: 0; right: 0; height: 1px; background: var(--horizon); z-index: -1; pointer-events: none; }
 .empty > * { position: relative; max-width: var(--measure); }
