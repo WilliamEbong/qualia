@@ -39,3 +39,6 @@ vault/
 .coverage
 .playwright-mcp/
 requirements-audit.txt
+
+# session handoff for the next chat (local, overwritten each transfer)
+HANDOFF.md
