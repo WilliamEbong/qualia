@@ -1,38 +1,37 @@
-# Qualia - ready to publish (one step left for you)
+# Qualia - now a double-click app
 
-Everything is done, committed and pushed to private main. CI status for the final push is in the last BUILD-STATE entry.
+## What's new: no more terminal
 
-## What changed in this round
+- **Your Qualia icon** is on your Desktop and in the Start menu. Double-click it: Qualia opens in its own window, with no tabs, no address bar and no black terminal window.
+- **To stop Qualia, just close its window.** It notices and shuts itself down within about three minutes; nothing keeps running in the background. Opening the icon again in that time simply reopens the window.
+- **For other people:** they download one zip from GitHub Releases, unblock and extract it, and double-click **Install Qualia** once. It installs everything Qualia needs, adds the demo and creates the icon. No Git, Node or commands needed. The README and user guide §2 now lead with this path; the developer path is still documented.
 
-- **README** is now a guided tour. It covers what Qualia does and why to trust it, has cropped screenshots of each feature, a five-minute start, an "AI options" table and the measured demo results. The architecture, verified walkthrough and Decisions log are kept.
-- **User guide**:
-  - §13 contains the full Jev setup: account, key, `.env`, readiness check, synthetic first test, using Jev, privacy and error meanings.
-  - Every new feature has a cropped screenshot, and the command reference lists tuning, AI improvement and Jev commands.
-  - Machine-specific paths such as `C:\Users\Owner\...` are replaced with general ones.
-- **Screenshots** in `design-review/final/features/` are Playwright captures of just the relevant part of the app, never your screen.
+I tested this end to end on this PC three ways: from a package built like the release, from the actual zip GitHub built, and from your own Qualia folder. Each time the window opened cleanly and Qualia shut itself down after the window closed.
 
-## Release checks passed
+One thing I changed along the way: my first version gave Qualia its own browser profile. That made Edge show its "Sync your profile" and onboarding windows, and it kept Edge running. I replaced it before release with a simpler approach that uses your normal Edge, so there are no prompts.
 
-- **Secrets:** gitleaks found no leaks across all 57 commits and all tracked files.
-- **Private files:** no `.env`, databases, protected data or owner notes were ever committed.
-- **App security:** confirmed 127.0.0.1 binding, Host checks, per-launch token and CSP.
-- **Screenshots:** all 101 tracked screenshots and every frame of the tour GIF show only demo or synthetic content.
+## Checks
 
-## Why I didn't flip it public
+- 566 Python tests passed (5 skipped, 6 live tests not run); 37 web tests, typecheck and build pass.
+- Ruff, data guard and the secret scan are clean.
+- The release workflow builds the download zip on GitHub.
+- Final CI status and the v0.1.0 release are recorded at the end of BUILD-STATE.
 
-Your project rules say only you change visibility, and a safety hook blocks the command. You also planned a `/security-review` first. The repo is ready; publishing takes about two minutes:
+## Small leftovers
 
-1. Optional: run `/security-review` in Claude Code on this repository.
+- **Unused folder:** `%USERPROFILE%\Qualia\.app-browser` is left over from the first version. It's safe to delete; my safety rules block deleting folders.
+- **Old browser tab:** a Chrome tab titled "Qualia — research workspace" from an earlier session may still be open. Close it.
+
+## Still yours: making Qualia public
+
+Nothing changed here; the steps are in docs/answers/06-public-release.md:
+
+1. Optional: run `/security-review` in Claude Code.
 2. Make it public:
    ```powershell
    gh repo edit WilliamEbong/qualia --visibility public --accept-visibility-change-consequences
    ```
-3. On GitHub: Settings → Pages → Source: **GitHub Actions**. Then go to Actions → **Public demo** → **Run workflow** to publish the static demo. The first automatic run fails until Pages is enabled.
-4. Optional: Settings → Emails → "Keep my email addresses private". Past commits keep your Gmail address; history must not be rewritten.
+3. On GitHub: Settings → Pages → Source: **GitHub Actions**, then Actions → **Public demo** → **Run workflow**.
+4. Optional: Settings → Emails → "Keep my email addresses private".
 
-These steps are also recorded in docs/answers/06-public-release.md.
-
-## Still open from before
-
-- Two stale `qualia open --no-browser` servers from 2026-10-03 still hold `qualia.exe`. Close them, then run `uv sync` and `uv run qualia open`.
-- The optional follow-up task "Shrink Qualia's 12 MB workspace payload" is waiting in the app.
+Once public, the Releases page holds the download zip that the README points to.
