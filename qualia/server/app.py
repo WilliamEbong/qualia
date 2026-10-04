@@ -10,6 +10,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 
 from qualia import __version__
 from qualia.server.ai_routes import register_ai_routes
+from qualia.server.analysis_routes import register_analysis_routes
 from qualia.server.api_models import Health, ProjectInput, ProjectSummary, Workspace
 from qualia.server.evaluation_routes import register_evaluation_routes
 from qualia.server.workspace_routes import register_workspace_routes
@@ -98,6 +99,7 @@ def create_app(home: Path | None = None, token: str | None = None, dist: Path | 
     register_workspace_routes(app, home)
     register_ai_routes(app, home)
     register_evaluation_routes(app, home)
+    register_analysis_routes(app, home)
 
     @app.get('/{asset:path}', include_in_schema=False)
     def spa(asset: str):

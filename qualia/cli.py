@@ -46,6 +46,33 @@ def list_command():
         typer.echo(project['slug'])
 
 
+@app.command('analyze')
+def analyze_command(project: str = 'demo', source_id: int | None = None,
+                    case_id: int | None = None, code: list[int] | None = typer.Option(None),
+                    code_match: str = 'any', query: str = '', group_by: str | None = None,
+                    cooccurrence: str = 'segment', numeric: list[str] | None = typer.Option(None),
+                    min_word_length: int = 3, stopword: list[str] | None = typer.Option(None),
+                    top_words: int = 30, format: str = 'json'):
+    """Read-only mixed-methods analysis; exports omit transcript text and retain case attributes."""
+    from qualia.core.analysis_models import AnalysisOptions
+    from qualia.io.analysis import export_analysis, read_analysis
+
+    try:
+        options = AnalysisOptions(source_id=source_id, case_id=case_id, code_ids=code or [],
+                                  code_match=code_match, query=query, group_by=group_by,
+                                  cooccurrence=cooccurrence, numeric_fields=numeric or [],
+                                  min_word_length=min_word_length, stopwords=stopword or [],
+                                  top_words=top_words)
+        if format not in ('json', 'csv', 'python', 'r'):
+            raise ValueError('analysis export format must be json, csv, python or r')
+        path = resolve_project(project)
+        with Store(path / 'project.db') as db:
+            report = read_analysis(db, path, options)
+        typer.echo(export_analysis(report, format)['content'])
+    except (ValueError, OSError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+
 @app.command('import')
 def import_command(file: Path, project: str = 'demo', text_column: str = 'text',
                    case_column: str = 'case', speaker_column: str = 'speaker',

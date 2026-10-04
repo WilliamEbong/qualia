@@ -176,7 +176,15 @@ def _build(project, csv_path):
                 workspace['coding_events'].append(event)
                 workspace['current_codings'].append(event.copy())
                 position = end+1
-        return dict(format_version=1, project=workspace, attribution=dict(
+        from qualia.core.analysis_models import AnalysisOptions
+        from qualia.eval.analysis import analyze
+        from qualia.io.analysis import export_analysis
+
+        analysis = analyze(workspace, AnalysisOptions())
+        return dict(format_version=1, project=workspace,
+            analysis=analysis.model_dump(mode='json'),
+            analysis_exports={kind: export_analysis(analysis, kind)
+                              for kind in ('json', 'csv', 'python', 'r')}, attribution=dict(
             dataset='AnnoMI (simple): two complete dev transcripts',
             license='Public Domain License, as stated by the authors in the 2023 paper',
             sources=['https://www.mdpi.com/1999-5903/15/3/110',

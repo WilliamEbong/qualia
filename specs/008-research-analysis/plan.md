@@ -1,0 +1,13 @@
+# 008 implementation plan
+
+Use the existing Python/React/TypeScript stack with no new dependency. Main owns typed API contracts and CLI. ENGINE owns pure deterministic calculations in `qualia/eval/analysis.py` and fixtures in `tests/test_analysis.py`; this retains the sealed metric boundary. IO reads through Store in `qualia/io/analysis.py`, constructs a consistent snapshot, and exports sanitized files without mutation. No migration is needed.
+
+WEB owns `web/src/lib/analysis.ts` data/state/download logic and `web/src/components/Analysis.tsx` semantic markup/SVG charts; plain native SVG avoids another chart runtime. No data/state logic in presentation components. Existing theme/code colors and provenance components remain authoritative. Pure chart helpers and download tests live under lib. Main generates OpenAPI/TypeScript before WEB consumes it.
+
+One report has explicit scope/denominators, frequency rows, attribute groups, co-occurrence pairs, top-word rows, numeric summaries, correlation pairs, a bounded excerpt list with IDs/events, and case-by-code table rows. Full matching counts and IDs remain available for audit even when displayed excerpts are capped. Exports always include a column dictionary and selected criteria. Non-finite values serialize as null; no NaN JSON. Frozen versions and coding event IDs establish the computation snapshot.
+
+The public snapshot stores an optional precomputed report built by the same Python function over its whitelisted public rows. Its adapter answers only the default analysis route in memory; controls that would change report criteria are disabled. This avoids duplicating statistics in JavaScript or broadening published data.
+
+Validation: hand calculations, pure-core boundary scan, API invalid-input/security/nonmutation tests, export formula/privacy tests and Python starter execution; Vitest and type generation; Playwright MCP live/static chart/table/drill-through/download/mobile checks; full offline regression and converge. Research primary NVivo docs before final terminology. D0 design guard is delayed until this user-requested functional increment is complete; then all screens receive the existing presentation-only pass.
+
+Constitution I–VII: no history writes, no methodology edits, deterministic statistics only in eval, no vendor additions, local-first and token-gated API, no protected/raw/private data in the demo, explicit measured verification. Staged work and requests stay within the already-authorized build; repository push remains separately awaiting explicit owner response.

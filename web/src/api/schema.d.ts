@@ -345,10 +345,304 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/projects/{slug}/analysis": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Analysis */
+        post: operations["analysis_api_projects__slug__analysis_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/projects/{slug}/analysis/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Export */
+        post: operations["export_api_projects__slug__analysis_export_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AnalysisCase */
+        AnalysisCase: {
+            /** Case Id */
+            case_id: number;
+            /** Name */
+            name: string;
+            /** Attributes */
+            attributes: {
+                [key: string]: string | null;
+            };
+            /** Attribute Status */
+            attribute_status: {
+                [key: string]: "value" | "missing" | "conflicting";
+            };
+            /** Code Counts */
+            code_counts: {
+                [key: string]: number;
+            };
+        };
+        /** AnalysisCorrelation */
+        AnalysisCorrelation: {
+            /** X Field */
+            x_field: string;
+            /** Y Field */
+            y_field: string;
+            /** N */
+            n: number;
+            /** Pearson R */
+            pearson_r: number | null;
+            /** Points */
+            points: components["schemas"]["AnalysisPoint"][];
+        };
+        /** AnalysisExcerpt */
+        AnalysisExcerpt: {
+            /** Segment Id */
+            segment_id: number;
+            /** Source Id */
+            source_id: number;
+            /** Source Name */
+            source_name: string;
+            /** Speaker */
+            speaker: string | null;
+            /** Text */
+            text: string;
+            /** Coding Event Ids */
+            coding_event_ids: number[];
+        };
+        /** AnalysisExportRequest */
+        AnalysisExportRequest: {
+            options?: components["schemas"]["AnalysisOptions"];
+            /**
+             * Format
+             * @default json
+             * @enum {string}
+             */
+            format: "json" | "csv" | "python" | "r";
+        };
+        /** AnalysisFrequency */
+        AnalysisFrequency: {
+            /** Code Id */
+            code_id: number;
+            /** Name */
+            name: string;
+            /** Segment Count */
+            segment_count: number;
+            /** Case Count */
+            case_count: number;
+            /** Segment Percent */
+            segment_percent: number;
+            /** Case Percent */
+            case_percent: number;
+            /** Segment Ids */
+            segment_ids: number[];
+            /** Case Ids */
+            case_ids: number[];
+            /** Codebook Version Ids */
+            codebook_version_ids: number[];
+        };
+        /** AnalysisGroup */
+        AnalysisGroup: {
+            /** Value */
+            value: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "value" | "missing" | "conflicting";
+            /** Case Ids */
+            case_ids: number[];
+            /** Segment Ids */
+            segment_ids: number[];
+            /** Frequencies */
+            frequencies: components["schemas"]["AnalysisFrequency"][];
+        };
+        /** AnalysisNumeric */
+        AnalysisNumeric: {
+            /** Field */
+            field: string;
+            /** Valid */
+            valid: number;
+            /** Missing */
+            missing: number;
+            /** Invalid */
+            invalid: number;
+            /** Mean */
+            mean: number | null;
+            /** Median */
+            median: number | null;
+            /** Sample Sd */
+            sample_sd: number | null;
+            /** Minimum */
+            minimum: number | null;
+            /** Maximum */
+            maximum: number | null;
+            /** Values */
+            values: components["schemas"]["AnalysisValue"][];
+        };
+        /** AnalysisOptions */
+        AnalysisOptions: {
+            /** Source Id */
+            source_id?: number | null;
+            /** Case Id */
+            case_id?: number | null;
+            /** Code Ids */
+            code_ids?: number[];
+            /**
+             * Code Match
+             * @default any
+             * @enum {string}
+             */
+            code_match: "any" | "all";
+            /**
+             * Query
+             * @default
+             */
+            query: string;
+            /** Group By */
+            group_by?: string | null;
+            /**
+             * Cooccurrence
+             * @default segment
+             * @enum {string}
+             */
+            cooccurrence: "segment" | "overlap";
+            /** Numeric Fields */
+            numeric_fields?: string[];
+            /**
+             * Min Word Length
+             * @default 3
+             */
+            min_word_length: number;
+            /** Stopwords */
+            stopwords?: string[];
+            /**
+             * Top Words
+             * @default 30
+             */
+            top_words: number;
+            /**
+             * Excerpt Limit
+             * @default 100
+             */
+            excerpt_limit: number;
+        };
+        /** AnalysisPair */
+        AnalysisPair: {
+            /** Left Code Id */
+            left_code_id: number;
+            /** Right Code Id */
+            right_code_id: number;
+            /** Count */
+            count: number;
+            /** Union Count */
+            union_count: number;
+            /** Jaccard */
+            jaccard: number | null;
+            /** Segment Ids */
+            segment_ids: number[];
+        };
+        /** AnalysisPoint */
+        AnalysisPoint: {
+            /** Case Id */
+            case_id: number;
+            /** X */
+            x: number;
+            /** Y */
+            y: number;
+        };
+        /** AnalysisReport */
+        AnalysisReport: {
+            /**
+             * Format Version
+             * @default 1
+             * @constant
+             */
+            format_version: 1;
+            options: components["schemas"]["AnalysisOptions"];
+            /** Methods */
+            methods: string[];
+            /** Warnings */
+            warnings: string[];
+            /** Source Count */
+            source_count: number;
+            /** Segment Count */
+            segment_count: number;
+            /** Case Count */
+            case_count: number;
+            /** Coded Segment Count */
+            coded_segment_count: number;
+            /** Selected Segment Ids */
+            selected_segment_ids: number[];
+            /** Input Hash */
+            input_hash: string;
+            /** Coding Event Ids */
+            coding_event_ids: number[];
+            /** Codebook Version Ids */
+            codebook_version_ids: number[];
+            /** Codebook Hashes */
+            codebook_hashes: {
+                [key: string]: string;
+            };
+            /** Pipeline Version */
+            pipeline_version: string;
+            /** Frequencies */
+            frequencies: components["schemas"]["AnalysisFrequency"][];
+            /** Groups */
+            groups: components["schemas"]["AnalysisGroup"][];
+            /** Pairs */
+            pairs: components["schemas"]["AnalysisPair"][];
+            /** Words */
+            words: components["schemas"]["AnalysisWord"][];
+            /** Numeric */
+            numeric: components["schemas"]["AnalysisNumeric"][];
+            /** Correlations */
+            correlations: components["schemas"]["AnalysisCorrelation"][];
+            /** Excerpts */
+            excerpts: components["schemas"]["AnalysisExcerpt"][];
+            /** Excerpt Total */
+            excerpt_total: number;
+            /** Case Rows */
+            case_rows: components["schemas"]["AnalysisCase"][];
+        };
+        /** AnalysisValue */
+        AnalysisValue: {
+            /** Case Id */
+            case_id: number;
+            /** Value */
+            value: number;
+        };
+        /** AnalysisWord */
+        AnalysisWord: {
+            /** Word */
+            word: string;
+            /** Count */
+            count: number;
+            /** Segment Count */
+            segment_count: number;
+            /** Segment Ids */
+            segment_ids: number[];
+        };
         /** Availability */
         Availability: {
             /** Allow External */
@@ -1405,6 +1699,76 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EvaluationResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    analysis_api_projects__slug__analysis_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnalysisOptions"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisReport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_api_projects__slug__analysis_export_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnalysisExportRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExportResult"];
                 };
             };
             /** @description Validation Error */

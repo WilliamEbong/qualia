@@ -992,10 +992,881 @@
           }
         }
       }
+    },
+    "/api/projects/{slug}/analysis": {
+      "post": {
+        "summary": "Analysis",
+        "operationId": "analysis_api_projects__slug__analysis_post",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalysisOptions"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/projects/{slug}/analysis/export": {
+      "post": {
+        "summary": "Export",
+        "operationId": "export_api_projects__slug__analysis_export_post",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalysisExportRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "AnalysisCase": {
+        "properties": {
+          "case_id": {
+            "type": "integer",
+            "title": "Case Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "attributes": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Attributes"
+          },
+          "attribute_status": {
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "value",
+                "missing",
+                "conflicting"
+              ]
+            },
+            "type": "object",
+            "title": "Attribute Status"
+          },
+          "code_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Code Counts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "case_id",
+          "name",
+          "attributes",
+          "attribute_status",
+          "code_counts"
+        ],
+        "title": "AnalysisCase"
+      },
+      "AnalysisCorrelation": {
+        "properties": {
+          "x_field": {
+            "type": "string",
+            "title": "X Field"
+          },
+          "y_field": {
+            "type": "string",
+            "title": "Y Field"
+          },
+          "n": {
+            "type": "integer",
+            "title": "N"
+          },
+          "pearson_r": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pearson R"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/AnalysisPoint"
+            },
+            "type": "array",
+            "title": "Points"
+          }
+        },
+        "type": "object",
+        "required": [
+          "x_field",
+          "y_field",
+          "n",
+          "pearson_r",
+          "points"
+        ],
+        "title": "AnalysisCorrelation"
+      },
+      "AnalysisExcerpt": {
+        "properties": {
+          "segment_id": {
+            "type": "integer",
+            "title": "Segment Id"
+          },
+          "source_id": {
+            "type": "integer",
+            "title": "Source Id"
+          },
+          "source_name": {
+            "type": "string",
+            "title": "Source Name"
+          },
+          "speaker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Speaker"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "coding_event_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Coding Event Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "segment_id",
+          "source_id",
+          "source_name",
+          "speaker",
+          "text",
+          "coding_event_ids"
+        ],
+        "title": "AnalysisExcerpt"
+      },
+      "AnalysisExportRequest": {
+        "properties": {
+          "options": {
+            "$ref": "#/components/schemas/AnalysisOptions"
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "json",
+              "csv",
+              "python",
+              "r"
+            ],
+            "title": "Format",
+            "default": "json"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "AnalysisExportRequest"
+      },
+      "AnalysisFrequency": {
+        "properties": {
+          "code_id": {
+            "type": "integer",
+            "title": "Code Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "segment_count": {
+            "type": "integer",
+            "title": "Segment Count"
+          },
+          "case_count": {
+            "type": "integer",
+            "title": "Case Count"
+          },
+          "segment_percent": {
+            "type": "number",
+            "title": "Segment Percent"
+          },
+          "case_percent": {
+            "type": "number",
+            "title": "Case Percent"
+          },
+          "segment_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Segment Ids"
+          },
+          "case_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Case Ids"
+          },
+          "codebook_version_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Codebook Version Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code_id",
+          "name",
+          "segment_count",
+          "case_count",
+          "segment_percent",
+          "case_percent",
+          "segment_ids",
+          "case_ids",
+          "codebook_version_ids"
+        ],
+        "title": "AnalysisFrequency"
+      },
+      "AnalysisGroup": {
+        "properties": {
+          "value": {
+            "type": "string",
+            "title": "Value"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "value",
+              "missing",
+              "conflicting"
+            ],
+            "title": "Status"
+          },
+          "case_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Case Ids"
+          },
+          "segment_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Segment Ids"
+          },
+          "frequencies": {
+            "items": {
+              "$ref": "#/components/schemas/AnalysisFrequency"
+            },
+            "type": "array",
+            "title": "Frequencies"
+          }
+        },
+        "type": "object",
+        "required": [
+          "value",
+          "status",
+          "case_ids",
+          "segment_ids",
+          "frequencies"
+        ],
+        "title": "AnalysisGroup"
+      },
+      "AnalysisNumeric": {
+        "properties": {
+          "field": {
+            "type": "string",
+            "title": "Field"
+          },
+          "valid": {
+            "type": "integer",
+            "title": "Valid"
+          },
+          "missing": {
+            "type": "integer",
+            "title": "Missing"
+          },
+          "invalid": {
+            "type": "integer",
+            "title": "Invalid"
+          },
+          "mean": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mean"
+          },
+          "median": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median"
+          },
+          "sample_sd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sample Sd"
+          },
+          "minimum": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minimum"
+          },
+          "maximum": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Maximum"
+          },
+          "values": {
+            "items": {
+              "$ref": "#/components/schemas/AnalysisValue"
+            },
+            "type": "array",
+            "title": "Values"
+          }
+        },
+        "type": "object",
+        "required": [
+          "field",
+          "valid",
+          "missing",
+          "invalid",
+          "mean",
+          "median",
+          "sample_sd",
+          "minimum",
+          "maximum",
+          "values"
+        ],
+        "title": "AnalysisNumeric"
+      },
+      "AnalysisOptions": {
+        "properties": {
+          "source_id": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Id"
+          },
+          "case_id": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Case Id"
+          },
+          "code_ids": {
+            "items": {
+              "type": "integer",
+              "minimum": 1.0
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Code Ids"
+          },
+          "code_match": {
+            "type": "string",
+            "enum": [
+              "any",
+              "all"
+            ],
+            "title": "Code Match",
+            "default": "any"
+          },
+          "query": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Query",
+            "default": ""
+          },
+          "group_by": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Group By"
+          },
+          "cooccurrence": {
+            "type": "string",
+            "enum": [
+              "segment",
+              "overlap"
+            ],
+            "title": "Cooccurrence",
+            "default": "segment"
+          },
+          "numeric_fields": {
+            "items": {
+              "type": "string",
+              "maxLength": 100,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 8,
+            "title": "Numeric Fields"
+          },
+          "min_word_length": {
+            "type": "integer",
+            "maximum": 30.0,
+            "minimum": 1.0,
+            "title": "Min Word Length",
+            "default": 3
+          },
+          "stopwords": {
+            "items": {
+              "type": "string",
+              "maxLength": 80,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 200,
+            "title": "Stopwords"
+          },
+          "top_words": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Top Words",
+            "default": 30
+          },
+          "excerpt_limit": {
+            "type": "integer",
+            "maximum": 500.0,
+            "minimum": 1.0,
+            "title": "Excerpt Limit",
+            "default": 100
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "AnalysisOptions"
+      },
+      "AnalysisPair": {
+        "properties": {
+          "left_code_id": {
+            "type": "integer",
+            "title": "Left Code Id"
+          },
+          "right_code_id": {
+            "type": "integer",
+            "title": "Right Code Id"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "union_count": {
+            "type": "integer",
+            "title": "Union Count"
+          },
+          "jaccard": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Jaccard"
+          },
+          "segment_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Segment Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "left_code_id",
+          "right_code_id",
+          "count",
+          "union_count",
+          "jaccard",
+          "segment_ids"
+        ],
+        "title": "AnalysisPair"
+      },
+      "AnalysisPoint": {
+        "properties": {
+          "case_id": {
+            "type": "integer",
+            "title": "Case Id"
+          },
+          "x": {
+            "type": "number",
+            "title": "X"
+          },
+          "y": {
+            "type": "number",
+            "title": "Y"
+          }
+        },
+        "type": "object",
+        "required": [
+          "case_id",
+          "x",
+          "y"
+        ],
+        "title": "AnalysisPoint"
+      },
+      "AnalysisReport": {
+        "properties": {
+          "format_version": {
+            "type": "integer",
+            "const": 1,
+            "title": "Format Version",
+            "default": 1
+          },
+          "options": {
+            "$ref": "#/components/schemas/AnalysisOptions"
+          },
+          "methods": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Methods"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "source_count": {
+            "type": "integer",
+            "title": "Source Count"
+          },
+          "segment_count": {
+            "type": "integer",
+            "title": "Segment Count"
+          },
+          "case_count": {
+            "type": "integer",
+            "title": "Case Count"
+          },
+          "coded_segment_count": {
+            "type": "integer",
+            "title": "Coded Segment Count"
+          },
+          "selected_segment_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Selected Segment Ids"
+          },
+          "input_hash": {
+            "type": "string",
+            "title": "Input Hash"
+          },
+          "coding_event_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Coding Event Ids"
+          },
+          "codebook_version_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Codebook Version Ids"
+          },
+          "codebook_hashes": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Codebook Hashes"
+          },
+          "pipeline_version": {
+            "type": "string",
+            "title": "Pipeline Version"
+          },
+          "frequencies": {
+            "items": {
+              "$ref": "#/components/schemas/AnalysisFrequency"
+            },
+            "type": "array",
+            "title": "Frequencies"
+          },
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/AnalysisGroup"
+            },
+            "type": "array",
+            "title": "Groups"
+          },
+          "pairs": {
+            "items": {
+              "$ref": "#/components/schemas/AnalysisPair"
+            },
+            "type": "array",
+            "title": "Pairs"
+          },
+          "words": {
+            "items": {
+              "$ref": "#/components/schemas/AnalysisWord"
+            },
+            "type": "array",
+            "title": "Words"
+          },
+          "numeric": {
+            "items": {
+              "$ref": "#/components/schemas/AnalysisNumeric"
+            },
+            "type": "array",
+            "title": "Numeric"
+          },
+          "correlations": {
+            "items": {
+              "$ref": "#/components/schemas/AnalysisCorrelation"
+            },
+            "type": "array",
+            "title": "Correlations"
+          },
+          "excerpts": {
+            "items": {
+              "$ref": "#/components/schemas/AnalysisExcerpt"
+            },
+            "type": "array",
+            "title": "Excerpts"
+          },
+          "excerpt_total": {
+            "type": "integer",
+            "title": "Excerpt Total"
+          },
+          "case_rows": {
+            "items": {
+              "$ref": "#/components/schemas/AnalysisCase"
+            },
+            "type": "array",
+            "title": "Case Rows"
+          }
+        },
+        "type": "object",
+        "required": [
+          "options",
+          "methods",
+          "warnings",
+          "source_count",
+          "segment_count",
+          "case_count",
+          "coded_segment_count",
+          "selected_segment_ids",
+          "input_hash",
+          "coding_event_ids",
+          "codebook_version_ids",
+          "codebook_hashes",
+          "pipeline_version",
+          "frequencies",
+          "groups",
+          "pairs",
+          "words",
+          "numeric",
+          "correlations",
+          "excerpts",
+          "excerpt_total",
+          "case_rows"
+        ],
+        "title": "AnalysisReport"
+      },
+      "AnalysisValue": {
+        "properties": {
+          "case_id": {
+            "type": "integer",
+            "title": "Case Id"
+          },
+          "value": {
+            "type": "number",
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "case_id",
+          "value"
+        ],
+        "title": "AnalysisValue"
+      },
+      "AnalysisWord": {
+        "properties": {
+          "word": {
+            "type": "string",
+            "title": "Word"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "segment_count": {
+            "type": "integer",
+            "title": "Segment Count"
+          },
+          "segment_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Segment Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "word",
+          "count",
+          "segment_count",
+          "segment_ids"
+        ],
+        "title": "AnalysisWord"
+      },
       "Availability": {
         "properties": {
           "allow_external": {

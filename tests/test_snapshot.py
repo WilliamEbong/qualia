@@ -49,7 +49,10 @@ def test_snapshot_is_deterministic_complete_dev_only_and_never_reads_vault(fixtu
     snapshot = build_snapshot(project, csv_path)
     assert canonical(snapshot) == canonical(build_snapshot(project, csv_path))
     workspace = snapshot['project']
-    assert set(snapshot) == {'format_version', 'project', 'attribution'}
+    assert set(snapshot) == {'format_version', 'project', 'attribution', 'analysis', 'analysis_exports'}
+    assert snapshot['analysis']['segment_count'] == 4
+    assert snapshot['analysis']['selected_segment_ids'] == sorted(row['id'] for row in workspace['segments'])
+    assert set(snapshot['analysis_exports']) == {'json', 'csv', 'python', 'r'}
     assert len(workspace['sources']) == 2
     assert len(workspace['segments']) == len(workspace['coding_events']) == 4
     dev = {row['transcript_id'] for row in split_transcripts(demo._parse(csv_path.read_bytes()))['dev']}
