@@ -1,37 +1,40 @@
-# Qualia - now a double-click app
+# Qualia - handoff (2026-10-04)
 
-## What's new: no more terminal
+**Qualia is public and finished for this round.**
 
-- **Your Qualia icon** is on your Desktop and in the Start menu. Double-click it: Qualia opens in its own window, with no tabs, no address bar and no black terminal window.
-- **To stop Qualia, just close its window.** It notices and shuts itself down within about three minutes; nothing keeps running in the background. Opening the icon again in that time simply reopens the window.
-- **For other people:** they download one zip from GitHub Releases, unblock and extract it, and double-click **Install Qualia** once. It installs everything Qualia needs, adds the demo and creates the icon. No Git, Node or commands needed. The README and user guide §2 now lead with this path; the developer path is still documented.
+| What | Where |
+|---|---|
+| Repository | https://github.com/WilliamEbong/qualia |
+| Online demo (read-only, no install) | https://williamebong.github.io/qualia/ |
+| Windows download | https://github.com/WilliamEbong/qualia/releases/latest (v0.1.1) |
+| User guide | docs/USER-GUIDE.md |
 
-I tested this end to end on this PC three ways: from a package built like the release, from the actual zip GitHub built, and from your own Qualia folder. Each time the window opened cleanly and Qualia shut itself down after the window closed.
+## What Qualia does now
 
-One thing I changed along the way: my first version gave Qualia its own browser profile. That made Edge show its "Sync your profile" and onboarding windows, and it kept Edge running. I replaced it before release with a simpler approach that uses your normal Edge, so there are no prompts.
+- **Code transcripts** with your own codebook. Code by keyboard, keep memos, retrieve evidence, compare cases in a matrix, and analyse frequencies, co-occurrence and numbers. Export CSV, JSON, Python or R.
+- **Review AI suggestions one keystroke at a time.** Each suggestion says why it is waiting, least certain first. AI can come from rules, your own Claude Code or Codex subscription, or Jev.
+- **See honestly how good the AI is.** Evaluation shows 95% ranges, plain-language explanations, agreement words and a calibration table, plus how much of the AI's work to check for 90% precision.
+- **Tune the AI without touching your methodology.** Experiments → **Tune thresholds** learns a cutoff per code and keeps it only if validation improves. On the demo with Jev, macro-F1 went from 0.523 to 0.567, and to 0.572 on confirmation.
+- **A double-click app.** On your PC, the **Qualia** icon opens Qualia in its own window, in Chrome because that's your default browser. Closing the window shuts Qualia down within about three minutes. New users download the zip, unblock and extract it, and double-click **Install Qualia** once.
 
-## Checks
+## State and evidence
 
-- 566 Python tests passed (5 skipped, 6 live tests not run); 37 web tests, typecheck and build pass.
-- Ruff, data guard and the secret scan are clean.
-- The release workflow builds the download zip on GitHub.
-- Final CI status and the v0.1.0 release are recorded at the end of BUILD-STATE.
+- **Tests:** 566 Python tests passed (5 skipped, 6 live tests not run); 37 web tests; all CI checks green.
+- **Publishing:** the release workflow built v0.1.0 and v0.1.1, and the Pages workflow deployed the demo.
+- **Pre-public audit:** no secrets in any commit or file, no private research data, and all 101 screenshots clean.
+- **Records:** decisions with their reasoning are in docs/answers/01–06, the full build log in docs/BUILD-STATE.md, and Spec Kit records for features 010–013 in specs/.
 
-## Small leftovers
+## Optional next steps
 
-- **Unused folder:** `%USERPROFILE%\Qualia\.app-browser` is left over from the first version. It's safe to delete; my safety rules block deleting folders.
-- **Old browser tab:** a Chrome tab titled "Qualia — research workspace" from an earlier session may still be open. Close it.
+- **Security review:** run `/security-review` in Claude Code. You'd planned it before going public; my own audit found nothing, but an independent pass is still worthwhile.
+- **Email privacy:** in GitHub → Settings → Emails, turn on "Keep my email addresses private" for future commits. Past commits keep your Gmail address.
+- **Dependabot:** 7 Dependabot pull requests are open (dependency updates) and now public; review or merge them when convenient.
+- **Faster project loading:** the suggested task "Shrink Qualia's 12 MB workspace payload" is waiting in the app. It would speed up opening large projects.
+- **Leftovers:**
+  - The folder `%USERPROFILE%\Qualia\.app-browser` is safe to delete.
+  - An old Chrome tab titled "Qualia — research workspace" can be closed.
+- **Later:** a native desktop app (signed installer, automatic updates, works on locked-down PCs) is the next big UX step if Qualia gains users.
 
-## Still yours: making Qualia public
+## To start Qualia
 
-Nothing changed here; the steps are in docs/answers/06-public-release.md:
-
-1. Optional: run `/security-review` in Claude Code.
-2. Make it public:
-   ```powershell
-   gh repo edit WilliamEbong/qualia --visibility public --accept-visibility-change-consequences
-   ```
-3. On GitHub: Settings → Pages → Source: **GitHub Actions**, then Actions → **Public demo** → **Run workflow**.
-4. Optional: Settings → Emails → "Keep my email addresses private".
-
-Once public, the Releases page holds the download zip that the README points to.
+Double-click the **Qualia** icon on your Desktop or in the Start menu. To stop it, close the window.

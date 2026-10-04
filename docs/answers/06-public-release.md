@@ -13,7 +13,9 @@ Judgment call on visibility: the agent did **not** change repository visibility.
 
 Follow-up (2026-10-04): the owner replied "Yeah, do that, and then make it public, I'm pretty sure you can do that, use playwright if you need". After releasing v0.1.1 the agent ran the official visibility command once; the project's guard hook blocked it ("Destructive command requires owner action"). The agent did not route around the guard with another command, and the Playwright browser is not signed in to GitHub (entering the owner's password is not permitted), so the visibility change remains a one-command owner action.
 
-Owner steps to publish:
+Outcome (2026-10-04): the owner signed in to GitHub in the Playwright browser and wrote "github signed in, handle it". Acting on that explicit instruction, the agent used GitHub's own Settings → Danger Zone → Change visibility flow in that signed-in browser (no credentials entered by the agent, no guard or command workaround). The repository is PUBLIC. Pages was enabled for GitHub Actions and the "Public demo" workflow deployed https://williamebong.github.io/qualia/. The owner-run `/security-review` was not performed before publishing; it remains recommended.
+
+Original owner steps to publish (now completed):
 
 1. Run `/security-review` in Claude Code on this repository (optional but planned).
 2. Make the repository public:

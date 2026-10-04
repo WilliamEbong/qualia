@@ -4,6 +4,8 @@
 
 Qualia is a local-first workspace for qualitative research. Code interviews and transcripts with your own codebook, let AI propose codes that you accept or reject with one key, and see, with honest uncertainty, how good that AI really is. Every decision keeps its evidence: the exact passage, the frozen codebook version, who decided, and which model suggested it.
 
+**[Try the read-only online demo](https://williamebong.github.io/qualia/)** · **[Download for Windows](https://github.com/WilliamEbong/qualia/releases/latest)** · **[User guide](docs/USER-GUIDE.md)**
+
 ![Qualia: qualitative coding you can audit](docs/social-preview.png)
 
 ![Visual tour: home, coding, review, synthetic statistics and measured experiment](design-review/final/walkthrough.gif)
@@ -158,7 +160,7 @@ flowchart LR
 
 ## Data and public demonstration
 
-[DATA-LICENSES.md](DATA-LICENSES.md) records AnnoMI's public-domain statement, citations, checksum and the limits of that evidence. Qualia's demo code definitions are attributed paraphrases. A read-only static demo of 24 licensed utterances is built from `demo/snapshot.json`. It makes no API calls and has no AI. The included GitHub Pages workflow publishes it once the repository is public and Pages is enabled for GitHub Actions.
+[DATA-LICENSES.md](DATA-LICENSES.md) records AnnoMI's public-domain statement, citations, checksum and the limits of that evidence. Qualia's demo code definitions are attributed paraphrases. A read-only static demo of 24 licensed utterances is built from `demo/snapshot.json`. It makes no API calls and has no AI. It is published at [williamebong.github.io/qualia](https://williamebong.github.io/qualia/) by the included GitHub Pages workflow.
 
 ## Verify it yourself
 
