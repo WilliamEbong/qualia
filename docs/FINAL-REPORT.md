@@ -38,7 +38,7 @@ You use **Qualia's interface**. A classification action calls the local server, 
 
 | Check | Result and scope |
 |---|---|
-| Python full offline suite |390 passed,5 skipped (four Windows capabilities, absent Rscript),4 live tests deselected;158.23s at final functional checkpoint |
+| Python full offline suite |445 passed,5 skipped (four Windows capabilities, absent Rscript),6 live tests deselected;228.83s after native operator completion |
 | Frontend |30 tests pass; TypeScript and normal/static production builds pass |
 | Analysis |Synthetic six-case fixture independently matched counts, mean37.4 and paired Pearson0.93715; stale export hash returns409; matching Python starter executed successfully |
 | Browser |Actual import/coding/review/evaluation/fake KEEP/export workflow; five synchronized keyboard assignments; chart/evidence links and downloads; final desktop/mobile screenshots |
@@ -49,7 +49,7 @@ You use **Qualia's interface**. A classification action calls the local server, 
 | Remote CI | Private Checks passed at978c9b1: [run37182654321](https://github.com/WilliamEbong/qualia/actions/runs/37182654321). This handoff-only follow-up changes no implementation. |
 | External security review | Official scanner superseded by owner decision; planned Claude `/security-review` remains a pre-public-release action, not a passed scan. |
 
-Native-classification update: full offline suite445 passed,5 skipped,4 live deselected; final router/ledger/API31 passed, including a subsequent safe-auth-error regression. Both **Codex gpt-6-luna and Claude haiku passed actual synthetic public-router classification** with one-invocation budgets, egress/usage records, validated output and zero coding events. Claude's512-token test fixture truncated; independent diagnosis increased only that fixture allowance to4096, below the unchanged8192 production ceiling. Earlier failed attempts were recorded and consumed subscription usage. See [live evidence](research/cli-classification.md#approved-policy-live-verification).
+Earlier native-classification checkpoint: full offline suite411 passed,5 skipped,4 live deselected; final router/ledger/API31 passed, including a subsequent safe-auth-error regression. Both **Codex gpt-6-luna and Claude haiku passed actual synthetic public-router classification** with one-invocation budgets, egress/usage records, validated output and zero coding events. Claude's512-token test fixture truncated; independent diagnosis increased only that fixture allowance to4096, below the unchanged8192 production ceiling. Earlier failed attempts were recorded and consumed subscription usage. See [live evidence](research/cli-classification.md#approved-policy-live-verification).
 
 The GIF is a visual tour assembled from actual screenshots, not an interaction recording. The fake experiment demonstrates measured policy behavior, not trained-model quality: macro F1 improved0.01058468→0.24242447 while exact match fell. R code was reviewed but not executed because Rscript is unavailable. Browser hero-preload warnings on non-home routes are documented in the design report.
 
