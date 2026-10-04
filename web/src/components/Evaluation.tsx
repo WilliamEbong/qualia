@@ -4,7 +4,7 @@ import type { EvaluationController } from '../lib/evaluation'
 import { Button } from './ui/button'
 
 export function Evaluation({ w, review, evaluation: e }: { w: WorkspaceController; review: ReviewController; evaluation: EvaluationController }) {
-  return <section className="content-page" aria-label="Validation evaluation"><header className="section-heading"><div><p className="caption">Measure against reference labels</p><h2>Validation evaluation</h2></div><span className="caption">{e.runs.length} recorded evaluations</span></header>
+  return <section className="content-page evaluation-page" aria-label="Validation evaluation"><header className="section-heading"><div><p className="caption">Measure against reference labels</p><h2>Validation evaluation</h2></div><span className="caption">{e.runs.length} recorded evaluations</span></header>
     <div className="two-column"><form key={w.slug} className="editor" onSubmit={e.evaluate}><fieldset disabled={w.readOnly}><h3>Evaluate validation split</h3><p>This run evaluates all imported validation records. Predictions stay in evaluation history and do not become coding assignments.</p>
       <label>Evaluation backend<select value={e.backend} onChange={event => e.setBackend(event.target.value)} disabled={w.readOnly || w.busy}>{review.availability?.backends.map(provider => <option key={provider.name} value={provider.name}>{provider.name} · {provider.external ? 'external' : 'offline'}{provider.available ? '' : ' · unavailable'}</option>) ?? <option value="rules">Checking availability…</option>}</select></label>
       <label>Evaluation model override (optional)<input name="model" placeholder="Use configured model" disabled={w.readOnly || w.busy} /></label>

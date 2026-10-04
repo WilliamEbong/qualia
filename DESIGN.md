@@ -33,3 +33,7 @@ Square corners, no shadows, one-pixel keylines, and a four-point spacing rhythm.
 ## Preservation
 
 Presentation changes are limited to styles, markup/classes, public presentation assets, and this document. State, handlers, calculations, generated API types, privacy behavior, and protected project files remain unchanged from the D0 baseline. Root performs browser evidence and accessibility/performance audits before final acceptance.
+
+## Measured accessibility and loading adjustments
+
+The light caption token is slightly darker than the initial contract example to reach AA against both ivory and cream. Fixed code and decision colors are unchanged. The seed-3 dome plate has 640px and 1280px WebP derivatives encoded with existing FFmpeg/libwebp quality65; these preserve the original composition while removing excess grain payload. Responsive image and preload declarations use the same candidate sizes and deployment base. Initial loading reserves a viewport of content height to keep the footer from jumping through the visible page.

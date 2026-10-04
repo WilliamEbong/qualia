@@ -1,0 +1,11 @@
+file 'home-1280.png'
+duration 2.5
+file 'workspace-1280.png'
+duration 2.5
+file 'review-1280.png'
+duration 2.5
+file 'scatter-1280.png'
+duration 2.5
+file 'experiment-measurements.png'
+duration 2.5
+file 'experiment-measurements.png'

@@ -246,6 +246,8 @@ th { font-size: var(--type-caption); line-height: 1.4; }
 .coding-panel .suggestion blockquote { font-size: var(--type-body); }
 .review-page section[aria-label="Below review threshold"] > h3,
 .review-page section[aria-label="Backend disagreement"] > h3 { border-left: 3px solid var(--uncertain); padding: 12px 16px; background: var(--uncertain-ground); color: var(--uncertain); }
+.review-page section[aria-label="Below review threshold"] > h3 .caption,
+.review-page section[aria-label="Backend disagreement"] > h3 .caption { color: var(--uncertain); }
 .review-page section[aria-label="Below review threshold"] > h3::before,
 .review-page section[aria-label="Backend disagreement"] > h3::before { content: '!'; margin-right: 12px; }
 .error, [role=alert] { border-left: 3px solid var(--error); padding: 12px 16px; }
@@ -274,3 +276,139 @@ th { font-size: var(--type-caption); line-height: 1.4; }
   .segment-heading { flex-wrap: wrap; gap: 8px; }
   .suggestion { padding: 16px; }
 }
+
+/* D3 — a chronological field notebook. */
+.experiment-layout { margin-top: 40px; min-width: 0; }
+.experiment-timeline { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(260px, 1fr); overflow-x: auto; padding: 0 0 20px; gap: 0; }
+.experiment-timeline li { position: relative; border-left: 0; padding: 0; margin: 0; min-width: 0; --timeline-color: var(--caption); }
+.experiment-timeline li[data-decision=KEEP] { --timeline-color: var(--decision-keep); }
+.experiment-timeline li[data-decision=REVERT] { --timeline-color: var(--decision-revert); }
+.experiment-timeline li::before { content: ''; position: absolute; left: 24px; top: 8px; width: 16px; height: 16px; border-radius: 50%; background: var(--timeline-color); border: 1px solid var(--foreground); z-index: 1; pointer-events: none; }
+.experiment-timeline li::after { content: ''; position: absolute; top: 16px; left: 0; right: 0; height: 1px; background: var(--horizon); pointer-events: none; }
+.experiment-timeline .button { display: block; height: 100%; padding: 44px 24px 24px; border: 0; border-right: 1px solid var(--border); background: var(--background); line-height: 1.5; }
+.experiment-timeline .button[aria-current=true] { background: var(--surface); }
+.experiment-timeline .decision-caption { display: block; border-left: 3px solid var(--timeline-color); padding-left: 8px; margin-bottom: 12px; }
+.timeline-date { margin: 12px 0; }
+.experiment-detail { max-width: 960px; margin: 40px auto 0; padding: 28px 32px 32px; border: 1px solid var(--border); border-left-width: 3px; }
+.experiment-detail[data-decision=KEEP] { border-left-color: var(--decision-keep); }
+.experiment-detail[data-decision=REVERT] { border-left-color: var(--decision-revert); }
+.experiment-detail > .decision-caption { border-bottom: 1px solid var(--border); display: block; padding-bottom: 16px; margin-bottom: 24px; }
+.experiment-detail > h3:first-of-type { font-size: var(--type-heading); margin-top: 0; }
+.hypothesis-note { margin: 32px 0; padding: 24px; background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.hypothesis-note h3 { margin-top: 0; }
+.hypothesis-note p { line-height: 1.6; margin-bottom: 0; max-width: var(--measure); }
+.experiment-detail .table-scroll { margin: 24px 0 16px; }
+.experiment-detail .table-scroll th, .experiment-detail .table-scroll td { padding: 16px; }
+.experiment-detail > ul { padding-left: 20px; line-height: 1.6; }
+.experiment-detail code { font-size: var(--type-caption); overflow-wrap: anywhere; }
+
+/* D4 — catalogue drawers and printed data. */
+.codebook-page .two-column { gap: 32px; grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr); }
+.code-card { border: 1px solid var(--border); padding: 24px; margin-top: 0; margin-bottom: 20px; background: var(--background); }
+.code-card .section-heading { margin-bottom: 20px; padding-bottom: 16px; }
+.code-card .section-heading h3 { font-size: var(--type-heading); margin: 0; }
+.code-definition { line-height: 1.6; margin: 0 0 20px; }
+.code-fields { background: var(--surface); padding: 4px 20px 20px; border-left: 1px solid var(--border); margin-bottom: 24px; }
+.code-fields dt { margin-top: 20px; font-weight: 500; }
+.code-fields dd { margin-top: 8px; line-height: 1.5; }
+.codebook-page .editor { border-top: 3px solid var(--accent); }
+.codebook-page .version { border-bottom: 1px solid var(--border); margin-top: 0; }
+.codebook-page .version pre { background: var(--surface); padding: 16px; line-height: 1.5; }
+.matrix-page .table-scroll { margin-top: 32px; }
+.matrix-page table { width: max-content; min-width: 100%; }
+.matrix-page thead th { min-width: 120px; max-width: 180px; vertical-align: bottom; padding: 16px 12px; overflow-wrap: anywhere; }
+.matrix-page th:first-child { min-width: 180px; max-width: 220px; position: sticky; left: 0; z-index: 1; background: var(--surface); }
+.matrix-page tbody th { font-weight: 400; }
+.matrix-cell { min-height: 48px; text-align: center; font-size: var(--type-caption); transition: outline-color var(--motion-ui) var(--motion-ease); }
+.matrix-cell:hover { outline: 1px solid var(--foreground); outline-offset: -1px; }
+.matrix-cell:focus-visible { outline: 2px solid var(--focus); outline-offset: -3px; }
+.retrieval-page .filters { padding: 8px 20px; border: 1px solid var(--border); background: var(--surface); margin-bottom: 32px; }
+.retrieval-card { padding: 24px 0; }
+.retrieval-card blockquote { max-width: var(--measure); padding: 12px 20px; border-left: 3px solid var(--border); font-size: var(--type-reading); line-height: 1.6; }
+.memo-card { padding: 24px; margin-bottom: 20px; background: var(--surface); border: 1px solid var(--border); }
+.memo-card .preserve-lines { line-height: 1.6; max-width: var(--measure); }
+.memo-card .actions { margin-top: 24px; }
+
+/* D5 — the title rests on the archive's horizon. */
+.home-page { padding-top: 32px; }
+.home-introduction { position: relative; isolation: isolate; overflow: hidden; max-width: none; width: 100%; aspect-ratio: 16 / 9; min-height: 440px; margin: 0; padding: 0; background: var(--plate-ground); color: var(--plate-ink); }
+.home-plate { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; z-index: -1; }
+.home-introduction::after { content: ''; position: absolute; top: 63.3%; left: 0; right: 0; height: 1px; background: var(--plate-rule); pointer-events: none; }
+.home-introduction .home-status { position: absolute; top: 28px; left: 32px; right: 32px; color: var(--plate-caption); font-size: var(--type-xs); }
+.home-title { position: absolute; bottom: 36.7%; left: 32px; right: 32px; padding-bottom: 16px; }
+.home-introduction h2 { font-size: var(--type-title); max-width: 100%; margin: 0; line-height: 1.04; color: var(--plate-ink); }
+.home-lede { position: absolute; top: calc(63.3% + 24px); left: 32px; right: 32px; max-width: 54ch; margin: 0; font-size: var(--type-reading); line-height: 1.5; color: var(--plate-ink); }
+.home-context { margin: 24px 0 48px; max-width: 80ch; line-height: 1.6; }
+.catalogue-heading { margin-bottom: 24px; padding-bottom: 16px; }
+.catalogue-heading h3 { margin: 0; font-size: var(--type-heading); }
+.project-catalogue { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,320px),1fr)); gap: 0; border-top: 1px solid var(--border); border-left: 1px solid var(--border); }
+.project-drawer { position: relative; padding: 28px 24px; border: 0; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--surface); }
+.project-drawer::before { content: ''; display: block; width: 48px; height: 4px; border: 1px solid var(--border); margin-bottom: 24px; }
+.project-drawer > .caption { margin-bottom: 8px; }
+.project-drawer h3 { margin: 0 0 24px; font-size: var(--type-heading); }
+.project-drawer .button { border-color: var(--foreground); background: var(--background); }
+.snapshot-attribution { padding-top: 24px; margin-top: 48px; }
+.snapshot-attribution h3 { font-size: var(--type-small-heading); }
+.snapshot-attribution p { max-width: 88ch; line-height: 1.5; }
+
+/* D6 — quiet states and legible research tables. */
+.empty { position: relative; isolation: isolate; overflow: hidden; min-height: 240px; padding: 36px 28px; border: 1px solid var(--border); background: var(--surface); color: var(--foreground); }
+.empty::before { content: ''; position: absolute; inset: 0; z-index: -1; opacity: .07; background: url('../../public/plates/star_chart.webp') center / cover; pointer-events: none; }
+.empty::after { content: ''; position: absolute; top: 63.3%; left: 0; right: 0; height: 1px; background: var(--horizon); z-index: -1; pointer-events: none; }
+.empty > * { position: relative; max-width: var(--measure); }
+.empty p { line-height: 1.6; }
+.empty-note { padding: 20px; background: var(--surface); line-height: 1.5; }
+.button.primary:disabled { background: var(--surface); color: var(--caption); border-color: var(--border); }
+input[type=checkbox] { appearance: none; position: relative; display: inline-grid; place-items: center; flex: 0 0 40px; width: 40px; height: 40px; min-height: 40px; margin: 0; padding: 0; background: transparent; border: 0; }
+input[type=checkbox]::before { content: ''; width: 18px; height: 18px; border: 1px solid var(--caption); background: var(--background); }
+input[type=checkbox]:checked::before { background: var(--accent); border-color: var(--accent); }
+input[type=checkbox]:checked::after { content: ''; position: absolute; width: 6px; height: 10px; top: 13px; left: 17px; border: solid var(--background); border-width: 0 2px 2px 0; transform: rotate(45deg); }
+input[type=checkbox]:disabled { cursor: not-allowed; }
+.checkbox { gap: 8px; margin: 4px 0; }
+.analysis-page > h3 { border-top: 1px solid var(--border); padding-top: 28px; margin: 40px 0 16px; font-size: var(--type-heading); }
+.analysis-page > .version { background: var(--surface); padding: 0 20px; border: 1px solid var(--border); }
+.analysis-page > .version > summary { padding: 16px 0; }
+.analysis-page fieldset { border-color: var(--border); }
+.analysis-page > .actions { padding: 20px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin: 24px 0 16px; }
+.analysis-chart-scroll { padding: 16px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--background); }
+.analysis-chart text { font-size: var(--type-caption); }
+.analysis-page table th, .analysis-page table td { vertical-align: top; }
+.analysis-page .matrix-cell { min-width: 56px; }
+#analysis-evidence { margin-top: 48px; padding-top: 28px; border-top: 1px solid var(--foreground); }
+#analysis-evidence > h3 { margin-top: 0; font-size: var(--type-heading); }
+#analysis-evidence .retrieval-card > .section-heading { margin-bottom: 16px; padding-bottom: 0; border-bottom: 0; }
+#analysis-evidence .retrieval-card > .section-heading p { margin-bottom: 0; font-size: var(--type-caption); }
+.evaluation-page .two-column { grid-template-columns: 340px minmax(0, 1fr); gap: 40px; }
+.evaluation-page .table-scroll th, .evaluation-page .table-scroll td { padding: 12px 16px; }
+.evaluation-page > h3 { margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--border); font-size: var(--type-heading); }
+.operation-panel { border-top: 3px solid var(--accent); }
+.operation-panel .section-heading h2 { font-size: var(--type-heading); }
+@media (max-width: 900px) {
+  .codebook-page .two-column, .evaluation-page .two-column { grid-template-columns: minmax(0,1fr); gap: 32px; }
+  .experiment-detail { padding: 24px; }
+  .home-introduction { min-height: 400px; }
+  .home-introduction h2 { max-width: 21ch; }
+}
+@media (max-width: 500px) {
+  .home-page { padding-top: 20px; }
+  .home-introduction { min-height: 400px; }
+  .home-introduction .home-status { top: 20px; left: 20px; right: 20px; }
+  .home-title { left: 20px; right: 20px; padding-bottom: 16px; }
+  .home-introduction h2 { font-size: var(--type-heading); }
+  .home-lede { left: 20px; right: 20px; top: calc(63.3% + 20px); font-size: var(--type-body); }
+  .home-context { margin-bottom: 36px; }
+  .project-drawer { padding: 24px 20px; }
+  .experiment-detail { padding: 24px 16px; margin-top: 24px; }
+  .hypothesis-note { padding: 20px 16px; }
+  .experiment-detail .table-scroll th, .experiment-detail .table-scroll td { padding: 12px; }
+  .code-card { margin-left: 0; padding: 20px 16px; }
+  .code-fields { padding: 4px 16px 20px; }
+  .empty { padding: 28px 20px; }
+  .analysis-page > .version { padding: 0 12px; }
+  .analysis-page .filters { gap: 0; }
+  .analysis-page > .actions .button { flex: 1 1 140px; }
+  .retrieval-card blockquote { padding: 8px 12px; }
+}
+
+/* Reserve the arriving workspace during the initial local snapshot request. */
+.workspace-loading { min-height: 100vh; }
