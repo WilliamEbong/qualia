@@ -600,7 +600,11 @@ The fake operator makes a scripted change to fake classification behavior. A gai
 
 ### Tune per-code suggestion thresholds without AI
 
-Some codes need a lower bar to be found; others need a higher bar to avoid noise. The `thresholds` agent learns one minimum model-reported score per code from your **dev** benchmark, then lets Qualia's normal policy decide on the **validation** benchmark:
+Some codes need a lower bar to be found; others need a higher bar to avoid noise. The `thresholds` agent learns one minimum model-reported score per code from your **dev** benchmark, then lets Qualia's normal policy decide on the **validation** benchmark.
+
+**In the app:** open **Experiments**, choose the **Classifier to tune** under **Tune suggestion thresholds**, and select **Tune thresholds**. The page stays busy while it works (seconds for offline backends, several minutes for external ones), then selects the new attempt so you can read its KEEP or REVERT decision, the thresholds it tried and the measurements. If something prevents a run, such as a missing dev benchmark, the exact reason appears instead.
+
+**From a terminal**, the same experiment is:
 
 ```powershell
 uv run qualia improve --project my-study --agent thresholds --budget 1
@@ -611,7 +615,7 @@ uv run qualia improve --project my-study --agent thresholds --budget 1
 3. It writes the result to `code_thresholds` in `config/routing.yaml` and states each change in the hypothesis, for example *Change talk default -> 0.35*.
 4. Validation, tests and a confirming run decide KEEP or REVERT exactly as for other agents. A REVERT means the new cutoffs did not measurably help.
 
-No AI operator, subscription or extra cost is involved beyond the classifier calls themselves. Thresholds work best with backends that score every code, such as Jev; keyword rules and the fake backend use constant scores, so they rarely benefit. On a full-size copy of the demo with the rules backend, the agent sampled 400 of 6,759 dev segments in about 30 seconds, found no useful change and correctly recorded REVERT. Kept thresholds appear in **Codebook** as *AI suggests at score ≥ 0.35*. Dev data is fitting data; Qualia never uses the protected split.
+No AI operator, subscription or extra cost is involved beyond the classifier calls themselves. Thresholds work best with backends that score every code, such as Jev; keyword rules and the fake backend use constant scores, so they rarely benefit. On the demo with Jev (2026-10-04), the agent fitted thresholds from 0.20 (reflection, change) to 0.70 (question) on 400 of 6,759 dev segments. Validation macro F1 rose from 0.523 to 0.567 and 0.572 on the fresh confirmation, exact code-set match from 0.365 to 0.405, and calibration error fell from 0.050 to 0.038, so Qualia kept it (experiment 2). The run took 13 minutes and cost about $0.35 in Jev usage. With the rules backend, by contrast, the agent finds no useful change and correctly records REVERT. Kept thresholds appear in **Codebook** as *AI suggests at score ≥ 0.35*. Dev data is fitting data; Qualia never uses the protected split.
 
 In **Experiments**, choose an attempt and read **Operator hypothesis**, **Measured validation results**, **Changed files** and **Experiment provenance**. Compare baseline, candidate and fresh confirmation. A candidate gain alone is insufficient: trusted policy also checks constraints and tests. Accepted changes receive a local commit/tag; rejected attempts retain their report and measurements.
 

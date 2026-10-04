@@ -104,7 +104,7 @@ The verified local MVP used the actual pinned AnnoMI demo:
 
 This is a scripted fake-backend smoke test of measurement, policy and provenance. It is not evidence of trained-model quality. Predicting all seven codes improved macro F1 in this run while exact match fell from approximately 0.00477 to 0. The before/after table retains both outcomes.
 
-A no-AI agent tunes one suggestion threshold per code on the dev split, and the same policy keeps or reverts it on validation: `uv run qualia improve --project my-study --agent thresholds`. See the [user guide](docs/USER-GUIDE.md#tune-per-code-suggestion-thresholds-without-ai).
+A no-AI agent tunes one suggestion threshold per code on the dev split, and the same policy keeps or reverts it on validation. Run it from **Experiments → Tune thresholds** in the app, or with `uv run qualia improve --project my-study --agent thresholds`. On the demo with Jev it was kept on measured evidence: validation macro F1 0.523 → 0.567 (confirmation 0.572), exact code-set match 0.365 → 0.405, calibration error 0.050 → 0.038, about $0.35 of Jev usage. See the [user guide](docs/USER-GUIDE.md#tune-per-code-suggestion-thresholds-without-ai).
 
 An interrupted finalization leaves a recovery journal at `QUALIA_HOME/recovery/<project>/pending.json` and blocks further writes. Preserve the journal and its snapshot, inspect the recorded stage and Git/database state, and resolve recovery explicitly. Do not delete the journal or operation lock merely to clear the error.
 
