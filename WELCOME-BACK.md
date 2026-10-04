@@ -8,7 +8,7 @@ Codex file-editing improvement remains disabled. Actual Codex0.160.0 native Wind
 
 Verification:445 offline Python tests passed,5 capability skips,6 live tests deselected; Ruff/data/protected-file/whitespace checks pass. Existing30 frontend tests and browser/design evidence remain applicable because this resume changed no frontend. The illustrated docs/USER-GUIDE.md includes Claude improvement steps and the remaining Codex limitation. Official Codex Security scanner was superseded, not passed; the owner plans Claude Code /security-review before public release.
 
-Code checkpoint b298d80 is committed locally. Private main remains2799152 with green Checks. The owner directly approved pushing b298d80 and final handoff documentation in this chat (docs/answers/03-private-push.md), resolving the earlier automatic-review rejection. Push and fresh Checks are the next verification step; see BUILD-STATE for their result. Repository remains private; public deployment is not authorized.
+Code checkpoint b298d80 and handoff978c9b1 are pushed to private main. Checks succeeded at978c9b1: https://github.com/WilliamEbong/qualia/actions/runs/37182654321. The owner directly approved this push and final documentation here, resolving the earlier automatic-review rejection. Repository visibility was rechecked PRIVATE. This documentation-only follow-up preserves the same implementation; the final response reports its own CI status. Nothing is deployed publicly.
 
 Run `uv run qualia open` for the local app. For a prepared, explicitly egress-enabled study: `uv run qualia improve --project my-study --agent claude --budget 1`. Keep validation workload within the configured invocation budget. `--agent fake` remains the offline demonstration.
 

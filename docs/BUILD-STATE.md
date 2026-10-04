@@ -43,7 +43,7 @@ P11 live outcome: Codex gpt-6-luna passed through the actual public router. Clau
 - [x] P5.1 Spec Kit improvement artifacts and analysis.
 - [~] P5.2 Protected experiment protocol, policy and operator lanes.
 - [x] P5.3 History UI, I2/I3 and MVP browser gate; converge (offline scope).
-- [~] P6.1 Hygiene/local checks pass; official security scan preflight and latest remote CI remain gated.
+- [~] P6.1 Local hygiene and private CI pass; official scanner superseded, owner-run Claude security review remains a pre-public-release action.
 - [~] P6.2 Claude synthetic live experiment passed; Codex remains blocked by verified native runtime isolation failure.
 - [x] P7.D0 Design guard and baseline screenshots.
 - [x] P7.D1 Tokens, fonts, theme, DESIGN.md.
@@ -59,7 +59,7 @@ P11 live outcome: Codex gpt-6-luna passed through the actual public router. Clau
 
 ## Workstream audit
 
-Current: research, review, evaluation, fake improvement, analysis and visualization are implemented. Native subscription classification passed live checks under the approved invocation policy; file-editing operators remain gated. Jev passed live checks and is enabled for demo with its existing $1 daily local limit. Portfolio and user documentation are complete locally; hosting is not activated. Hygiene audits pass; the authorized official source scan failed its permission preflight. Owner decisions approve native operators and private-main pushes; setup is present. Claude improvement is verified; Codex remains blocked by actual runtime isolation failures. The official scanner is superseded by the owner's pre-release Claude security review. Constitution v1.0.0 preserved. Research DBs live outside the checkout. See FINAL-REPORT.md for the concrete handoff.
+Current: research, review, evaluation, fake improvement, analysis and visualization are implemented. Native subscription classification passed live checks under the approved invocation policy; Claude improvement is live-verified and Codex improvement remains gated. Jev passed live checks and is enabled for demo with its existing $1 daily local limit. Portfolio and user documentation are complete locally; hosting is not activated. Hygiene audits pass; the authorized official source scan failed its permission preflight. Owner decisions approve native operators and private-main pushes; setup is present. Claude improvement is verified; Codex remains blocked by actual runtime isolation failures. The official scanner is superseded by the owner's pre-release Claude security review. Constitution v1.0.0 preserved. Research DBs live outside the checkout. See FINAL-REPORT.md for the concrete handoff.
 
 ## Preflight evidence
 
@@ -215,3 +215,7 @@ P13 final local regression: full offline pytest445 passed,5 skipped,6 live desel
 P13 checkpoint saved locally at b298d80. Staged Gitleaks scanned65.79KB with zero findings; whitespace/data/source preservation checks pass. Automatic approval review rejected `git push origin main` before execution: it requires direct authorization in this chat for updating the shared default branch and does not accept approval recorded by another session as trusted evidence. No alternate push route attempted. A single approval question is pending; remote remains2799152 and fresh CI cannot run until the push is admitted. Codex runtime isolation remains the independent load-bearing gate.
 
 P13 push approval resolved: the owner directly answered “Yes, push to private main” in this chat for b298d80 and final handoff documentation. Recorded in docs/answers/03-private-push.md. Resume the exact authorized push, retaining private visibility, then wait for Checks.
+
+P13 pushed verification: origin/main advanced2799152→978c9b1 (including code b298d80 and decision/handoff records). Repository rechecked PRIVATE. Checks run37182654321 completed SUCCESS: https://github.com/WilliamEbong/qualia/actions/runs/37182654321. Python, Ruff, data guard, dependency audits, frontend typecheck/lint/tests/build and Gitleaks all passed. The final documentation-only checkpoint records this completed run; verify its own Checks result before ending the session.
+
+STOP checkpoint: all unaffected operator/classification/docs work is saved and verified. First remaining implementation task is005 T014, native Codex read/tool/network confinement; then P6.2 Codex live parity and P10 final closure. Keep BUILD IN PROGRESS. Owner-run Claude security review is a separate pre-public-release action; neither an official scan pass nor a completed literal Codex security-review command is claimed. No new permission question remains after direct private-push approval. Do not repeat native setup, broaden read scope, bypass readiness, alter guards or change system ACLs as a workaround.
