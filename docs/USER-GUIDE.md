@@ -4,7 +4,7 @@
 
 Qualia helps you read research material, apply your own codebook, keep analytic notes, compare patterns across cases, and trace results back to the passages and decisions that produced them. You can work manually without an AI account. Optional classifiers produce suggestions for you to review; they do not decide your methodology.
 
-This guide is for a researcher using the local Windows installation. It describes implemented workflows and their limits. Availability messages in the app remain authoritative: native classification requires an audited CLI version, your own subscription sign-in and project permission; file-editing improvement operators remain unavailable. Jev requires separate setup. The optional security scanner did not complete its Windows permission preflight; this guide does not claim a completed external security audit, deployment, or remote push. See [build status](BUILD-STATE.md) for current verification and remaining work.
+This guide is for a researcher using the local Windows installation. It describes implemented workflows and their limits. Availability messages in the app remain authoritative: native classification requires an audited CLI version, your own subscription sign-in and project permission; file-editing improvement operators remain unavailable. Jev requires separate setup; this owner installation is now verified and enabled for demo. The optional security scanner did not complete its Windows permission preflight; this guide does not claim a completed external security audit, deployment, or remote push. See [build status](BUILD-STATE.md) for current verification and remaining work.
 
 **Use Qualia's own browser UI for your research.** Start it with `uv run qualia open`, then use its Workspace, Codebook, Review and Analysis views. You do not need to keep an AI desktop app open. Native classification launches the installed Codex or Claude CLI as a local subprocess and lets that CLI use its existing official sign-in; it does not ask you to paste a subscription token into Qualia. Follow [AI backend setup](#12-generate-and-review-ai-suggestions) before using it.
 
@@ -459,7 +459,7 @@ uv run qualia availability --project my-study
 
 ## 13. Set up optional Jev processing
 
-Follow the detailed [Jev setup guide](JEV-SETUP.md). It covers your TypeSafe account, credits, dedicated key, ignored local `.env`, and a tiny synthetic first request. An account alone does not verify a usable balance or authenticated API access.
+Follow the detailed [Jev setup guide](JEV-SETUP.md). It covers your TypeSafe account, credits, dedicated key, ignored local `.env`, and a tiny synthetic first request. An account alone does not verify a usable balance or authenticated API access. This owner installation passed two synthetic live checks and has Jev enabled for demo with its existing $1 daily local limit. New projects and other devices still require their own setup and explicit project permission.
 
 Keep the key out of chat, screenshots, source code, shell command history and frontend settings. Save it locally as described in that guide. Qualia never needs you to paste a subscription login token.
 

@@ -1,8 +1,9 @@
-"""Hand-authored synthetic contract fixtures; not recorded provider responses."""
+"""Synthetic wire contracts and an explicitly recorded normalized live response."""
 
 import asyncio
 import json
 import time
+from pathlib import Path
 
 import httpx
 import pytest
@@ -18,6 +19,15 @@ SEGMENTS = [{'id': 's-1', 'text': 'I feel hopeful 😀.'}]
 CODEBOOK = [{'id': 9, 'name': 'Hope', 'definition': 'Explicit hope.', 'status': 'active'}]
 CONTEXT = {'model': 'jev-1.13.0', 'prompt': 'Code explicit hope.', 'codebook': CODEBOOK,
            'max_output_tokens': 8192}
+
+
+def test_recorded_live_normalized_response_matches_application_contract():
+    fixture = json.loads((Path(__file__).parent / 'fixtures/jev/live-normalized.json').read_text())
+    result = validate_result(fixture['response'], fixture['segments'], fixture['codebook'])
+    assert result['predictions'][0]['segment_id'] == 'synthetic-1'
+    assert result['input_tokens'] == fixture['usage']['input_tokens']
+    assert fixture['usage']['cost_usd'] == pytest.approx(result['input_tokens'] * jev.INPUT_RATE)
+    assert fixture['provenance']['kind'] == 'live_normalized_adapter_response'
 
 
 @pytest.fixture(autouse=True)

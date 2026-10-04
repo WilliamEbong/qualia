@@ -1,8 +1,10 @@
 # Jev setup for Qualia
 
-Checked 2026-10-03 (America/Denver). You already created your TypeSafe account. The remaining personal steps are checking credits, creating a key, and saving it locally. Jev is optional; the rest of Qualia's build continues without it.
+Checked 2026-10-03 (America/Denver). Jev is an optional classifier with its own TypeSafe account and usage billing. This guide covers setup on a new installation.
 
-This guide records setup instructions, not a claim that your account, billing, or a live API call has been verified. Implementation and test status belong in [BUILD-STATE.md](BUILD-STATE.md).
+Implementation and test evidence is recorded in [BUILD-STATE.md](BUILD-STATE.md).
+
+**This installation is now verified:** after you saved the key and requested the remaining setup, two tiny synthetic requests succeeded on 2026-10-03. The demo project has Jev/external processing enabled with its existing $1 daily local limit; new projects still default to off. Recorded combined test cost was $0.00003570. Account balance and billing controls were not changed. The steps below remain the installation guide for other devices and users.
 
 ## 1. Check your account and spending settings
 
@@ -81,8 +83,7 @@ uv run qualia jev disable --project jev-check
 `enable` is the explicit choice to permit external processing for that project; it preserves the budgets.
 `disable` turns external AI and Jev off again. The main demo and other projects are unaffected.
 If you prefer the agent to perform the live check, say only **“The Jev key is saved in .env; run the
-synthetic live check.”** Never include the key. No live Jev request was made during setup because the
-local readiness check found no configured key.
+synthetic live check.”** Never include the key. Your current installation has already passed this check; another user/device needs its own local key and verification.
 
 Success means a synthetic, non-sensitive request returns a validated answer, records the returned model ID and token usage, and never prints the key. Jev remains off by default. Saving a key must not turn on external processing for existing projects; a project still needs an explicit egress setting and a deliberate backend choice.
 

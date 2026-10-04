@@ -112,7 +112,7 @@ Rules and fake classification need no provider account. Native classification us
 
 The owner [approved practical native limits](docs/answers/01-native-usage.md): five-segment batches, bounded input/output,90-second default deadline, no automatic native application retry, and one reservation/egress record per CLI invocation. Internal provider requests may be multiple; native call counts are not exact HTTP or subscription-quota counts. Codex has no provider generation-token cap. See [setup and limits](docs/USER-GUIDE.md#12-generate-and-review-ai-suggestions), [adapter/live evidence](docs/research/cli-classification.md) and [subscription documentation assessment](docs/research/subscription-policy.md).
 
-Jev's adapter and local controls are installed. The verified setup found no configured key, so no live Jev request was made. Account credits, a dedicated key and the deliberate project egress choice remain owner steps. Follow [Jev setup](docs/JEV-SETUP.md); keep the key in ignored `.env`, never in chat or frontend configuration. Check readiness without a network request:
+Jev's adapter and local controls are installed. This installation passed two synthetic live requests with a combined recorded cost of $0.00003570. Jev is enabled for demo with its existing $1 daily local limit; new projects remain off by default. Other installations need their own account, key and project opt-in. Follow [Jev setup](docs/JEV-SETUP.md); keep the key in ignored `.env`, never in chat or frontend configuration. Check readiness without a network request:
 
 ```powershell
 uv run qualia jev check --project demo

@@ -1,0 +1,47 @@
+{
+  "provenance": {
+    "kind": "live_normalized_adapter_response",
+    "date": "2026-10-03",
+    "model": "jev-1.13.0",
+    "synthetic_only": true,
+    "raw_http_body_captured": false
+  },
+  "segments": [
+    {
+      "id": "synthetic-1",
+      "text": "A positive change is possible."
+    }
+  ],
+  "codebook": [
+    {
+      "id": 1,
+      "name": "Possibility",
+      "status": "active",
+      "definition": "Language describing a possible positive change."
+    }
+  ],
+  "response": {
+    "predictions": [
+      {
+        "segment_id": "synthetic-1",
+        "codes": [
+          {
+            "code_id": 1,
+            "score": 0.97,
+            "span_start": 0,
+            "span_end": 30,
+            "rationale": "Jev noul probability of code applicability; whole segment scored, no narrower evidence span extracted."
+          }
+        ]
+      }
+    ],
+    "input_tokens": 425,
+    "output_tokens": 23,
+    "cli_version": "jev-1.13.0 (httpx 0.28.1)"
+  },
+  "usage": {
+    "input_tokens": 425,
+    "output_tokens": 23,
+    "cost_usd": 1.7850000000000004e-05
+  }
+}

@@ -4,6 +4,12 @@
 from the public OpenAPI contract, checked 2026-10-03. These cover all three primitive
 shapes and adversarial replies. They are **not recorded live API responses**.
 
-No real account key, research text or billing information was used. Recorded live
-compatibility remains pending an owner-provided local key and an authorized synthetic
-check. Do not relabel these examples as captured provider evidence.
+Those hand-authored wire examples use no real account key or research text and must
+not be relabeled as captured provider evidence.
+
+`live-normalized.json` is separate: a successful owner-authorized synthetic request
+on2026-10-03 through the normal router and Jev adapter. It records the **normalized
+adapter result**, not the raw HTTP body. The sentence and codebook are invented;
+no headers, credentials, account identifiers or private research were captured.
+Returned model:jev-1.13.0;425 input/23 output tokens;$0.00001785 recorded cost.
+The offline regression verifies the normalized application contract and cost basis.

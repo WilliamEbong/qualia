@@ -6,7 +6,9 @@ Started 2026-10-03. Baseline: f1d8719. Owner authorized autonomous implementatio
 
 ## Adjusted plan and checkpoints
 
-- [~] P12 Jev activation: owner saved the key and requested remaining setup. Local readiness confirms key configured; verify one bounded synthetic request through normal admission, then enable only the public demo and verify UI readiness. No billing changes or private-study processing are included.
+- [x] P12 Jev activation: owner-saved key verified by live synthetic requests; public demo enabled with existing $1 daily limit. Browser confirms Jev selected/Current source/Run classification enabled. No billing changes or private-study processing.
+
+P12 evidence: tests/live/test_jev.py passed (1 test, 2.93s). One additional bounded synthetic request captured the validated normalized adapter result in tests/fixtures/jev/live-normalized.json, explicitly not a raw HTTP capture. Both requests returned jev-1.13.0, 425 input/23 output tokens, $0.00001785 each; combined recorded test cost $0.00003570. Normal router reserved before each request, recorded one egress row and retained zero coding events. No key/header/account values were output. `jev enable --project demo` then `jev check` confirms key=true,allow_external=true,jev_enabled=true,daily_usd_limit=1.0. No study data sent. Playwright screenshot design-review/jev/ready.png confirms app readiness. New projects remain off by default; automatic Jev-first escalation is not configured by enabling a project. Targeted offline adapter/router suite: 47 passed; Ruff and research-data guard passed. The local key remains ignored by Git.
 
 - [x] P11 Native classification: owner-approved practical limits and per-invocation accounting implemented; real public-router Claude/Codex synthetic checks pass. Separate file-editing operator gates remain.
 
@@ -48,12 +50,12 @@ P11 live outcome: Codex gpt-6-luna passed through the actual public router. Clau
 - [x] P7.D6 Motion, accessibility and mobile checks.
 - [x] P7.D7 Design acceptance, final screenshots and bounded critique loop (literal font-property grep distinction documented).
 - [x] P8 Portfolio artifacts, snapshot, local demo, README, prepared Pages and performance gate; not deployed.
-- [~] P9 Jev Spec Kit artifacts, adapter, fixture tests and owner setup guide (sacrificial).
+- [x] P9 Jev Spec Kit artifacts, adapter, fixture tests and owner setup guide; live requirement closed in P12.
 - [~] P10 Offline acceptance, subscription documentation recheck, guide and final report done; native/security/live gates remain.
 
 ## Workstream audit
 
-Current: repo/kit and offline research, review, evaluation, improvement, analysis and visualization are implemented. Native CLI readiness/live parity remain gated. Jev implementation and setup guide are complete; owner key/live test deferred. Portfolio and user documentation are complete locally; hosting is not activated. Hygiene audits pass; official source scan failed its permission preflight. Owner authorized the official code-only scan, but native decisions and private-main push remain unanswered. Constitution v1.0.0 preserved. Research DBs live outside the checkout. See FINAL-REPORT.md for the concrete handoff.
+Current: research, review, evaluation, fake improvement, analysis and visualization are implemented. Native subscription classification passed live checks under the approved invocation policy; file-editing operators remain gated. Jev passed live checks and is enabled for demo with its existing $1 daily local limit. Portfolio and user documentation are complete locally; hosting is not activated. Hygiene audits pass; the authorized official source scan failed its permission preflight. Native file-editing setup and private-main push still need explicit authorization. Constitution v1.0.0 preserved. Research DBs live outside the checkout. See FINAL-REPORT.md for the concrete handoff.
 
 ## Preflight evidence
 

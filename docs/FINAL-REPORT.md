@@ -1,6 +1,6 @@
 # Qualia implementation and handoff
 
-Verified 2026-10-03, America/Denver, with a subsequent owner-approved native-classification update. The local research application, analytics, presentation and user documentation are implemented and verified. **The overall build remains in progress:** file-editing Claude/Codex improvement and the official external security scan have unresolved requirements. Native classification now uses the approved invocation-accounting policy; see BUILD-STATE for its latest verification. Jev's live test needs your key. No public release or latest private-main push is claimed.
+Verified 2026-10-03, America/Denver, with a subsequent owner-approved native-classification update. The local research application, analytics, presentation and user documentation are implemented and verified. **The overall build remains in progress:** file-editing Claude/Codex improvement and the official external security scan have unresolved requirements. Native classification now uses the approved invocation-accounting policy; see BUILD-STATE for its latest verification. Jev is live-verified and enabled for demo with its existing $1 daily local limit. No public release or latest private-main push is claimed.
 
 ## Open and use it
 
@@ -55,11 +55,11 @@ The GIF is a visual tour assembled from actual screenshots, not an interaction r
 
 ## Remaining actions that need you
 
-### 1. Jev key and credits
+### Jev setup completed
 
-Follow [Jev setup](JEV-SETUP.md): check your TypeSafe balance, create a dedicated key and save it only in this repository's ignored `.env` as `TYPESAFE_API_KEY`. Keep automatic refills off unless deliberately chosen. Then run the guide's zero-network readiness check and tiny synthetic live test. You can instead tell the agent, “The Jev key is saved in .env; run the synthetic live check.” Never paste the key into chat. No live Jev call or billing change was made during this build.
+After the owner saved the key and authorized activation, two synthetic live requests passed. Their combined recorded cost was $0.00003570. Jev is enabled for demo with the existing $1 daily local limit; new projects remain off by default. Playwright confirmed that Jev is selectable and Run classification is enabled. No study data was sent and no billing settings were changed. Other devices and users can follow [Jev setup](JEV-SETUP.md).
 
-### 2. Remaining file-editing operator requirements
+### 1. Remaining file-editing operator requirements
 
 The owner approved both native usage-limit exceptions in [the recorded decision](answers/01-native-usage.md). Native calls now mean bounded CLI invocations, not individual internal HTTP requests; Codex uses local limits without a provider generation-token cap. These usage decisions are resolved. The remaining requirements concern agents that edit files:
 
@@ -67,11 +67,11 @@ The owner approved both native usage-limit exceptions in [the recorded decision]
 2. Authorize a tested custom native operator permission profile in place of the runbook's workspace-write flag. Database, vault, secrets, recovery files and protected methodology must remain inaccessible; no fallback exposing research paths is acceptable.
 These remaining approvals permit operator implementation/testing, not immediate blanket activation. Classification uses the already verified no-action-tools path and does not require a file-editing operator. The earlier rejected private diagnostic is superseded by normal public-router verification under the accepted usage policy; no private readiness bypass is used.
 
-### 3. Private repository checkpoint
+### 2. Private repository checkpoint
 
 Authorize pushing the verified local commits to the existing **private main** branch if you want remote backup and fresh CI. This does not make the repository public. Public release is a separate owner action; the Pages workflow remains gated.
 
-### 4. Official security scanner environment
+### 3. Official security scanner environment
 
 The authorized scanner rejects a Windows credential-home ancestor because its validator finds an applicable replacement/Modify permission at `C:\`. The `.codex` state ancestors pass, but every path on that drive still includes the root. No ACL or credential changes were made. An administrator must review the drive permission policy, or supply an already-private path on another volume whose complete ancestor chain passes. Do not weaken the scanner check or change drive-wide ACLs casually. This finding is a scanner preflight limitation, not evidence of a compromise or an application vulnerability.
 
@@ -81,4 +81,4 @@ The authorized scanner rejects a Windows credential-home ancestor because its va
 
 Functional baseline295c712 and final presentationfe7b8e8 preserve the implementation/design boundary. The final documentation commit follows them. `docs/BUILD-STATE.md` is the chronological evidence log; `WELCOME-BACK.md` is the concise resume entrypoint. Protected source documents02–05 and the constitution were not edited; only the permitted current-state section10 of doc01 was refreshed.
 
-Offline fake/rules tests recorded no external egress. No Jev usage charge was incurred. Successful early Codex probes used the existing subscription; total session-wide provider quota/cost is not available and is not represented as zero. The security scanner failed before analysis. No public hosting, paid billing change or latest remote push was performed.
+Offline fake/rules tests recorded no external egress. Two synthetic Jev requests recorded a combined cost of $0.00003570; this is local usage accounting, not a verification of the account balance. Successful early Codex probes used the existing subscription; total session-wide provider quota/cost is not available and is not represented as zero. The security scanner failed before analysis. No public hosting, paid billing change or latest remote push was performed.
