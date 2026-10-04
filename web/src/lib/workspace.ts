@@ -65,6 +65,13 @@ export function useWorkspace() {
     if (readOnly) request<DemoSnapshot['attribution']>('demo/attribution').then(setAttribution).catch(() => {})
   }, [])
 
+  // While a window is open it checks in, so the double-click launcher only stops Qualia after the window closes.
+  useEffect(() => {
+    if (readOnly) return
+    const timer = setInterval(() => { request('health').catch(() => {}) }, 30_000)
+    return () => clearInterval(timer)
+  }, [])
+
   const reload = useCallback(async () => {
     const value = await request<Workspace>(`projects/${encodeURIComponent(slug)}`)
     if (scope.current === slug) setData(value)

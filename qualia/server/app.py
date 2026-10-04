@@ -29,6 +29,7 @@ def create_app(home: Path | None = None, token: str | None = None, dist: Path | 
     app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
     app.state.token = token or secrets.token_urlsafe(32)
     app.state.home = home
+    app.state.activity = 0  # authenticated API requests; the double-click launcher stops after a quiet spell
     web = dist or REPO / 'web/dist'
 
     @app.middleware('http')
@@ -48,6 +49,8 @@ def create_app(home: Path | None = None, token: str | None = None, dist: Path | 
                 request.headers.get('x-qualia-token', ''), app.state.token):
             response = JSONResponse({'detail': 'Invalid launch token'}, status_code=401)
         else:
+            if request.url.path.startswith('/api/'):
+                app.state.activity += 1
             response = await call_next(request)
         response.headers.update({
             'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "

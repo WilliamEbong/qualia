@@ -1,4 +1,4 @@
-"""Double-click entry point: Qualia in its own browser app window; closing the window stops it."""
+"""Double-click entry point: Qualia in its own browser app window; it stops once the window is closed."""
 
 import os
 import shutil
@@ -7,6 +7,7 @@ import sys
 import threading
 import time
 import urllib.request
+import webbrowser
 from pathlib import Path
 
 # A windowless (GUI-script) launch has no console, so messages need a dialog instead of stderr.
@@ -15,10 +16,14 @@ _PROGRAMS = ('Microsoft/Edge/Application/msedge.exe', 'Google/Chrome/Application
 _MAC_APPS = ('/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
              '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
 _COMMANDS = ('msedge', 'microsoft-edge', 'google-chrome', 'chromium', 'chromium-browser')
+# Open pages check in every 30 s (browsers slow hidden windows to about once a minute). Counting
+# checks instead of clock time means a sleeping laptop never counts as idle.
+CHECK_SECONDS = 10
+IDLE_CHECKS = 18  # ponytail: ~3 awake minutes without page contact; shorten if users want faster exit
 
 
 def find_browser():
-    """Edge or Chrome, the browsers whose app mode gives Qualia a window without tabs."""
+    """Edge or Chrome, whose app mode gives Qualia a window without tabs or address bar."""
     roots = [os.environ.get(name) for name in ('ProgramFiles(x86)', 'ProgramFiles', 'LOCALAPPDATA')]
     paths = [Path(root, program) for root in roots if root for program in _PROGRAMS]
     for path in [*paths, *map(Path, _MAC_APPS)]:
@@ -48,16 +53,29 @@ def _notify(message):
         print(message, file=sys.stderr)
 
 
-def _window(server, command):
-    deadline = time.monotonic() + 60
+def _open(url):
+    browser = find_browser()
+    if browser:
+        # The person's normal browser profile: no first-run or sign-in prompts for a new profile.
+        subprocess.Popen([browser, f'--app={url}', '--window-size=1280,860'])
+    else:
+        webbrowser.open(url)
+
+
+def _watch(server, app, url):
     while not server.started:
-        if server.should_exit or time.monotonic() > deadline:
+        if server.should_exit:
             return
-        time.sleep(0.05)
-    try:
-        subprocess.Popen(command).wait()
-    finally:
-        server.should_exit = True
+        time.sleep(.05)
+    _open(url)
+    seen, idle = None, 0
+    while not server.should_exit:
+        time.sleep(CHECK_SECONDS)
+        activity = app.state.activity
+        idle = 0 if activity != seen else idle + 1
+        seen = activity
+        if idle >= IDLE_CHECKS:
+            server.should_exit = True
 
 
 def main(port=None):
@@ -81,17 +99,10 @@ def _run(port):
         port = int(port or local_setting('QUALIA_PORT') or 8765)
     except ValueError:
         return _notify('QUALIA_PORT in Qualia\'s .env file must be a number.')
-    browser = find_browser()
-    if browser is None:
-        return _notify('Qualia opens in Microsoft Edge or Google Chrome, but neither was found. '
-                       'Install one of them, or run "uv run qualia open" to use your default browser.')
     url = f'http://127.0.0.1:{port}'
-    command = [browser, f'--app={url}', f'--user-data-dir={home / ".app-browser"}', '--no-first-run',
-               '--no-default-browser-check', '--window-size=1280,860']
     state = _probe(port)
     if state == 'qualia':
-        subprocess.Popen(command)
-        return
+        return _open(url)
     if state == 'other':
         return _notify(f'Port {port} is used by another program. Close that program, or set '
                        'QUALIA_PORT in Qualia\'s .env file to another number such as 8766.')
@@ -99,8 +110,9 @@ def _run(port):
 
     from qualia.server.app import create_app
 
-    server = uvicorn.Server(uvicorn.Config(create_app(), host='127.0.0.1', port=port, access_log=False))
-    threading.Thread(target=_window, args=(server, command), daemon=True).start()
+    app = create_app()
+    server = uvicorn.Server(uvicorn.Config(app, host='127.0.0.1', port=port, access_log=False))
+    threading.Thread(target=_watch, args=(server, app, url), daemon=True).start()
     server.run()
     if not server.started:
         _notify(f'Qualia could not start on port {port}. See {home / "qualia-app.log"} for details.')

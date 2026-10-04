@@ -1,8 +1,10 @@
-"""Double-click launcher: app window lifecycle, port reuse and plain-language failures."""
+"""Double-click launcher: app window, idle shutdown, port reuse and plain-language failures."""
 
 import http.server
+import re
 import socket
 import threading
+import time
 import urllib.request
 
 import pytest
@@ -20,6 +22,8 @@ def free_port():
 def quiet(monkeypatch, tmp_path):
     monkeypatch.setenv('QUALIA_HOME', str(tmp_path / 'home'))
     monkeypatch.setattr(launcher, 'find_browser', lambda: 'edge.exe')
+    monkeypatch.setattr(launcher, 'CHECK_SECONDS', .1)
+    monkeypatch.setattr(launcher, 'IDLE_CHECKS', 5)
     messages = []
     monkeypatch.setattr(launcher, '_notify', messages.append)
     return messages
@@ -40,28 +44,25 @@ def serve(body):
     return server
 
 
-def test_closing_the_app_window_stops_the_server(quiet, monkeypatch, tmp_path):
-    port, seen = free_port(), {}
-
-    class Browser:
-        def __init__(self, command):
-            seen['command'] = command
-
-        def wait(self):
-            # While the "window" is open, the real local server answers with its launch token.
-            with urllib.request.urlopen(f'http://127.0.0.1:{port}/', timeout=5) as response:
-                seen['page'] = response.read()
-
-    monkeypatch.setattr(launcher.subprocess, 'Popen', Browser)
+def test_server_stays_up_while_the_page_checks_in_and_stops_when_it_goes_quiet(quiet, monkeypatch):
+    port, opened = free_port(), []
+    monkeypatch.setattr(launcher.subprocess, 'Popen', opened.append)
     runner = threading.Thread(target=launcher.main, args=(port,))
     runner.start()
-    runner.join(timeout=60)
-    assert not runner.is_alive(), 'server kept running after the window closed'
-    assert b'qualia-token' in seen['page'] and quiet == []
-    command = seen['command']
-    assert command[0] == 'edge.exe' and f'--app=http://127.0.0.1:{port}' in command
-    assert f'--user-data-dir={tmp_path / "home" / ".app-browser"}' in command
-    assert '--no-first-run' in command
+    deadline = time.monotonic() + 30
+    while not opened and time.monotonic() < deadline:
+        time.sleep(.05)
+    assert opened and opened[0][:2] == ['edge.exe', f'--app=http://127.0.0.1:{port}']
+    with urllib.request.urlopen(f'http://127.0.0.1:{port}/', timeout=5) as response:
+        token = re.search(rb'name="qualia-token" content="([^"]+)"', response.read()).group(1).decode()
+    ping = urllib.request.Request(f'http://127.0.0.1:{port}/api/health', headers={'x-qualia-token': token})
+    for _ in range(12):  # 1.2 s of check-ins, longer than the 0.5 s idle limit
+        urllib.request.urlopen(ping, timeout=5).close()
+        time.sleep(.1)
+        assert runner.is_alive(), 'stopped while the window was still checking in'
+    runner.join(timeout=10)
+    assert not runner.is_alive(), 'kept running after the window went quiet'
+    assert quiet == []
 
 
 def test_second_launch_only_opens_another_window(quiet, monkeypatch):
@@ -85,10 +86,16 @@ def test_foreign_program_on_the_port_is_explained(quiet, monkeypatch):
     assert len(quiet) == 1 and 'used by another program' in quiet[0]
 
 
-def test_missing_browser_is_explained(quiet, monkeypatch):
+def test_without_edge_or_chrome_the_default_browser_is_used(quiet, monkeypatch):
+    running = serve(b'<html><head><meta name="qualia-token" content="x"></head></html>')
     monkeypatch.setattr(launcher, 'find_browser', lambda: None)
-    launcher.main(free_port())
-    assert len(quiet) == 1 and 'Microsoft Edge or Google Chrome' in quiet[0]
+    opened = []
+    monkeypatch.setattr(launcher.webbrowser, 'open', opened.append)
+    try:
+        launcher.main(running.server_port)
+    finally:
+        running.shutdown()
+    assert opened == [f'http://127.0.0.1:{running.server_port}'] and quiet == []
 
 
 def test_find_browser_prefers_installed_edge(monkeypatch, tmp_path):
