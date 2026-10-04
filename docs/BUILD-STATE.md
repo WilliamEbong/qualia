@@ -6,6 +6,8 @@ Started 2026-10-03. Baseline: f1d8719. Owner authorized autonomous implementatio
 
 ## Adjusted plan and checkpoints
 
+- [~] P15 Calibrated decisions (decision05): P15.0 Jev request-size batching fix; P15.1 feature 010 evaluation uncertainty; P15.2 feature 011 per-code thresholds, thresholds agent and review UX.
+
 - [x] P14 Codex improvement: approved no-tools proposals implemented, live-verified, documented and private CI green. Failed direct file-tool path disabled.
 - [x] P14.1 Decision04 and005 T015-T018 complete: strict proposals, trusted application, full input accounting, live/regression evidence and guide.
 
@@ -246,3 +248,5 @@ P14 private verification: e95972e pushed to private origin/main; Checks371846806
 STOP checkpoint: Codex improvement request is complete under decision04. Both subscription operators are available and live-verified; guide section15 includes complete steps, bounds and failure recovery. No new owner approval is required to use Codex proposals; no Windows permission changes.005 T004/T014/T018 close on completed evidence. BUILD IN PROGRESS now retains only the separately planned owner-run Claude security review before public release; official scan/public deployment remain unclaimed. Resume release review, not native sandbox repair.
 
 P14 final convergence review: no remaining runtime/constitutional findings after live/full/CI evidence. Reviewer found two superseded availability cells (guide troubleshooting and final-report provider table); T019 records their correction and updated native-auth troubleshooting. Both now describe Codex proposals. Final inventory12FR/5SC/3stories/19tasks/12plan decisions/7principles; no frontend code or source-doc changes.
+
+P15 start (2026-10-04): owner decision05 scopes calibrated decisions from the Jev ecosystem review. Plan: (0) fix Jev batching — demo 7-code codebook makes 20-segment requests exceed the 64 KB adapter bound, so every demo Jev call fails `input_limit`; size each batch by the provider's existing admission check; (1) feature 010 Wilson intervals, review share/cutoff and plain-language evaluation UI; (2) feature 011 per-code suggestion thresholds, no-AI thresholds improvement agent and review-queue UX. Skipped by decision: local backend, near-miss band, score recalibration, settings editor, new UI dependencies. Working tree clean at a7a8b8f.
