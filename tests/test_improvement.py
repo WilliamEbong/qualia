@@ -123,11 +123,13 @@ def test_vault_tamper_is_flagged_and_preserved_without_parsing(project):
 def test_zero_invalid_dirty_and_unavailable_runs_launch_nothing(project, monkeypatch):
     from qualia.ai.backends import codex_cli
     monkeypatch.setattr(codex_cli, "operator_available", lambda: False)
+    monkeypatch.setattr(codex_cli, 'run_operator', lambda *a, **k: pytest.fail('unavailable operator launched'))
     assert improve(project, budget=0, operator=lambda *args: pytest.fail('operator called')) == []
     with pytest.raises(ValueError, match='budget'):
         improve(project, budget=-1)
-    with pytest.raises(ValueError, match='outside the project'):
+    with pytest.raises(ValueError) as error:
         improve(project, agent='codex')
+    assert str(error.value) == codex_cli.OPERATOR_UNAVAILABLE_REASON
     (project/'unrelated.txt').write_text('owner work')
     with pytest.raises(ValueError, match='clean'):
         improve(project)
@@ -295,9 +297,11 @@ def test_native_operator_is_admitted_once_and_retains_usage(project, monkeypatch
         if fails:
             raise BackendError('quota', input_tokens=41, output_tokens=7,
                                cli_version='synthetic-native')
-        (root / report_path).write_text('Measured experiment proposal.')
+        if agent == 'claude':
+            (root / report_path).write_text('Measured experiment proposal.')
         return {'hypothesis': 'Unchanged candidate must be rejected.', 'input_tokens': 41,
-                'output_tokens': 7, 'cli_version': 'synthetic-native'}
+                'output_tokens': 7, 'cli_version': 'synthetic-native',
+                **({'edits': []} if agent == 'codex' else {})}
 
     monkeypatch.setattr(module, 'run_operator', native)
     row = improve(project, agent=agent)[0]
@@ -332,3 +336,80 @@ def test_native_injected_operator_cannot_bypass_vendor(project, monkeypatch, age
         improve(project, agent=agent, operator=lambda *a: pytest.fail('injected native operator'))
     with Store(project / 'project.db') as db:
         assert not db.rows('SELECT * FROM egress_log')
+
+
+@pytest.mark.parametrize('scenario', ['keep', 'noop', 'bad_hash', 'privacy', 'partial_write'])
+def test_codex_proposal_full_dispatch_accounting_and_recovery(project, monkeypatch, scenario):
+    import hashlib
+    from pathlib import Path
+
+    from qualia.ai.backends import codex_cli
+
+    config_path = project / 'config/routing.yaml'
+    config = json.loads(config_path.read_text())
+    config['allow_external'] = True
+    config_path.write_text(json.dumps(config))
+    git(project, 'add', '.')
+    git(project, '-c', 'user.name=Qualia', '-c', 'user.email=qualia@localhost',
+        'commit', '-qm', 'Admit synthetic proposal operator')
+    original_config = config_path.read_bytes()
+    original_prompt = (project / 'config/prompts/classify.txt').read_bytes()
+    monkeypatch.setattr(codex_cli, 'operator_available', lambda: True)
+    dispatched = []
+
+    def native(root, prompt, **kwargs):
+        dispatched.append(prompt)
+        inventory = {item['path']: item for item in json.loads(prompt)['files']}
+        assert set(inventory) == {'config/routing.yaml', 'config/segmentation.yaml',
+                                  'config/prompts/classify.txt'}
+        candidate = {**config, 'fake_mode': 'all'}
+        if scenario == 'privacy':
+            candidate['daily_calls'] += 1
+        edit = {**inventory['config/routing.yaml'], 'content': json.dumps(candidate)}
+        if scenario == 'bad_hash':
+            edit['original_sha256'] = '0' * 64
+        edits = [] if scenario == 'noop' else [edit]
+        if scenario == 'partial_write':
+            edits += [{**inventory['config/prompts/classify.txt'], 'content': 'Another prompt'}]
+        return {'hypothesis': 'Test proposal through real policy.', 'edits': edits,
+                'input_tokens': 41, 'output_tokens': 7, 'cli_version': 'synthetic-native'}
+
+    monkeypatch.setattr(codex_cli, 'run_operator', native)
+    if scenario == 'partial_write':
+        original_open = Path.open
+        class FailingWrite:
+            def __init__(self, stream):
+                self.stream = stream
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                self.stream.close()
+            def __getattr__(self, name):
+                return getattr(self.stream, name)
+            def write(self, data):
+                assert config_path.read_bytes() != original_config
+                raise OSError('synthetic second-write failure')
+        def open_file(path, mode='r', *args, **kwargs):
+            stream = original_open(path, mode, *args, **kwargs)
+            if mode == 'r+b' and path == project / 'config/prompts/classify.txt':
+                return FailingWrite(stream)
+            return stream
+        monkeypatch.setattr(Path, 'open', open_file)
+    row = improve(project, agent='codex')[0]
+    assert len(dispatched) == 1
+    assert row['decision'] == ('KEEP' if scenario == 'keep' else 'REVERT')
+    assert git(project, 'status', '--porcelain') == ''
+    if scenario != 'keep':
+        assert config_path.read_bytes() == original_config
+        assert (project / 'config/prompts/classify.txt').read_bytes() == original_prompt
+    else:
+        assert json.loads(config_path.read_text())['fake_mode'] == 'all'
+        assert json.loads(row['after_json'])['confirmation']
+    with Store(project / 'project.db') as db:
+        calls = db.rows("SELECT * FROM usage_ledger WHERE backend='codex' AND reservation_id IS NOT NULL")
+        assert len(calls) == 1 and calls[0]['input_tokens'] == 41 and calls[0]['output_tokens'] == 7
+        assert calls[0]['status'] == ('ok' if scenario in ('keep', 'noop') else 'error')
+        egress = db.rows("SELECT * FROM egress_log WHERE backend='codex'")
+        assert len(egress) == 1
+        assert json.loads(egress[0]['segment_hashes_json']) == [hashlib.sha256(dispatched[0].encode()).hexdigest()]
+        assert not db.rows('SELECT * FROM coding_events')

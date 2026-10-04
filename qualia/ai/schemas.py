@@ -33,6 +33,23 @@ class Result(Predictions):
     cli_version: str = Field(min_length=1, max_length=200)
 
 
+class OperatorEdit(Record):
+    path: str = Field(min_length=1, max_length=240)
+    original_sha256: str = Field(pattern=r'^[0-9a-f]{64}$')
+    content: str = Field(max_length=65536)
+
+
+class OperatorProposal(Record):
+    hypothesis: str = Field(min_length=1, max_length=2000)
+    edits: list[OperatorEdit] = Field(max_length=16)
+
+
+class OperatorResult(OperatorProposal):
+    input_tokens: int = Field(ge=0, le=2**63-1)
+    output_tokens: int = Field(ge=0, le=2**63-1)
+    cli_version: str = Field(min_length=1, max_length=200)
+
+
 class Tier(Record):
     backend: str = Field(min_length=1)
     model: str = Field(min_length=1)

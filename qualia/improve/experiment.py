@@ -19,6 +19,7 @@ from qualia.ai.backends.process import BackendError
 from qualia.ai.schemas import routing_config
 from qualia.evaluation import evaluate_project
 from qualia.improve.policy import decide
+from qualia.improve.proposal import BOUNDS, apply_proposal, prepare_proposal
 from qualia.store.db import Store, canonical
 from qualia.workspace import (
     REPO,
@@ -32,8 +33,6 @@ from qualia.workspace import (
 
 LOCK = '.qualia-operation.lock'
 DB_FILES = {'project.db', 'project.db-wal', 'project.db-shm'}
-BOUNDS = ('allow_external', 'jev_enabled', 'daily_calls', 'run_segments', 'jev_daily_usd',
-          'segments_per_call', 'max_segment_chars', 'max_output_tokens', 'max_retries')
 
 
 def _git(project, *arguments):
@@ -251,6 +250,9 @@ def improve_project(project, agent='fake', budget=1, *, operator=None, backend=N
             baseline = evaluate_project(db, project, backend=backend, model=model, use_cache=False)
             coding_count = db.one('SELECT count(*) AS n FROM coding_events')['n']
             prompt = (project/'IMPROVEMENT.md').read_text(encoding='utf-8')
+            proposal_context = prepare_proposal(project, prompt) if agent == 'codex' else None
+            if proposal_context is not None:
+                prompt = proposal_context.prompt
             reservation = ledger.reserve(db, backend=provider, model=operator_model,
                 run_id=f'operator-{uuid.uuid4().hex}', segments=[{'text': prompt}], config=config, purpose='operator')
             snapshot_root = Path(tempfile.mkdtemp(prefix=f'exp-{number:04d}-', dir=recovery))
@@ -273,6 +275,8 @@ def improve_project(project, agent='fake', budget=1, *, operator=None, backend=N
                 raw, operator_error = None, None
                 try:
                     raw = invoke(project, prompt, report_path)
+                    if proposal_context is not None:
+                        apply_proposal(project, proposal_context, raw)
                 except BackendError as error:
                     operator_error = error
                 except Exception:

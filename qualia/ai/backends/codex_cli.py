@@ -1,4 +1,4 @@
-"""Bounded subscription Codex classifier with no advertised action tools."""
+"""Bounded subscription Codex classification/proposals with no action tools."""
 
 import copy
 import json
@@ -18,11 +18,17 @@ from qualia.ai.backends.process import (
     subscription_environment,
     token_count,
 )
+from qualia.ai.schemas import OperatorProposal, OperatorResult
 
 VERIFIED_VERSION = '0.160.0'
 PROVIDER_ID = 'qualia-subscription'
 OPERATOR_UNAVAILABLE_REASON = (
-    'Codex operator remains unavailable: the audited native Windows runtime reads '
+    'Codex proposals require an installed official Codex CLI. Dispatch verifies '
+    'the audited version and native ChatGPT sign-in, with no action tools. '
+    'Qualia validates and applies permitted changes.'
+)
+DIRECT_FILE_OPERATOR_UNAVAILABLE_REASON = (
+    'Codex direct file operator remains unavailable: the audited native Windows runtime reads '
     'outside the project while verifying patches, and its loopback network denial '
     'did not hold. Required read and network isolation must pass before activation. '
     'Classification availability is independent.'
@@ -30,12 +36,34 @@ OPERATOR_UNAVAILABLE_REASON = (
 
 
 def operator_available():
-    return False
+    return resolve_command() is not None
 
 
 def run_operator(project, prompt, *, model=None, max_output_tokens=8192,
                  report_path='experiments/0001.md'):
-    raise BackendError('operator_unavailable')
+    """Return proposed replacements; only the trusted coordinator accesses the project."""
+    if not operator_available():
+        raise BackendError('operator_unavailable')
+    try:
+        if (not isinstance(prompt, str) or not prompt.strip()
+                or len(prompt.encode('utf-8')) > 131072
+                or type(max_output_tokens) is not int or not 0 < max_output_tokens <= 8192):
+            raise ValueError
+    except (ValueError, UnicodeError):
+        raise BackendError('input_limit') from None
+    # max_output_tokens is a policy input, not an unsupported native generation cap.
+    proposal, metadata = _run_json(prompt, OperatorProposal.model_json_schema(),
+                                  model=model or 'gpt-6-astra', require_subscription=True)
+    if metadata['output_tokens'] > max_output_tokens:
+        raise BackendError('output_limit', **metadata)
+    try:
+        validated = OperatorProposal.model_validate(proposal)
+        sizes = [len(edit.content.encode('utf-8')) for edit in validated.edits]
+        if any(size > 65536 for size in sizes) or sum(sizes) > 131072:
+            raise ValueError
+        return OperatorResult.model_validate({**validated.model_dump(), **metadata}).model_dump()
+    except (ValueError, UnicodeError):
+        raise BackendError('invalid_response', **metadata) from None
 
 
 DISABLED_FEATURES = (
@@ -166,56 +194,74 @@ class CodexCLIBackend:
         record = first_segment(segments)
         if not self.available():
             raise BackendError('unavailable', record)
-        command = resolve_command()
-        if command is None:
-            raise BackendError('unavailable', record)
         prompt = classification_prompt(segments, schema, context)
-        environment = subscription_environment()
-        model = context.get('model', self.model)
-        catalog = load_catalog(model)
-        version = 'unknown'
-        with tempfile.TemporaryDirectory(prefix='qualia-codex-') as directory:
-            root = Path(directory)
-            version_cwd = root / 'version'
-            version_cwd.mkdir()
-            probe = self.runner([*command, '--version'], prompt='', cwd=version_cwd,
-                                env=environment, timeout_seconds=10, max_output_bytes=8192)
-            match = re.search(rb'\b(\d+\.\d+\.\d+(?:[-+.][a-zA-Z0-9]+)*)\b', probe.stdout)
-            if probe.failure or probe.returncode or not match:
-                raise BackendError('unavailable', record)
-            version = match.group(1).decode('ascii')
-            if version != VERIFIED_VERSION:
-                raise BackendError('unsupported_version', record, cli_version=version)
-            schema_path, output_path = root / 'schema.json', root / 'result.json'
-            catalog_path = root / 'catalog.json'
-            schema_path.write_text(json.dumps(schema, allow_nan=False), encoding='utf-8')
-            catalog_path.write_text(json.dumps(catalog, allow_nan=False), encoding='utf-8')
-            cwd = root / 'cwd'
-            cwd.mkdir()
-            argv = build_argv(command, model, schema_path, output_path, catalog_path)
-            result = self.runner(argv, prompt=prompt, cwd=cwd, env=environment,
-                                 timeout_seconds=self.timeout_seconds,
-                                 max_output_bytes=self.max_output_bytes, output_path=output_path)
-            inputs = outputs = 0
-            seen = False
-            inputs, outputs, seen, violation = _usage(result.stdout)
-            error_args = {'input_tokens': inputs, 'output_tokens': outputs,
-                          'cli_version': version}
-            if violation:
-                raise BackendError(violation, record, **error_args)
-            if result.failure or result.returncode:
-                raise BackendError(result.failure or 'provider_error', record, **error_args)
-            try:
-                with output_path.open('rb') as stream:
-                    data = stream.read(self.max_output_bytes + 1)
-                if len(data) > self.max_output_bytes:
-                    raise BackendError('output_limit', record, **error_args)
-                prediction = json_object(data)
-                if (not seen or set(prediction) != {'predictions'}
-                        or not isinstance(prediction['predictions'], list)):
-                    raise ValueError
-            except BackendError:
-                raise
-            except (OSError, ValueError, TypeError, UnicodeError, RecursionError):
-                raise BackendError('invalid_response', record, **error_args) from None
-            return {'predictions': prediction['predictions'], **error_args}
+        prediction, metadata = _run_json(
+            prompt, schema, model=context.get('model', self.model), record=record,
+            runner=self.runner, timeout_seconds=self.timeout_seconds,
+            max_output_bytes=self.max_output_bytes)
+        if (set(prediction) != {'predictions'}
+                or not isinstance(prediction['predictions'], list)):
+            raise BackendError('invalid_response', record, **metadata)
+        return {'predictions': prediction['predictions'], **metadata}
+
+
+def _run_json(prompt, schema, *, model, record=None, runner=None, timeout_seconds=90,
+              max_output_bytes=MAX_OUTPUT_BYTES, require_subscription=False):
+    """Shared exact-version no-tools transport; preserve usage on every failure."""
+    runner = runner or run_process
+    command = resolve_command()
+    if command is None:
+        raise BackendError('unavailable', record)
+    environment = subscription_environment()
+    catalog = load_catalog(model)
+    version = 'unknown'
+    with tempfile.TemporaryDirectory(prefix='qualia-codex-') as directory:
+        root = Path(directory)
+        version_cwd = root / 'version'
+        version_cwd.mkdir()
+        probe = runner([*command, '--version'], prompt='', cwd=version_cwd,
+                       env=environment, timeout_seconds=10, max_output_bytes=8192)
+        match = re.search(rb'\b(\d+\.\d+\.\d+(?:[-+.][a-zA-Z0-9]+)*)\b', probe.stdout)
+        if probe.failure or probe.returncode or not match:
+            raise BackendError('unavailable', record)
+        version = match.group(1).decode('ascii')
+        if version != VERIFIED_VERSION:
+            raise BackendError('unsupported_version', record, cli_version=version)
+        if require_subscription:
+            status = runner([*command, 'login', 'status'], prompt='', cwd=version_cwd,
+                            env=environment, timeout_seconds=10, max_output_bytes=8192)
+            if (status.failure or status.returncode or status.stdout
+                    or status.stderr.rstrip(b'\r\n') != b'Logged in using ChatGPT'):
+                raise BackendError('subscription_auth_required', record, cli_version=version)
+        schema_path, output_path = root / 'schema.json', root / 'result.json'
+        catalog_path = root / 'catalog.json'
+        schema_path.write_text(json.dumps(schema, allow_nan=False), encoding='utf-8')
+        catalog_path.write_text(json.dumps(catalog, allow_nan=False), encoding='utf-8')
+        cwd = root / 'cwd'
+        cwd.mkdir()
+        argv = build_argv(command, model, schema_path, output_path, catalog_path)
+        result = runner(argv, prompt=prompt, cwd=cwd, env=environment,
+                        timeout_seconds=timeout_seconds,
+                        max_output_bytes=max_output_bytes, output_path=output_path)
+        inputs = outputs = 0
+        seen = False
+        inputs, outputs, seen, violation = _usage(result.stdout)
+        error_args = {'input_tokens': inputs, 'output_tokens': outputs,
+                      'cli_version': version}
+        if violation:
+            raise BackendError(violation, record, **error_args)
+        if result.failure or result.returncode:
+            raise BackendError(result.failure or 'provider_error', record, **error_args)
+        try:
+            with output_path.open('rb') as stream:
+                data = stream.read(max_output_bytes + 1)
+            if len(data) > max_output_bytes:
+                raise BackendError('output_limit', record, **error_args)
+            prediction = json_object(data)
+            if not seen:
+                raise ValueError
+        except BackendError:
+            raise
+        except (OSError, ValueError, TypeError, UnicodeError, RecursionError):
+            raise BackendError('invalid_response', record, **error_args) from None
+        return prediction, error_args
