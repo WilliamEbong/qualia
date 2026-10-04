@@ -40,6 +40,13 @@ export function calibrationCaption(event: Coding, runs: Evaluation[]): string {
     : 'Validation ECE unavailable — no scored validation result matches this suggestion’s backend, model, frozen codebook, pipeline and prompt.'
 }
 
+export type BackendStatus = { name: string; available: boolean; external: boolean; reason?: string }
+
+export function backendBlockedReason(readOnly: boolean, provider: BackendStatus | undefined, allowExternal: boolean | undefined, readOnlyText: string): string {
+  return readOnly ? readOnlyText : !provider ? 'Checking backend availability…' : !provider.available ? provider.reason || 'Backend unavailable.'
+    : provider.external && !allowExternal ? 'External AI is disabled for this project.' : ''
+}
+
 const finite = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value)
 
 export function formatInterval(value: unknown, interval: unknown): string {

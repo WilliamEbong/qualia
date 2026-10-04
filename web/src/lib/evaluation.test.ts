@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Coding } from './entities'
-import { calibrationCaption, calibrationRows, formatInterval, formatMetric, matchingCalibration, metricRows, parseEvaluations, reliabilityWord, reviewSentence } from './evaluation-state'
+import { backendBlockedReason, calibrationCaption, calibrationRows, formatInterval, formatMetric, matchingCalibration, metricRows, parseEvaluations, reliabilityWord, reviewSentence } from './evaluation-state'
 import type { EvaluationRecord } from './evaluation-state'
 import { nextTheme, resolveTheme } from './theme'
 
@@ -61,6 +61,19 @@ describe('uncertainty shown in plain language', () => {
     const bins = [{ lower: .7, upper: .8, count: 12, mean_confidence: .74, accuracy: .71 }, { lower: .8, upper: .9, count: 0, mean_confidence: null, accuracy: null }]
     expect(calibrationRows({ calibration_bins: bins })).toEqual([{ band: '0.7–0.8', count: 12, meanScore: '0.74', correct: '71%' }])
     expect(calibrationRows({})).toEqual([])
+  })
+})
+
+describe('backend readiness explanations', () => {
+  it('explains exactly why a run cannot start', () => {
+    const local = { name: 'rules', available: true, external: false, reason: '' }
+    const remote = { name: 'jev', available: true, external: true, reason: '' }
+    expect(backendBlockedReason(true, local, true, 'Read-only.')).toBe('Read-only.')
+    expect(backendBlockedReason(false, undefined, true, 'Read-only.')).toBe('Checking backend availability…')
+    expect(backendBlockedReason(false, { ...local, available: false, reason: 'Not installed.' }, true, '')).toBe('Not installed.')
+    expect(backendBlockedReason(false, remote, false, '')).toBe('External AI is disabled for this project.')
+    expect(backendBlockedReason(false, remote, true, '')).toBe('')
+    expect(backendBlockedReason(false, local, false, '')).toBe('')
   })
 })
 

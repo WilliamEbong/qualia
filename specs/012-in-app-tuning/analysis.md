@@ -1,0 +1,3 @@
+# Requirements analysis
+
+Four requirements and four success criteria map to four tasks; coverage 100%. The route adds no new capability beyond the CLI: the same `improve_project` call with its locks, clean-Git requirement, scope and bounds checks, trusted tests, validation policy and confirmation (Principle III). It runs no AI operator, adds no egress path (classification calls still pass router gates, Principle V) and writes no coding events. The server keeps its loopback binding, Host validation and per-launch token. Long runs block one worker thread, as `evaluate` already does; the UI shows the busy state. No CRITICAL issue.

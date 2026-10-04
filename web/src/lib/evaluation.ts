@@ -5,7 +5,7 @@ import type { WorkspaceController } from './workspace'
 import type { ReviewController } from './review'
 import { request } from './client'
 import { eventCodeName } from './entities'
-import { calibrationRows, formatInterval, formatMetric, metricRows, parseEvaluations, reviewSentence } from './evaluation-state'
+import { backendBlockedReason, calibrationRows, formatInterval, formatMetric, metricRows, parseEvaluations, reviewSentence } from './evaluation-state'
 import type { EvaluationRecord } from './evaluation-state'
 
 export function useEvaluation(w: WorkspaceController, review: ReviewController) {
@@ -15,8 +15,7 @@ export function useEvaluation(w: WorkspaceController, review: ReviewController) 
   const runs = useMemo(() => parseEvaluations((w.data?.evaluation_runs ?? []) as EvaluationRecord[]), [w.data])
   const selected = runs.find(run => run.id === selectedId) ?? runs[0]
   const provider = review.availability?.backends.find(item => item.name === backend)
-  const blockedReason = w.readOnly ? 'Evaluation is unavailable in this read-only public snapshot.' : !provider ? 'Checking backend availability…' : !provider.available ? provider.reason || 'Backend unavailable.'
-    : provider.external && !review.availability?.allow_external ? 'External AI is disabled for this project.' : ''
+  const blockedReason = backendBlockedReason(w.readOnly, provider, review.availability?.allow_external, 'Evaluation is unavailable in this read-only public snapshot.')
   const evaluate = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const form = new FormData(event.currentTarget)

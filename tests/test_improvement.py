@@ -468,3 +468,33 @@ def test_thresholds_agent_without_dev_split_fails_before_snapshot(project):
         assert not db.rows('SELECT * FROM experiments')
     with pytest.raises(ValueError, match='injected operators'):
         experiment.improve_project(project, agent='thresholds', operator=lambda *args: {})
+
+
+def test_thresholds_tuning_runs_from_the_local_app(tmp_path, monkeypatch):
+    from fastapi.testclient import TestClient
+
+    from qualia.server.app import create_app
+
+    project, first = thresholds_project(tmp_path, monkeypatch)
+    monkeypatch.setattr(experiment, '_run_tests', lambda: True)
+    client = TestClient(create_app(home=tmp_path, token='test'), base_url='http://localhost',
+                        headers={'x-qualia-token': 'test'})
+    assert client.post('/api/projects/thresholds/tune-thresholds', json={'agent': 'claude'}).status_code == 422
+    response = client.post('/api/projects/thresholds/tune-thresholds', json={})
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body['decision'] == 'KEEP' and body['agent'] == 'thresholds'
+    assert 'Marked default -> 0.65' in body['hypothesis']
+    assert json.loads((project/'config/routing.yaml').read_text())['code_thresholds'][str(first)] == .65
+
+
+def test_thresholds_tuning_from_the_app_reports_missing_dev_split(project):
+    from fastapi.testclient import TestClient
+
+    from qualia.server.app import create_app
+
+    client = TestClient(create_app(home=project.parent.parent, token='test'), base_url='http://localhost',
+                        headers={'x-qualia-token': 'test'})
+    response = client.post('/api/projects/improve/tune-thresholds', json={})
+    assert response.status_code == 400 and response.json()['detail'] == 'dev benchmark has not been imported'
+    assert git(project, 'status', '--porcelain') == ''
