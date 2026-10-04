@@ -6,7 +6,11 @@ Read transcripts, apply a human-defined codebook, review AI suggestions, and ins
 
 The manual, rules and deterministic fake workflows are implemented and tested. Native subscription AI remains gated; Jev is installed but optional and disabled by default. This repository is private. The static public-data demonstration has been built locally and is not deployed.
 
-![Suggestion review with scores and provenance](design-review/phase-5/review-mvp.png)
+![Qualia: qualitative coding you can audit](docs/social-preview.png)
+
+![Visual tour: home, coding, review, synthetic statistics and measured experiment](design-review/final/walkthrough.gif)
+
+The tour combines the licensed public demo, offline fake review/experiment evidence, and an explicitly synthetic numeric example. Start with the [illustrated user guide](docs/USER-GUIDE.md); see the [final verification and remaining setup](docs/FINAL-REPORT.md) for the exact handoff.
 
 ## Run locally
 
@@ -82,7 +86,7 @@ uv run qualia improve --project demo --agent fake --budget 1
 
 The fake operator changes classification configuration. Qualia checks edit scope, database integrity, protected methodology, tests, privacy and budget limits, then evaluates the fixed validation split. A qualifying candidate needs a confirming run before KEEP. Failed candidates receive REVERT and an auditable report. Re-running an already applied fake candidate may produce REVERT because there is no further gain.
 
-![Measured KEEP with baseline, candidate and confirmation](design-review/phase-5/keep-mvp.png)
+![Measured KEEP with baseline, candidate and confirmation](design-review/final/experiment-measurements.png)
 
 The verified local MVP used the actual pinned AnnoMI demo:
 
@@ -96,7 +100,7 @@ The verified local MVP used the actual pinned AnnoMI demo:
 | Validation records | 1,258 |
 | Macro F1: rules baseline → fake candidate → confirmation | 0.01058468 → 0.24242447 → 0.24242447 |
 | Classification calls per evaluation | 63 |
-| Recorded decision and tag | KEEP Â· `exp-0001-measured-gain` |
+| Recorded decision and tag | KEEP · `exp-0001-measured-gain` |
 
 This is a scripted fake-backend smoke test of measurement, policy and provenance. It is not evidence of trained-model quality. Predicting all seven codes improved macro F1 in this run while exact match fell from approximately 0.00477 to 0. The before/after table retains both outcomes.
 
@@ -104,7 +108,7 @@ An interrupted finalization leaves a recovery journal at `QUALIA_HOME/recovery/<
 
 ## Optional AI setup
 
-Rules and fake classification need no provider account. Native Claude/Codex classification and operator production paths remain unavailable pending the required isolation, output-bound and per-request accounting evidence. Installed adapter code and recorded fixtures do not establish live parity. Qualia does not read or proxy subscription login tokens.
+Rules and fake classification need no provider account. Native Claude/Codex classification and operator production paths remain unavailable pending the required isolation, output-bound and per-request accounting evidence. The installed Codex CLI passed two real synthetic classification probes and a delegation probe using existing sign-in; those are not an end-to-end Qualia activation test. The intended workflow stays in Qualia's UI: its local server invokes the official CLI, which uses its own sign-in. No AI desktop app needs to remain open. Qualia does not read or proxy subscription login tokens. See [preflight evidence](docs/research/preflight-ai.md) and [subscription documentation assessment](docs/research/subscription-policy.md).
 
 Jev's adapter and local controls are installed. The verified setup found no configured key, so no live Jev request was made. Account credits, a dedicated key and the deliberate project egress choice remain owner steps. Follow [Jev setup](docs/JEV-SETUP.md); keep the key in ignored `.env`, never in chat or frontend configuration. Check readiness without a network request:
 
@@ -142,11 +146,11 @@ The demo pins AnnoMI to commit `42936645ec3857a9c84ab296a36a3c34b779ef49`. Its d
 
 [DATA-LICENSES.md](DATA-LICENSES.md) records the authors' public-domain statement, citations, checksum and the limits of that evidence. The pinned AnnoMI repository has no LICENSE file establishing a particular SPDX dedication; underlying video/audio rights are not included. Qualia's concise demo definitions are attributed paraphrases, not invented upstream inclusion/exclusion rules.
 
-The locally verified static snapshot contains 24 utterances from two development transcripts with attribution and provenance. Its eight views make zero API requests and have no editing or AI capability. It contains no private-workspace or protected-vault data. Hosting and final Lighthouse measurements remain pending; no public URL is claimed.
+The locally verified static snapshot contains 24 utterances from two development transcripts with attribution and provenance. Its ten research views make zero API requests and have no editing or AI capability. It contains no private-workspace or protected-vault data. Final Lighthouse scores are 96 performance and 100 accessibility, with CLS 0.000125. Hosting remains pending; no public URL is claimed. The Pages workflow is prepared and gated on repository visibility; the owner has not made this repository public.
 
 ## Verification
 
-The latest reported full Python checkpoint passed **308 tests**, with four platform-capability skips and four live tests deselected. Backend CI was green at `8029a36`. Browser evidence covers the coding/review/experiment/export MVP and all eight static views. See [BUILD-STATE.md](docs/BUILD-STATE.md) for later results and unresolved gates; this README does not claim the entire build is complete.
+The latest full Python checkpoint passed **390 tests**, with five skips (four Windows capability checks and unavailable Rscript) and four live tests deselected. Final frontend checks passed **30 tests**, TypeScript, and normal/static production builds. Browser evidence covers coding, review, experiments, analysis, exports and all ten static views. Backend CI was green at remote `8029a36`; later checkpoints are local, pending owner authorization to push private main. See [BUILD-STATE.md](docs/BUILD-STATE.md) and the [design audit](design-review/LOOP-REPORT.md) for exact evidence and remaining gates; this README does not claim the entire build is complete.
 
 ```powershell
 uv run pytest -m "not live"

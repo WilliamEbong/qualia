@@ -27,23 +27,23 @@ Started 2026-10-03. Baseline: f1d8719. Owner authorized autonomous implementatio
 - [x] P5.1 Spec Kit improvement artifacts and analysis.
 - [~] P5.2 Protected experiment protocol, policy and operator lanes.
 - [x] P5.3 History UI, I2/I3 and MVP browser gate; converge (offline scope).
-- [ ] P6.1 Security/hygiene audits, CI and secret/data checks.
+- [~] P6.1 Hygiene/local checks pass; official security scan preflight and latest remote CI remain gated.
 - [ ] P6.2 Live Claude/Codex experiment parity.
 - [x] P7.D0 Design guard and baseline screenshots.
 - [x] P7.D1 Tokens, fonts, theme, DESIGN.md.
 - [x] P7.D2 Workspace and review presentation.
-- [ ] P7.D3 Experiments presentation.
-- [ ] P7.D4 Codebook and matrix presentation.
-- [ ] P7.D5 Landing/demo presentation.
-- [ ] P7.D6 Motion, accessibility and mobile checks.
-- [ ] P7.D7 Design acceptance, final screenshots and bounded critique loop.
-- [ ] P8 Portfolio Spec Kit artifacts, snapshot, demo, README, Pages and performance gate (sacrificial).
+- [x] P7.D3 Experiments presentation.
+- [x] P7.D4 Codebook and matrix presentation.
+- [x] P7.D5 Landing/demo presentation.
+- [x] P7.D6 Motion, accessibility and mobile checks.
+- [x] P7.D7 Design acceptance, final screenshots and bounded critique loop (literal font-property grep distinction documented).
+- [x] P8 Portfolio artifacts, snapshot, local demo, README, prepared Pages and performance gate; not deployed.
 - [~] P9 Jev Spec Kit artifacts, adapter, fixture tests and owner setup guide (sacrificial).
-- [ ] P10 Full acceptance sweep, subscription policy recheck, final evidence/report.
+- [~] P10 Offline acceptance, subscription documentation recheck, guide and final report done; native/security/live gates remain.
 
 ## Workstream audit
 
-Current: 3.1 repo/kit done except final evidence; 3.2–3.5 and 3.7–3.10 offline functionality done; 3.6 native CLI readiness gated; 3.11 Jev implemented, key/live test deferred; 3.12 portfolio preparation underway; 3.13 audits underway; 3.14 live parity blocked by native readiness. Constitution v1.0.0 preserved. Research DBs live outside the checkout. No owner answers received.
+Current: repo/kit and offline research, review, evaluation, improvement, analysis and visualization are implemented. Native CLI readiness/live parity remain gated. Jev implementation and setup guide are complete; owner key/live test deferred. Portfolio and user documentation are complete locally; hosting is not activated. Hygiene audits pass; official source scan failed its permission preflight. Owner authorized the official code-only scan, but native decisions and private-main push remain unanswered. Constitution v1.0.0 preserved. Research DBs live outside the checkout. See FINAL-REPORT.md for the concrete handoff.
 
 ## Preflight evidence
 
@@ -167,3 +167,5 @@ D3–D5 browser: experiments, codebook, matrix and home captured at1280/375 with
 
 Design repair cycle1: first final Lighthouse13.5 audit returned performance75/accessibility95/CLS0.104621. Independent read-only diagnosis:591,922-byte home image was73%of transferred bytes and discovered late (LCP5.315s); footer moved from short loading view to below home (CLS0.104496); caption#6b665c on cream was4.379:1. Requested only responsive/compressed artwork plus matching preload, loading-space reservation, and adjustable caption token contrast. Frozen application logic stays unchanged. Exact original JSON retained as design-review/D6/lighthouse-before.json; rerun the same audit after repair. Initial npm attempt hit known sandbox cache permissions; scoped access rerun succeeded without configuration changes.
 D3-D7 final: all ten static views pass 1280/375px without page overflow or API requests; local workspace/review/experiments and synthetic numeric charts captured in design-review/final. One evidence-based repair iteration reduced hero delivery to7.7/22.7KB, reserved loading height and fixed caption contrast. Final Lighthouse96 performance/100 accessibility/CLS0.0001251722.30 Vitest tests and TypeScript pass. Independent presentation diff verifies199 unchanged functional attributes and empty protected functional diff against295c712. LOOP-REPORT records the pre-existing SVG font-family property-name exception; no logic altered to silence grep. Portfolio GIF and social preview produced. Push remains owner-gated.
+
+Final local handoff: presentation saved at fe7b8e8; exact protected-path comparison to295c712 empty. D7 guard restored to build with no guard-file diff. Normal/static builds pass, including root base plus reserved .invalid sitemap test and restored /qualia/ preview. Final Gitleaks scans:17 committed revisions, staged documentation, normal dist and static dist all zero findings. Data guard passes;42 local documentation links resolve; doc01 changed only permitted section10; docs02–05 and constitution unchanged from baseline. Illustrated USER-GUIDE, JEV-SETUP, FINAL-REPORT and WELCOME-BACK are ready. Specs006 local scope converged;007 offline scope converged with actual-response/live test deferred. Native activation, official scanner preflight, owner-saved Jev key, private-main push/new CI and public hosting remain explicitly unclaimed. All unaffected work is finished; BUILD IN PROGRESS is retained for unresolved load-bearing gates.
