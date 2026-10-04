@@ -6,10 +6,10 @@ Started 2026-10-03. Baseline: f1d8719. Owner authorized autonomous implementatio
 
 ## Adjusted plan and checkpoints
 
-- [~] P14 Codex improvement feasibility: verify current runtime and assess a no-tools structured-proposal path under the existing KEEP/REVERT loop. Do not activate the failed native file-tool path.
-- [~] P14.1 Owner approved decision04; implement005 T015–T018 strict proposals, trusted application, complete dispatch accounting and verification.
+- [x] P14 Codex improvement: approved no-tools proposals implemented, live-verified, documented and private CI green. Failed direct file-tool path disabled.
+- [x] P14.1 Decision04 and005 T015-T018 complete: strict proposals, trusted application, full input accounting, live/regression evidence and guide.
 
-- [~] P13 Resume Phase 6 hygiene/parity from 2799152: apply owner decisions, finish prerequisite 005 T004, then P6.1/P6.2 and Phase 10 acceptance.
+- [x] P13 Native resume completed through P14: both operators, hygiene and private CI verified; owner pre-public security review remains a release action.
 
 P13 recovery: last session completed P12 Jev activation at 2799152 with a clean tracked tree. OWNER-ANSWERS.md was present and is archived unchanged as docs/answers/02-native-operators.md. Owner approves both native operators, the custom Codex permission profile, and continued verified private-main pushes; owner personally performs elevated Windows sandbox setup. Official Codex Security scan is superseded by the owner's later Claude /security-review, not passed. Current first implementation gap is 005 T004 (P5.2), prerequisite to unchecked P6.2. Resume from that dependency while refreshing P6.1; do not redo completed design/Jev work. Plan: verify Claude restricted tools and activate bounded operator; check Codex setup and actual synthetic enforcement, keeping it disabled if unproved; integrate admitted operator invocations; run tiny synthetic live experiments, then full affected acceptance/CI. No source-doc, guard, credential or system-permission edits.
 
@@ -58,7 +58,7 @@ P11 live outcome: Codex gpt-6-luna passed through the actual public router. Clau
 - [x] P7.D7 Design acceptance, final screenshots and bounded critique loop (literal font-property grep distinction documented).
 - [x] P8 Portfolio artifacts, snapshot, local demo, README, prepared Pages and performance gate; not deployed.
 - [x] P9 Jev Spec Kit artifacts, adapter, fixture tests and owner setup guide; live requirement closed in P12.
-- [~] P10 Offline/native/live acceptance and guide complete; final private CI and owner pre-public security review remain.
+- [~] P10 Offline/native/live acceptance, guide and private CI complete; owner pre-public security review remains.
 
 ## Workstream audit
 
@@ -240,3 +240,9 @@ P14 repair3 (retired assertion): affected test forced operator unavailable but e
 P14 live success: public tests/live/test_native_improvement.py -k codex -m live passed1/1 deselected in41.92s. One invented sentence/code,4-invocation maximum. Astra proposed classify.txt replacement (10594 input/172 output); Luna baseline9717/58 and candidate9753/56. Exactly3 admitted invocations/egress rows, positive usage, zero coding events, frozen methodology/codebook unchanged, final Git clean. Macro-F1/exact-match1.0 to1.0, ECE0 to0, agreement undefined; correct REVERT gain below min_delta. No model-quality improvement claim. Full regression is running; latest code checkpoint0fcc799.
 
 P14 full acceptance:534 passed,5 skipped (four Windows capabilities and unavailable Rscript),6 live deselected,256.82s. Existing Starlette/httpx deprecation remains, dependency unchanged. Ruff whole repo, staged Gitleaks (47.33KB), data guard and protected-file checks pass. No frontend changed; existing30 frontend/browser results remain applicable. Both live operators now pass under decisions02/04. Independent005 inventory reviewed12FR/5SC/3stories/18tasks/12plan decisions/7principles with no new implementation gap; T018 private CI/final docs remain.
+
+P14 private verification: e95972e pushed to private origin/main; Checks37184680691 completed SUCCESS (Python, Ruff, data guard, dependency audits, frontend typecheck/lint/tests/build and Gitleaks): https://github.com/WilliamEbong/qualia/actions/runs/37184680691. Public demo job intentionally skipped; repository PRIVATE. Final handoff records this result; its documentation-only follow-up also receives CI.
+
+STOP checkpoint: Codex improvement request is complete under decision04. Both subscription operators are available and live-verified; guide section15 includes complete steps, bounds and failure recovery. No new owner approval is required to use Codex proposals; no Windows permission changes.005 T004/T014/T018 close on completed evidence. BUILD IN PROGRESS now retains only the separately planned owner-run Claude security review before public release; official scan/public deployment remain unclaimed. Resume release review, not native sandbox repair.
+
+P14 final convergence review: no remaining runtime/constitutional findings after live/full/CI evidence. Reviewer found two superseded availability cells (guide troubleshooting and final-report provider table); T019 records their correction and updated native-auth troubleshooting. Both now describe Codex proposals. Final inventory12FR/5SC/3stories/19tasks/12plan decisions/7principles; no frontend code or source-doc changes.

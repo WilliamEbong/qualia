@@ -1,6 +1,6 @@
 # 005-improvement-loop tasks
 
-Offline tasks below are verified; T004 retains its native readiness gate. Dependencies: each task requires earlier tasks in its group and all previous groups unless the task explicitly says it is an independent verification. No parallel lane starts before main freezes its consumed contracts. Main owns pointer updates, analysis/convergence, commits and BUILD-STATE; workers report evidence.
+All tasks below are verified, including both native operators under decision04 for Codex proposals. Dependencies: each task requires earlier tasks in its group and all previous groups unless the task explicitly says it is an independent verification. No parallel lane starts before main freezes its consumed contracts. Main owns pointer updates, analysis/convergence, commits and BUILD-STATE; workers report evidence.
 
 ## Setup
 
@@ -38,4 +38,8 @@ Resume dependency override: T015 schema freeze precedes T016 transport; T015 tru
 - [x] [T015] Main adds strict proposal schemas in qualia/ai/schemas.py; tests inventory, bounds, forbidden/stale/linked paths and all-before-write validation in tests/test_improve_proposal.py, then implements qualia/improve/proposal.py (FR003/004/009).
 - [x] [T016] AI lane reuses bounded no-tools transport in qualia/ai/backends/codex_cli.py; updates tests/test_codex_operator.py and adds actual native production proposal captures, preserving prior direct-tool failure evidence and all classification behavior (FR003).
 - [x] [T017] Main integrates complete dispatch hashing and trusted proposal application with unchanged snapshot/evaluation/recovery in qualia/improve/experiment.py; tests KEEP, REVERT, errors, partial writes and retained usage in tests/test_improvement.py (FR002–009/011).
-- [ ] [T018] Independently review scope, accounting and no-tools evidence; run the bounded public Codex case in tests/live/test_native_improvement.py, full regression and Spec Kit convergence; update README/docs/USER-GUIDE.md/BUILD-STATE/WELCOME-BACK with measured evidence (all requirements and success criteria).
+- [x] [T018] Independently review scope, accounting and no-tools evidence; run the bounded public Codex case in tests/live/test_native_improvement.py, full regression and Spec Kit convergence; update README/docs/USER-GUIDE.md/BUILD-STATE/WELCOME-BACK with measured evidence (all requirements and success criteria).
+
+## Phase 2: Convergence
+
+- [x] [T019] Correct remaining superseded availability statements in docs/USER-GUIDE.md troubleshooting and docs/FINAL-REPORT.md provider summary per FR003/T018 (partial). Both now describe the verified Codex proposal workflow; native direct-file limitations remain separately documented.

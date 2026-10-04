@@ -15,4 +15,6 @@ uv run qualia history --project my-study
 
 Astra is the operator; evaluation uses project routing or explicit --backend/--model. Existing daily limits apply to baseline/operator/candidate/confirmation. Jev remains enabled for demo at its existing limit and is optional for other projects.
 
-Remaining: push this verified checkpoint to the already authorized private main, verify Checks, then close005 T018/P14. Owner-run Claude /security-review remains the separate pre-public-release action; no public visibility/deployment or external security pass is claimed. OWNER-NEEDED.md records only that release action. Resume from docs/BUILD-STATE.md and git log; do not repeat completed native setup or tests without a new reason.
+Private checkpoint e95972e is pushed and Checks37184680691 passed: https://github.com/WilliamEbong/qualia/actions/runs/37184680691. Repository remains PRIVATE and Public demo was skipped. This final documentation-only follow-up records the completed verification; its own Checks status is reported at handoff. Feature005/P14 has no remaining implementation work.
+
+Remaining owner release action: the planned Claude Code /security-review before making the repository public. No public visibility/deployment or external security pass is claimed. OWNER-NEEDED.md records only that release action. Resume from docs/BUILD-STATE.md and git log; do not repeat completed native setup or tests without a new reason.
