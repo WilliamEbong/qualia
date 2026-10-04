@@ -56,6 +56,30 @@ def test_long_segment_rejected_without_truncation_or_call():
         assert backend.calls == 0
 
 
+def test_batches_shrink_to_what_the_provider_admits():
+    class Bounded(CountingBackend):
+        sizes = []
+
+        def estimate_cost(self, segments, context):
+            if len(segments) > 3:
+                raise ValueError('request exceeds local size bound')
+            return 0.0
+
+        def classify(self, segments, schema, context):
+            self.sizes.append(len(segments))
+            return super().classify(segments, schema, context)
+
+    backend = Bounded()
+    segments = [{'id': f's{index}', 'text': 'Synthetic.'} for index in range(8)]
+    with Store(':memory:') as db:
+        result = classify_segments(db, segments, [{'id': 1, 'name': 'Synthetic', 'status': 'active'}],
+                                   dict(ROUTING), prompt='Classify synthetic content.',
+                                   codebook_version_id=1, pipeline_version='pipeline',
+                                   backend='fixture', model='fixture-v1', registry={'fixture': backend})
+    assert result['status'] == 'completed' and result['segments'] == 8
+    assert backend.sizes == [3, 3, 2] and result['calls'] == 3
+
+
 def test_retry_has_separate_reservation_egress_and_sanitized_error():
     backend = CountingBackend(external=True, failures=1)
     with Store(':memory:') as db:

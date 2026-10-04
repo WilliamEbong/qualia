@@ -68,6 +68,17 @@ def availability(project, registry=None):
     return {'allow_external': config['allow_external'], 'backends': backends}
 
 
+def _admits(provider, batch, context):
+    # Priced adapters validate request bounds in estimate_cost; others accept any configured batch.
+    if not hasattr(provider, 'estimate_cost'):
+        return True
+    try:
+        provider.estimate_cost(batch, context)
+    except Exception:
+        return False
+    return True
+
+
 def _select(config, backend, model, task):
     selected = config['tasks'].get(task, {'backend': config['backend'], 'model': config['model']})
     if backend in config['tiers']:
@@ -134,8 +145,14 @@ def classify_segments(db, segments, codebook, config, *, prompt, codebook_versio
         native = backend_name in ('claude', 'codex')
         batch_size = min(config['segments_per_call'], 5) if native else config['segments_per_call']
         retries = 0 if native else config['max_retries']
-        for offset in range(0, len(inputs), batch_size):
-            batch = inputs[offset:offset + batch_size]
+        offset = 0
+        while offset < len(inputs):
+            size = min(batch_size, len(inputs) - offset)
+            # Shrink a batch the provider cannot admit (e.g. Jev's request-size bound) rather than fail it.
+            while size > 1 and not _admits(provider, inputs[offset:offset + size], context):
+                size -= 1
+            batch = inputs[offset:offset + size]
+            offset += size
             context_hash = hashlib.sha256(canonical({'batch': batch, 'context': context}).encode()).hexdigest()
             keys = {segment['id']: cache_key(segment=segment, prompt_hash=prompt_hash,
                     codebook_version_id=codebook_version_id, backend=backend_name,

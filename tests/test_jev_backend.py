@@ -274,6 +274,31 @@ def test_request_limit_rejected_before_reservation():
         assert result['calls'] == 0 and not db.rows('SELECT * FROM egress_log')
 
 
+def test_default_batch_over_request_bound_is_split_not_failed():
+    # Demo-shaped load: a 7-code codebook makes 20 segments exceed the 64 KB adapter bound.
+    codes = [{**CODEBOOK[0], 'id': index, 'name': f'Code {index}',
+              'definition': 'Synthetic definition of a recurring theme. ' * 12} for index in range(1, 8)]
+    segments = [{'id': f's-{index}', 'text': 'Synthetic participant sentence. ' * 20}
+                for index in range(20)]
+    calls = []
+
+    def handler(request):
+        calls.append(len(json.loads(request.content)['state']['segments']))
+        return httpx.Response(200, json=response_for(request))
+
+    backend = jev.JevBackend(transport=httpx.MockTransport(handler))
+    with pytest.raises(ValueError):
+        backend.estimate_cost(segments, {**CONTEXT, 'codebook': codes})
+    with Store(':memory:') as db:
+        result = classify_segments(db, segments, codes,
+            {**ROUTING, 'allow_external': True, 'jev_enabled': True}, prompt='Synthetic.',
+            codebook_version_id=1, pipeline_version='fixture', backend='jev', model='jev-1.13.0',
+            registry={'jev': backend})
+        assert result['status'] == 'completed' and result['segments'] == 20
+        assert len(calls) >= 2 and sum(calls) == 20 and result['calls'] == len(calls)
+        assert len(db.rows('SELECT * FROM egress_log')) == len(calls)
+
+
 def test_rejected_http_response_does_not_log_key_or_body(caplog):
     caplog.set_level('DEBUG')
     backend = jev.JevBackend(transport=httpx.MockTransport(lambda request: httpx.Response(
