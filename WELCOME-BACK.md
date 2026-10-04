@@ -28,7 +28,7 @@
 
 - **Security review:** run `/security-review` in Claude Code. You'd planned it before going public; my own audit found nothing, but an independent pass is still worthwhile.
 - **Email privacy:** in GitHub → Settings → Emails, turn on "Keep my email addresses private" for future commits. Past commits keep your Gmail address.
-- **Dependabot:** 7 Dependabot pull requests are open (dependency updates) and now public; review or merge them when convenient.
+- **Dependabot:** the checks that failed on every Dependabot pull request are fixed, and the TypeScript 7 update was closed because Qualia needs TypeScript 5. PR #8 is green and ready to merge. PRs #1–#6 need a fresh check run first: comment `@dependabot rebase` on each, then merge the ones that turn green.
 - **Faster project loading:** the suggested task "Shrink Qualia's 12 MB workspace payload" is waiting in the app. It would speed up opening large projects.
 - **Leftovers:**
   - The folder `%USERPROFILE%\Qualia\.app-browser` is safe to delete.
