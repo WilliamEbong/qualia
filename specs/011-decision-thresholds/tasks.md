@@ -5,4 +5,4 @@
 - [x] [T003] Failing then passing tune_thresholds tests in tests/test_metrics.py; implement in qualia/eval/metrics.py; with_candidates in qualia/evaluation.py with tests/test_evaluation.py (FR004–005, SC001).
 - [x] [T004] Failing then passing thresholds-agent tests in tests/test_improvement.py; implement in qualia/improve/experiment.py (FR005, SC002).
 - [x] [T005] Review/Codebook/Experiments UX in web/src/lib and components with web tests; Playwright screenshots (FR006, SC003).
-- [ ] [T006] Docs (CONTRACTS, USER-GUIDE, research/jev.md, README, doc01 §10), full verification, convergence, BUILD-STATE and WELCOME-BACK (SC004).
+- [x] [T006] Docs (CONTRACTS, USER-GUIDE, research/jev.md, README, doc01 §10), full verification, convergence, BUILD-STATE and WELCOME-BACK (SC004).

@@ -104,6 +104,8 @@ The verified local MVP used the actual pinned AnnoMI demo:
 
 This is a scripted fake-backend smoke test of measurement, policy and provenance. It is not evidence of trained-model quality. Predicting all seven codes improved macro F1 in this run while exact match fell from approximately 0.00477 to 0. The before/after table retains both outcomes.
 
+A no-AI agent tunes one suggestion threshold per code on the dev split, and the same policy keeps or reverts it on validation: `uv run qualia improve --project my-study --agent thresholds`. See the [user guide](docs/USER-GUIDE.md#tune-per-code-suggestion-thresholds-without-ai).
+
 An interrupted finalization leaves a recovery journal at `QUALIA_HOME/recovery/<project>/pending.json` and blocks further writes. Preserve the journal and its snapshot, inspect the recorded stage and Git/database state, and resolve recovery explicitly. Do not delete the journal or operation lock merely to clear the error.
 
 ## Optional AI setup
@@ -173,6 +175,7 @@ The [MVP Playwright spec](tests/e2e/mvp.spec.ts) requires explicit URL, project,
 - Real validation measurements decide KEEP/REVERT. Operator claims never substitute for metrics, tests or confirmation.
 - Subscription limitations and incomplete live gates are reported explicitly; local research work continues through manual, rules and fake paths.
 - Evaluation reports uncertainty instead of bare point estimates: 95% Wilson intervals (scipy, declared under owner decision05 and already required by scikit-learn) and the share of AI suggestions to review for 90% precision. Agreement words follow Landis & Koch (kappa) and Krippendorff (alpha) and never change a decision.
+- Per-code suggestion thresholds are implementation configuration, not methodology: they live in the mutable routing file, act on raw cached scores (so tuning needs no new calls), and only Qualia's measured policy keeps them. AI batches shrink to what a provider admits instead of failing.
 - Owner-approved native accounting counts CLI invocations, retains failed attempts, and reports known aggregate tokens without pretending to measure internal HTTP requests or exact remaining subscription quota. Jev keeps separate direct-request accounting.
 
 Software: [MIT](LICENSE). Dataset provenance and permissions: [DATA-LICENSES.md](DATA-LICENSES.md).

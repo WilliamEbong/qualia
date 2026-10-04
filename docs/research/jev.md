@@ -74,3 +74,15 @@ The customer agreement describes credits as required for use, promotional credit
 Public legal docs offer ZDR to enterprise customers by contacting sales. The privacy policy identifies US hosting and gives no fixed general retention duration. These sources support keeping Jev off by default for Qualia and never treating ordinary sign-up as ZDR enrollment. [Enterprise ZDR](https://docs.typesafe.ai/legal), [privacy policy](https://typesafe.ai/legal/privacy-policy)
 
 Owner steps are in [JEV-SETUP.md](../JEV-SETUP.md). A future live smoke test must use synthetic content, keep the key server-side, and establish actual access. Until then, contract knowledge is verified; live compatibility and billing are unverified.
+
+## Third-party findings (2026-10-04, unverified here)
+
+Reviewed after the live check to decide which open-source ideas suit Qualia. These are the authors' published results; Qualia has not reproduced them.
+
+- [jujumilk3/jev-calibration-audit](https://github.com/jujumilk3/jev-calibration-audit) (~7,000 calls): bundling 16 questions about one state barely changed answers (0.4% flips); option order showed no bias; **identical requests are not deterministic** (50 repeats gave 15 distinct answers); a Noul and a two-option Choice over the same question differ by 0.125 on average. Qualia's result cache is what makes re-runs reproducible; fresh validation runs can vary slightly, which the new Wilson intervals help put in context.
+- [GautamTalksDev/jevbench](https://github.com/GautamTalksDev/jevbench) (preregistered, ChaosNLI): Choice probabilities are overconfident where human annotators disagree; normalised Noul probabilities degrade less. Qualia uses one Noul per (segment, code), and qualitative coding is disagreement-heavy, so ECE captions should be read with that caution.
+- [gbesse/jev-codebook](https://github.com/gbesse/jev-codebook): qualitative coding with per-code thresholds, a review band, threshold tuning on one split with a holdout check, and Wilson intervals. Qualia adopted per-code thresholds (tuned by `qualia improve --agent thresholds`, judged by the existing validation policy) and Wilson intervals; its review band is already covered by `human_review_below`.
+- [pozapas/jev-calibrated-narrative-coding](https://github.com/pozapas/jev-calibrated-narrative-coding): turns calibration into a review budget (share to review to reach a target precision). Qualia reports this as `review_share`/`review_cutoff` at 90% precision.
+- Local Jev-compatible servers ([Ollaya](https://github.com/ollaya-dev/ollaya), [Decima](https://github.com/amyrmahdy/decima), [jeff](https://github.com/logan-markewich/jeff)) were considered and declined by the owner for now (decision05): small CPU models read short contexts and trail Jev on reasoning-heavy coding.
+
+Implementation note from the same session: Qualia's 64 KB local request bound rejected the default 20-segment batch for a 7-code codebook, so every demo Jev call failed. The router now shrinks each batch until the adapter admits it.

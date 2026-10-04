@@ -23,6 +23,7 @@ Validation API returns aggregate metrics plus prompt/benchmark/codebook/CLI iden
 ECE lookup requires backend, model, frozen codebook, pipeline and prompt identity to match.
 Classification summaries add `escalated_segments`, the count of distinct successful strong-tier results.
 Feature 010 additive metrics: each `per_code` row adds `precision_ci95`/`recall_ci95` (95% Wilson `[low, high]`, null for a zero denominator); top level adds `review_share` and `review_cutoff` (90% precision target over scored predicted assignments). Older evaluation rows without these keys stay valid and are never rewritten.
+Feature 011 additive routing: optional `code_thresholds` maps positive-integer code ID strings to scores in (0, 1]. The router keeps a code when `score >= code_thresholds[id]`, else the provider's `default_threshold` (Jev 0.5; other backends keep every emitted code). Backends return raw scores; the result cache stores raw output and thresholds are applied on every read; escalation, disagreement, evaluation predictions and suggestions use thresholded codes. `classify_segments(..., with_candidates=True)` additionally returns raw `candidates` (in memory only). Batches shrink until a provider's `estimate_cost` admits them, still one reservation per dispatch. `qualia improve --agent thresholds` fits `code_thresholds` on a hash-ordered sample of at most 400 dev segments before the experiment database pin.
 
 ## Analysis contract (008, owner-added scope)
 

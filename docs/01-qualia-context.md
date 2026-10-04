@@ -114,6 +114,8 @@ IMPLEMENTED LOCALLY: research workspace, coding/review/evaluation, guarded impro
 
 Owner decision04 (2026-10-04) approves replacing Codex direct file editing with a no-action-tools structured proposal and trusted Qualia application under the existing measured loop. Bounded public synthetic verification passed with three admitted invocations; the failed native file-tool route stays disabled. No other architecture invariant changes.
 
+Owner decision05 (2026-10-04) adds calibrated decisions from the open-source Jev ecosystem review: AI batches now shrink to what a provider admits (Jev demo requests no longer fail on the 64 KB bound); evaluation reports 95% Wilson intervals (scipy declared), review share/cutoff and plain-language metric help; projects may set per-code `code_thresholds`, applied by the router to raw cached scores (Jev's 0.5 cutoff moved there); `qualia improve --agent thresholds` fits them without AI on a 400-segment dev sample and the unchanged policy decides KEEP/REVERT. Local decision-model backends were declined. No invariant, migration or API shape changes.
+
 ## 11. Tooling conventions
 Executor: Codex CLI, GPT-6 Astra, reasoning high (0.144.6 lacks Astra — doc 03 §0 updates). Improvement: Claude Code,
 Opus 5.5. Driver `scripts/run-build.ps1`. Windows 10, PowerShell 5.1, no pwsh — no unix-only scripts; Python via `uv`.

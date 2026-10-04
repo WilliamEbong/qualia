@@ -48,6 +48,9 @@ The Codebook, Matrix and Analysis illustrations below show the licensed read-onl
 | Frozen codebook | An immutable version of your code definitions. Coding decisions record which version they used. |
 | Current assignment | A manual assignment or accepted suggestion that has not been removed for that exact code/span. |
 | Suggestion | A proposed model code awaiting human review. It does not count as current coding. |
+| Model-reported score | The number a classifier attaches to a suggestion (0–1). It is the model's own signal, not measured accuracy. |
+| Suggestion threshold | Optional per-code minimum score for a code to become a suggestion at all (`code_thresholds`). Jev uses 0.5 unless you set one. |
+| Review threshold | Suggestions scoring below it (`human_review_below`, default 0.70) are flagged **Below review threshold**. Every suggestion still needs your decision. |
 | Provenance | The record of who did what, on which span, using which codebook and, when applicable, which model and prompt. |
 | Benchmark | Separate examples with reference labels for measuring a classifier. It is not the same as your live coding workspace. |
 
@@ -447,6 +450,8 @@ Classification uses the project's **latest frozen codebook** and budget/privacy 
 4. Optionally enter a **Review note**.
 5. Choose **Accept** or **Reject**, or use `a`/`r` while the suggestion is selected and you are not typing in a field.
 
+Each suggestion's caption says why it is waiting. For example, *Below review threshold (current threshold 0.70) · segment 12* means the model-reported score was under your project's review threshold when the suggestion was made. The value shown is today's setting. Within each reason group, the least certain suggestions (lowest model-reported score) come first, so your attention goes where the AI is least sure.
+
 Acceptance creates a current coding decision with the original model identity and human reviewer. Rejection does not create a current assignment. Both decisions append review evidence; the original suggestion remains in history. A suggestion can appear under several review reasons, but reviewing it resolves that suggestion once.
 
 Numbers labeled **model-reported** are not measured accuracy. Rules and fake scores are deterministic fixture values. A validation ECE caption appears only when backend, model, frozen codebook, pipeline and prompt identities match a scored validation run. An unavailable ECE is not evidence of perfect calibration.
@@ -592,6 +597,21 @@ The supplied context is limited to 64 files, 64 KiB per file and 128 KiB for the
 If Codex reports `subscription_auth_required`, run `codex login` and choose ChatGPT, then check `codex login status`. If it reports `unsupported_version`, use the audited version or wait for its replacement to be verified. `proposal_rejected` means the proposal failed validation; the existing configuration is restored by the experiment. A pending recovery journal requires the recovery workflow below. The older direct file-editing Codex route remains disabled; no broader Windows permissions or repeat elevated setup are needed for proposals.
 
 The fake operator makes a scripted change to fake classification behavior. A gain verifies the measured experiment workflow; it is not model training or proof of better qualitative judgment. Repeating it after the change is already present may correctly produce REVERT.
+
+### Tune per-code suggestion thresholds without AI
+
+Some codes need a lower bar to be found; others need a higher bar to avoid noise. The `thresholds` agent learns one minimum model-reported score per code from your **dev** benchmark, then lets Qualia's normal policy decide on the **validation** benchmark:
+
+```powershell
+uv run qualia improve --project my-study --agent thresholds --budget 1
+```
+
+1. Import both a `dev` and a `validation` benchmark (section 14). Without a dev split the command stops before changing anything.
+2. Qualia classifies a fixed sample of up to 400 dev segments with your configured classifier (or `--backend`/`--model`). It tries cutoffs from 0.05 to 0.95 for each code and keeps the one with the best F1, preferring values near 0.5 on ties. Codes with no dev examples keep their current setting.
+3. It writes the result to `code_thresholds` in `config/routing.yaml` and states each change in the hypothesis, for example *Change talk default -> 0.35*.
+4. Validation, tests and a confirming run decide KEEP or REVERT exactly as for other agents. A REVERT means the new cutoffs did not measurably help.
+
+No AI operator, subscription or extra cost is involved beyond the classifier calls themselves. Thresholds work best with backends that score every code, such as Jev; keyword rules and the fake backend use constant scores, so they rarely benefit. On a full-size copy of the demo with the rules backend, the agent sampled 400 of 6,759 dev segments in about 30 seconds, found no useful change and correctly recorded REVERT. Kept thresholds appear in **Codebook** as *AI suggests at score ≥ 0.35*. Dev data is fitting data; Qualia never uses the protected split.
 
 In **Experiments**, choose an attempt and read **Operator hypothesis**, **Measured validation results**, **Changed files** and **Experiment provenance**. Compare baseline, candidate and fresh confirmation. A candidate gain alone is insufficient: trusted policy also checks constraints and tests. Accepted changes receive a local commit/tag; rejected attempts retain their report and measurements.
 

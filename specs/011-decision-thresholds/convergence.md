@@ -1,0 +1,14 @@
+# Decision thresholds convergence
+
+Six requirements, four success criteria and six tasks reviewed. Scoped feature converged.
+
+- FR001: `Routing.code_thresholds` accepts positive-integer code ID strings with values in (0, 1] and rejects other keys, zero, >1, NaN, booleans, strings and non-maps (test_ai_schemas). It is absent from new-project defaults and outside `BOUNDS`.
+- FR002–003: the router thresholds raw scores on both fresh and cache-hit paths (cache hit re-applies new thresholds without a call); a provider `default_threshold` (Jev 0.5) applies otherwise; escalation and suggestions read thresholded codes (test_ai_router). Jev returns every probability and the default registry still filters at 0.5 (test_jev_backend). With no `code_thresholds`, existing router, cache, Jev and API tests pass unchanged.
+- FR004: `with_candidates=True` adds raw candidates only on request; evaluation results, stored rows and API responses are unchanged (test_evaluation asserts no `candidates`).
+- FR005: `qualia improve --agent thresholds` reaches KEEP on a synthetic project (code 1 threshold 0.65, tagged, committed, Git clean, no dev evaluation row, no coding events, one zero-cost ledger reservation) and fails before any snapshot or journal without a dev split. Design change during implementation: the demo dev split (6,759 segments) exceeds default run/daily budgets, so the agent tunes on a hash-ordered sample of at most 400 dev segments. On a scratch copy of the demo (budget raised in the copy only) the CLI run took about 30 s with rules: 400 of 6,759 dev segments, no useful change, macro-F1 0.01058→0.01058, 63 calls each, correct REVERT.
+- FR006: Review caption `Below review threshold (current threshold 0.70) · segment N`, least-certain-first ordering, Codebook `AI suggests at score ≥ 0.55`, Experiments empty-state commands. Web tests 36 pass; Playwright screenshots design-review/P15/{review,codebook,experiments}-{1280,375}-{light,dark}.png from a synthetic scratch project, no overflow or console errors. A command-wrapping defect found in the first screenshots was fixed and re-captured.
+- SC004: full offline suite 559 passed, 5 skipped, 6 live deselected (371.56 s); Ruff, data guard, pip-audit and gitleaks pass; independent read-only diff review found no correctness bugs. Protected docs and constitution unchanged; doc01 changed only in §10.
+
+Live evidence for the P15.0 batching fix: 20 real demo segments through the normal router with Jev completed in 2 calls (140 raw probabilities, 22 suggestions at 0.5, 32,430 input tokens, $0.00136, 2 egress rows, 0 coding events, nothing persisted). Before the fix this request failed with `input_limit`.
+
+Not claimed: a model-quality gain from thresholds on real data (no Jev tuning run was made on the demo to avoid unattended spend), or Lighthouse scores (tool not installed).
