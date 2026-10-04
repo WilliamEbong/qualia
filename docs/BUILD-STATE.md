@@ -6,6 +6,8 @@ Started 2026-10-03. Baseline: f1d8719. Owner authorized autonomous implementatio
 
 ## Adjusted plan and checkpoints
 
+- [~] P11 Native classification: owner approved practical Codex generation limits and per-invocation native accounting; specs/009-native-classification. Enable only no-tools classification, preserve separate file-editing operator gates, verify public router and update per-user setup guidance.
+
 - [x] P0.1 Tooling, login, model and toolbelt audit.
 - [~] P0.2 Environment schema, service/classification pings.
 - [x] P0.3 Repo comparison and workstream classification.
