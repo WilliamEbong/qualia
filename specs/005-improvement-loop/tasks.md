@@ -29,4 +29,13 @@ Offline tasks below are verified; T004 retains its native readiness gate. Depend
 
 ## Phase 1: Convergence
 
-- [ ] [T014] Complete Codex operator activation only after native probes prove the owner-approved filesystem scope and tool/network restrictions; verify public admission, failure telemetry and one synthetic live experiment per FR-003/T004 (partial). The installed Windows runtime currently reads outside synthetic files before rejecting patch writes; do not enable it or broaden permissions.
+- [ ] [T014] Complete Codex operator activation using the owner-approved no-action-tools proposal mechanism in decision04; verify native empty tool registry, trusted application scope, public admission, failure telemetry and one synthetic live experiment per FR-003/T004. The failing native file-tool path remains disabled, with no broadened permissions.
+
+## Approved mechanism implementation
+
+Resume dependency override: T015 schema freeze precedes T016 transport; T015 trusted application and T016 precede T017 integration, then T018 verification. These tasks complete the historical T004/T014 gates; mark those gates complete only after T018. Historical group ordering does not make activation a prerequisite for its own implementation.
+
+- [ ] [T015] Main adds strict proposal schemas in qualia/ai/schemas.py; tests inventory, bounds, forbidden/stale/linked paths and all-before-write validation in tests/test_improve_proposal.py, then implements qualia/improve/proposal.py (FR003/004/009).
+- [ ] [T016] AI lane reuses bounded no-tools transport in qualia/ai/backends/codex_cli.py; updates tests/test_codex_operator.py and adds actual native production proposal captures, preserving prior direct-tool failure evidence and all classification behavior (FR003).
+- [ ] [T017] Main integrates complete dispatch hashing and trusted proposal application with unchanged snapshot/evaluation/recovery in qualia/improve/experiment.py; tests KEEP, REVERT, errors, partial writes and retained usage in tests/test_improvement.py (FR002–009/011).
+- [ ] [T018] Independently review scope, accounting and no-tools evidence; run the bounded public Codex case in tests/live/test_native_improvement.py, full regression and Spec Kit convergence; update README/docs/USER-GUIDE.md/BUILD-STATE/WELCOME-BACK with measured evidence (all requirements and success criteria).

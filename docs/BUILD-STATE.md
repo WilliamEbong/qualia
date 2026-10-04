@@ -7,6 +7,7 @@ Started 2026-10-03. Baseline: f1d8719. Owner authorized autonomous implementatio
 ## Adjusted plan and checkpoints
 
 - [~] P14 Codex improvement feasibility: verify current runtime and assess a no-tools structured-proposal path under the existing KEEP/REVERT loop. Do not activate the failed native file-tool path.
+- [~] P14.1 Owner approved decision04; implement005 T015–T018 strict proposals, trusted application, complete dispatch accounting and verification.
 
 - [~] P13 Resume Phase 6 hygiene/parity from 2799152: apply owner decisions, finish prerequisite 005 T004, then P6.1/P6.2 and Phase 10 acceptance.
 
@@ -223,3 +224,7 @@ P13 pushed verification: origin/main advanced2799152→978c9b1 (including code b
 STOP checkpoint: all unaffected operator/classification/docs work is saved and verified. First remaining implementation task is005 T014, native Codex read/tool/network confinement; then P6.2 Codex live parity and P10 final closure. Keep BUILD IN PROGRESS. Owner-run Claude security review is a separate pre-public-release action; neither an official scan pass nor a completed literal Codex security-review command is claimed. No new permission question remains after direct private-push approval. Do not repeat native setup, broaden read scope, bypass readiness, alter guards or change system ACLs as a workaround.
 
 P14 start (2026-10-04): owner asks to make Codex improvement available. Installed and current stable npm @openai/codex both0.160.0, so no newer stable fix was found. Official exec documentation/Context7 confirm structured --output-schema and unchanged native sign-in with --ignore-user-config. Investigate no-action-tools proposal generation using the proven classification transport, followed by trusted allowlisted application and existing evaluation/rollback. This is a proposed operator-mechanism change, not a claim the old sandbox now passes. Independent read-only architecture audit and exact existing no-tools probes precede any implementation; source docs remain protected.
+
+P14 approved: owner directly replied approved to decision04. Revised005 FR003/T014 and T015-T018 freeze no-tools proposals, trusted application, full dispatch hashes and mandatory live verification. No direct-tool fallback or system changes.
+
+P14 repair1 (documentation encoding): Python default Windows cp1252 read caused a UnicodeDecodeError and mojibake in README/doc01. Read-only diagnosis confirmed it. Restored exact HEAD UTF-8 bytes in those two files and reapplied only intended additions using explicit UTF-8; doc01 before section10 and from section11 exactly match HEAD. Proposal ASCII intact. No protected content change.

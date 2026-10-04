@@ -112,6 +112,8 @@ as backstop with paid extra usage OFF (doc 03 §0). Single write-path: `qualia/a
 ## 10. Current state (update each session)
 IMPLEMENTED LOCALLY: research workspace, coding/review/evaluation, guarded improvement, mixed-methods analysis/visualization and reproducible exports; Archive of Looking presentation and illustrated user guide. Native classification uses own-account official CLIs with approved invocation accounting, five-segment batches and no automatic retries; public-router Haiku/Luna/Astra checks passed. Claude Opus5.5 improvement now passes restricted-file probes and a synthetic live experiment (Haiku macro-F1 1.0→1.0, correct REVERT). Codex improvement remains disabled: installed Windows runtime reads outside project during patch verification and failed loopback denial. Setup and owner approvals are present; no permission workaround. Jev is live-verified and enabled for demo at the existing $1 daily local limit. Official scanner superseded by owner-run Claude security review before public release; private-main checkpoints are approved. Full current acceptance and CI evidence are in BUILD-STATE. No public deployment or BUILD COMPLETE claim.
 
+Owner decision04 (2026-10-04) approves replacing Codex direct file editing with a no-action-tools structured proposal and trusted Qualia application under the existing measured loop. Implementation and activation verification are in progress; the failed native file-tool route stays disabled. No other architecture invariant changes.
+
 ## 11. Tooling conventions
 Executor: Codex CLI, GPT-6 Astra, reasoning high (0.144.6 lacks Astra — doc 03 §0 updates). Improvement: Claude Code,
 Opus 5.5. Driver `scripts/run-build.ps1`. Windows 10, PowerShell 5.1, no pwsh — no unix-only scripts; Python via `uv`.
