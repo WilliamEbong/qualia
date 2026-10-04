@@ -16,6 +16,7 @@ from pathlib import Path
 from qualia.ai import ledger
 from qualia.ai.backends.fake import FakeBackend
 from qualia.ai.backends.process import BackendError
+from qualia.ai.router import classify_segments
 from qualia.ai.schemas import routing_config
 from qualia.eval.metrics import tune_thresholds
 from qualia.evaluation import evaluate_project
@@ -33,6 +34,8 @@ from qualia.workspace import (
 )
 
 LOCK = '.qualia-operation.lock'
+# ponytail: a fixed deterministic dev sample keeps tuning inside default call budgets; raise if noisy.
+TUNING_SEGMENTS = 400
 DB_FILES = {'project.db', 'project.db-wal', 'project.db-shm'}
 
 
@@ -167,15 +170,32 @@ def _fake_operator(project, prompt, report_path):
 
 def _threshold_operator(db, project, backend, model):
     """No-AI operator: fit per-code suggestion thresholds on dev; validation decides KEEP/REVERT."""
-    dev = evaluate_project(db, project, split='dev', backend=backend, model=model, with_candidates=True)
-    current = routing_config(read_config(project))['code_thresholds']
-    tuned = tune_thresholds(dev['references'], dev['candidates'], dev['code_ids'], current)
-    frozen = db.one('SELECT snapshot_json FROM codebook_versions WHERE id=?', (dev['codebook_version_id'],))
-    names = {str(code['id']): code.get('name') or str(code['id']) for code in json.loads(frozen['snapshot_json'])}
+    from qualia.io.benchmarks import load_benchmark
+
+    records, metadata = load_benchmark(project, split='dev')
+    frozen = db.one('SELECT * FROM codebook_versions WHERE id=?', (metadata['codebook_version_id'],))
+    if frozen is None:
+        raise ValueError('dev benchmark frozen codebook version is missing')
+    codebook = json.loads(frozen['snapshot_json'])
+    sample = sorted(records, key=lambda row: hashlib.sha256(row['segment_id'].encode()).hexdigest())
+    sample = sample[:TUNING_SEGMENTS]
+    config = read_config(project)
+    result = classify_segments(db, [{'id': row['segment_id'], 'text': row['text']} for row in sample],
+                               codebook, config,
+                               prompt=(project/'config/prompts/classify.txt').read_text(encoding='utf-8'),
+                               codebook_version_id=frozen['id'], pipeline_version=pipeline_hash(project),
+                               backend=backend, model=model, with_candidates=True)
+    if result['status'] != 'completed':
+        raise ValueError('threshold tuning incomplete: ' + '; '.join(result['errors']))
+    current = routing_config(config)['code_thresholds']
+    code_ids = [code['id'] for code in codebook if code.get('status', 'active') == 'active']
+    tuned = tune_thresholds(sample, result['candidates'], code_ids, current)
+    names = {str(code['id']): code.get('name') or str(code['id']) for code in codebook}
     changes = [f"{names.get(code, code)} {f'{current[code]:.2f}' if code in current else 'default'} -> {value:.2f}"
                for code, value in sorted(tuned.items(), key=lambda item: int(item[0])) if current.get(code) != value]
-    hypothesis = ('Per-code suggestion thresholds fitted for maximum F1 on the dev split: ' + '; '.join(changes)
-                  if changes else 'The dev split suggests no threshold change.')
+    fitted = f'{len(sample)} of {len(records)} dev segments'
+    hypothesis = (f'Per-code suggestion thresholds fitted for maximum F1 on {fitted}: ' + '; '.join(changes)
+                  if changes else f'{fitted} suggest no threshold change.')
 
     def invoke(root, prompt, report_path):
         if changes:

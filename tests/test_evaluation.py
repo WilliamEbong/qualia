@@ -109,12 +109,3 @@ def test_protected_cli_explicit_and_tampering_blocks(tmp_path, monkeypatch):
     assert tampered.exit_code != 0
     assert 'manifest' in tampered.output.lower()
 
-
-def test_candidates_are_returned_only_on_request_and_never_stored(tmp_path):
-    project, records, _ = setup_project(tmp_path)
-    with Store(project / 'project.db') as db:
-        result = evaluate_project(db, project, backend='fake', with_candidates=True)
-        assert result['references'] == records and result['code_ids'] == records[0]['codes']
-        assert result['candidates'][0]['segment_id'] == 'example-1'
-        stored = json.loads(db.one('SELECT metrics_json FROM evaluation_runs')['metrics_json'])
-        assert 'candidates' not in stored

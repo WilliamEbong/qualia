@@ -453,7 +453,8 @@ def test_thresholds_agent_fits_dev_and_keeps_only_measured_gain(tmp_path, monkey
     assert git(project, 'tag', '--list') == row['tag'] and git(project, 'status', '--porcelain') == ''
     with Store(project/'project.db') as db:
         splits = [entry['split'] for entry in db.rows('SELECT split FROM evaluation_runs ORDER BY id')]
-        assert splits == ['validation', 'dev', 'validation', 'validation']
+        assert splits == ['validation', 'validation', 'validation']  # dev is fitting data, not evaluation
+        assert 'on 4 of 4 dev segments' in row['hypothesis']
         assert not db.rows('SELECT * FROM coding_events')
         assert db.one("SELECT count(*) AS n FROM usage_ledger WHERE model='thresholds-operator-v1' AND status='reserved'")['n'] == 1
 
