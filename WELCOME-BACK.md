@@ -1,15 +1,18 @@
-# Qualia — build in progress
+# Qualia - Codex improvement implemented and live-verified
 
-Last session ended at2799152 after Jev activation. This recovery applied docs/answers/02-native-operators.md, completed the Claude operator, and verified the remaining strong Codex classifier. All owner approvals are recorded; Windows setup is present. No repeat setup or approval is needed.
+The owner approved decision04: Codex now returns no-tools structured proposals using the user's own ChatGPT CLI sign-in. Qualia validates permitted existing-file replacements, applies them under its experiment lock, runs trusted tests/evaluation and automatically keeps or reverts. The failed direct file-tool route remains disabled; no repeat sandbox setup or Windows permission change is needed. Claude's verified restricted-file workflow is unchanged.
 
-Claude Opus5.5 improvement is enabled: actual restricted-tool probes passed, followed by one successful synthetic live experiment using Haiku validation. Macro-F1 stayed1.0→1.0, so Qualia correctly chose REVERT. Three invocations were recorded, methodology/codebook/coding unchanged, project Git clean. Two earlier scoped failures remain in synthetic audit ledgers. Native classification is independently verified for Claude Haiku and Codex Luna/Astra. Jev remains enabled for demo at the existing $1 daily local limit.
+Implementation checkpoint0fcc799 follows plan3c95045. The bounded public Codex live test passed in41.92s: Astra proposed classify.txt, Luna macro-F1/exact-match stayed1.0 to1.0, ECE0 to0, agreement undefined. Correct REVERT restored the prompt, preserved methodology/frozen codebook/coding state and left Git clean. Three admitted invocations retained usage. This is integration evidence, not an accuracy-gain claim.
 
-Codex file-editing improvement remains disabled. Actual Codex0.160.0 native Windows probes read outside files while verifying patches and allowed loopback despite network denial. The failure persists even with patch-only tools. See docs/research/agent-isolation.md section7 and ignored OWNER-NEEDED.md. No private research, secrets or system-permission changes were used to test this. P6.2/P10 remain incomplete; do not mark BUILD COMPLETE or bypass readiness.
+Verification:534 offline Python tests passed,5 capability skips,6 live tests deselected,256.82s. Operator47 and proposal/coordinator72 (1skip) pass; native production no-tools wire captures, authentication rejection, malicious proposals and partial-write recovery verified. Ruff/data/secret/protected-file checks pass. No frontend changed; prior30 frontend tests and MCP evidence remain applicable.
 
-Verification:445 offline Python tests passed,5 capability skips,6 live tests deselected; Ruff/data/protected-file/whitespace checks pass. Existing30 frontend tests and browser/design evidence remain applicable because this resume changed no frontend. The illustrated docs/USER-GUIDE.md includes Claude improvement steps and the remaining Codex limitation. Official Codex Security scanner was superseded, not passed; the owner plans Claude Code /security-review before public release.
+Read docs/USER-GUIDE.md section15 for the complete workflow. On a prepared clean study with a validation benchmark and external processing enabled, run:
 
-Code checkpoint b298d80 and handoff978c9b1 are pushed to private main. Checks succeeded at978c9b1: https://github.com/WilliamEbong/qualia/actions/runs/37182654321. The owner directly approved this push and final documentation here, resolving the earlier automatic-review rejection. Repository visibility was rechecked PRIVATE. This documentation-only follow-up preserves the same implementation; the final response reports its own CI status. Nothing is deployed publicly.
+```powershell
+uv run qualia improve --project my-study --agent codex --budget 1
+uv run qualia history --project my-study
+```
 
-Run `uv run qualia open` for the local app. For a prepared, explicitly egress-enabled study: `uv run qualia improve --project my-study --agent claude --budget 1`. Keep validation workload within the configured invocation budget. `--agent fake` remains the offline demonstration.
+Astra is the operator; evaluation uses project routing or explicit --backend/--model. Existing daily limits apply to baseline/operator/candidate/confirmation. Jev remains enabled for demo at its existing limit and is optional for other projects.
 
-Resume: read BUILD-STATE and git log, then specs/005-improvement-loop T014. Codex activation requires a supported runtime or explicitly approved alternative isolation architecture with actual denied-read/allowed-write/tool/network proof first. Only afterward run the opted-in tests/live/test_native_improvement.py Codex case and Phase6 parity. Exact offline check: `.venv/Scripts/python.exe -m pytest -m "not live" -q -p no:cacheprovider`.
+Remaining: push this verified checkpoint to the already authorized private main, verify Checks, then close005 T018/P14. Owner-run Claude /security-review remains the separate pre-public-release action; no public visibility/deployment or external security pass is claimed. OWNER-NEEDED.md records only that release action. Resume from docs/BUILD-STATE.md and git log; do not repeat completed native setup or tests without a new reason.

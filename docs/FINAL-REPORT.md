@@ -1,6 +1,6 @@
 # Qualia implementation and handoff
 
-Updated 2026-10-04 with owner-approved native classification and Claude improvement verification. The local research application, analytics, presentation and user documentation are implemented and verified. **The overall build remains in progress:** Codex file-editing improvement fails required native Windows read isolation. Claude improvement passed a synthetic live experiment. The official scanner was superseded by the owner-run Claude security review before public release. Native classification now uses the approved invocation-accounting policy; see BUILD-STATE for its latest verification. Jev is live-verified and enabled for demo with its existing $1 daily local limit. Private main was updated through978c9b1 with successful Checks; no public release is claimed.
+Updated 2026-10-04 with owner-approved native classification and both improvement operators verified. The local research application, analytics, presentation and user documentation are implemented and verified. Claude uses restricted file tools; Codex uses no-tools proposals and trusted application. Both passed bounded synthetic live experiments. The remaining release action is the owner-run security review before publication; public release is not claimed. The official scanner was superseded by the owner-run Claude security review before public release. Native classification now uses the approved invocation-accounting policy; see BUILD-STATE for its latest verification. Jev is live-verified and enabled for demo with its existing $1 daily local limit. Private main was updated through978c9b1 with successful Checks; no public release is claimed.
 
 ## Open and use it
 
@@ -32,13 +32,13 @@ This is not complete NVivo parity. Audio/video coding, live multi-user collabora
 
 You use **Qualia's interface**. A classification action calls the local server, which invokes your installed official Codex or Claude CLI. That CLI uses its own existing sign-in and returns structured results. Qualia validates them and presents reviewable suggestions. Each user sets up their own device and eligible subscription; no developer account or credentials are distributed. You do not need an AI desktop application open, and Qualia does not request or proxy subscription tokens. Optional Jev uses your separately configured API key.
 
-**The Codex CLI itself was tested successfully.** Installed Codex0.160.0 returned valid synthetic classification twice with gpt-6-luna, including the restricted configuration; a separate gpt-6-astra delegation probe also passed. See [exact preflight evidence](research/preflight-ai.md). Claude's initial probe returned an authenticated quota limit. The subsequent owner decision resolves the two classification usage-policy gates; current public-router verification is recorded in [adapter evidence](research/cli-classification.md) and BUILD-STATE. It does not resolve the file-editing operator's filesystem requirements. The [official documentation assessment](research/subscription-policy.md) distinguishes supported personal CLI use from account-sharing or service-hosting approval.
+**The Codex CLI itself was tested successfully.** Installed Codex0.160.0 returned valid synthetic classification twice with gpt-6-luna, including the restricted configuration; a separate gpt-6-astra delegation probe also passed. See [exact preflight evidence](research/preflight-ai.md). Claude's initial probe returned an authenticated quota limit. The subsequent owner decision resolves the two classification usage-policy gates; current public-router verification is recorded in [adapter evidence](research/cli-classification.md) and BUILD-STATE. Codex improvement now uses the separately approved no-tools mechanism; the failed direct file-tool route remains disabled. The [official documentation assessment](research/subscription-policy.md) distinguishes supported personal CLI use from account-sharing or service-hosting approval.
 
 ## Verification evidence
 
 | Check | Result and scope |
 |---|---|
-| Python full offline suite |445 passed,5 skipped (four Windows capabilities, absent Rscript),6 live tests deselected;228.83s after native operator completion |
+| Python full offline suite |534 passed,5 skipped (four Windows capabilities, absent Rscript),6 live tests deselected;256.82s after Codex proposal integration |
 | Frontend |30 tests pass; TypeScript and normal/static production builds pass |
 | Analysis |Synthetic six-case fixture independently matched counts, mean37.4 and paired Pearson0.93715; stale export hash returns409; matching Python starter executed successfully |
 | Browser |Actual import/coding/review/evaluation/fake KEEP/export workflow; five synchronized keyboard assignments; chart/evidence links and downloads; final desktop/mobile screenshots |
@@ -59,13 +59,15 @@ The GIF is a visual tour assembled from actual screenshots, not an interaction r
 
 After the owner saved the key and authorized activation, two synthetic live requests passed. Their combined recorded cost was $0.00003570. Jev is enabled for demo with the existing $1 daily local limit; new projects remain off by default. Playwright confirmed that Jev is selectable and Run classification is enabled. No study data was sent and no billing settings were changed. Other devices and users can follow [Jev setup](JEV-SETUP.md).
 
-### 1. Codex native operator isolation
+### Codex improvement completed
 
-Your approvals were applied and elevated setup is present. Actual Codex0.160.0 synthetic probes found that apply_patch reads unrelated outside files before rejecting writes; network-disabled commands also reached loopback. The operator stays disabled. Another setup run or broader permissions is not a repair. Resume only with a supported runtime or an explicitly approved alternative architecture that passes native read/write/tool/network isolation checks. No research data was used in these probes.
+Owner decision04 approved replacing direct file editing with no-tools proposals. Codex0.160.0 checks its version and native ChatGPT login, receives only a bounded permitted-file snapshot and returns strict JSON. Qualia validates the complete proposal before writing, including original file identity/hashes, exact paths, links, configuration and unchanged privacy/budget bounds. It then performs the existing trusted evaluation and KEEP/REVERT. The failed direct file-tool route stays disabled; no broader permissions or repeat setup is required.
 
-Claude improvement is enabled and live-verified with Opus5.5. On one invented record, Haiku validation macro-F1 stayed1.0→1.0; Qualia correctly recorded REVERT, preserved methodology/codebook/coding state, and left the project Git tree clean. The successful attempt used three admitted invocations within a cap of four. Two earlier rejected attempts remain honestly recorded; no session-wide quota estimate is claimed.
+The public synthetic Codex experiment passed in41.92s: Astra proposed one prompt replacement, Luna validation macro-F1/exact-match remained1.0 to1.0 and ECE0 to0; agreement was undefined for the one-record fixture. Qualia correctly recorded REVERT. Three admitted invocations retained usage: Luna baseline9717 input/58 output, Astra10594/172, Luna candidate9753/56. Methodology, frozen codebook and coding state stayed unchanged, and project Git was clean. This verifies integration without claiming a research-quality gain.
 
-### 2. Before public release
+Claude improvement is also enabled and live-verified with Opus5.5 and Haiku validation. Its one-record result likewise remained1.0 to1.0 and correctly reverted. Both workflows use the user's existing subscription sign-in; no extra API key or approval for each candidate is needed. See [step-by-step improvement guide](USER-GUIDE.md#15-understand-improvement-experiments).
+
+### Before public release
 
 Run your planned Claude Code `/security-review`. The official scanner is superseded, not passed. Private-main checkpoint pushes are authorized; public visibility and deployment remain your separate decisions. No drive-wide ACL, firewall, credential or billing change was made.
 

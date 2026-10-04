@@ -10,7 +10,7 @@ Offline tasks below are verified; T004 retains its native readiness gate. Depend
 
 - [x] [T002] Add synthetic candidate/baseline/challenge fixtures and fake operator attack cases under tests/fixtures/improve/; test policy boundaries before implementation in tests/test_improve_policy.py.
 - [x] [T003] Implement pure threshold/confirmation decisions in qualia/improve/policy.py; cover gain, priority tolerance, challenge, tests, call ratio and zero-baseline behavior.
-- [ ] [T004] Implement bounded run_operator in qualia/ai/backends/{claude_cli,codex_cli}.py and fake operator support; verify executable isolation, cwd, tools, prompts and egress accounting in tests/test_operator_backends.py.
+- [x] [T004] Implement bounded run_operator in qualia/ai/backends/{claude_cli,codex_cli}.py and fake operator support; verify executable isolation, cwd, tools, prompts and egress accounting in tests/test_operator_backends.py.
 - [x] [T005] Implement clean-baseline snapshot, canonical path containment, scope diff and protected-hash validation in qualia/improve/experiment.py; test tracked/untracked/path-escape attacks.
 
 ## User stories in priority order
@@ -29,7 +29,7 @@ Offline tasks below are verified; T004 retains its native readiness gate. Depend
 
 ## Phase 1: Convergence
 
-- [ ] [T014] Complete Codex operator activation using the owner-approved no-action-tools proposal mechanism in decision04; verify native empty tool registry, trusted application scope, public admission, failure telemetry and one synthetic live experiment per FR-003/T004. The failing native file-tool path remains disabled, with no broadened permissions.
+- [x] [T014] Complete Codex operator activation using the owner-approved no-action-tools proposal mechanism in decision04; verify native empty tool registry, trusted application scope, public admission, failure telemetry and one synthetic live experiment per FR-003/T004. The failing native file-tool path remains disabled, with no broadened permissions.
 
 ## Approved mechanism implementation
 

@@ -1,6 +1,6 @@
 # Proposed Codex improvement mechanism
 
-2026-10-04. Status: owner-approved design (decision04); implementation in progress, not yet enabled. The installed and current stable official CLI are both 0.160.0. Existing native no-action-tool localhost probes passed 4 tests in 10.78s for the current classifier transport; these are foundation evidence, not a completed proposal-operator test.
+2026-10-04. Status: implemented and live-verified under owner decision04; no-tools proposal mode enabled. The installed and current stable official CLI are both 0.160.0. Existing native no-action-tool localhost probes passed 4 tests in 10.78s for the current classifier transport; these are foundation evidence, not a completed proposal-operator test.
 
 ## User experience
 
@@ -36,3 +36,9 @@ This is an alternative implementation, not a claim that Codex0.160.0's native re
 - [Official non-interactive execution and structured output](https://learn.chatgpt.com/docs/non-interactive-mode): --output-schema, JSONL events and native authentication.
 - Existing version-pinned source and actual failure evidence: [agent isolation audit](agent-isolation.md#7-resume-evidence--native-windows-enforcement-2026-10-04).
 - Existing privacy, budgets and experiment contracts: docs01/02, specs005 and docs/answers/01-native-usage.md.
+
+## Verification outcome
+
+Implementation checkpoint0fcc799. The actual Codex0.160.0 proposal wire captures advertise no tools for Luna/Astra; hostile apply_patch/exec_command responses leave synthetic files unchanged. Positive localhost captures simulate only login-status success; actual version/exec/parser remain native. Actual empty-home login status rejects before any provider request. Production requires native ChatGPT status before dispatch, never reads authentication files.
+
+Public synthetic test: tests/live/test_native_improvement.py -k codex -m live passed1 test/1 deselected in41.92s. One invented sentence/code, four-invocation ceiling. Astra replaced config/prompts/classify.txt, Luna validation macro-F1 and exact-match stayed1.0 to1.0, ECE0 to0; agreement undefined for this fixture. Qualia correctly chose REVERT for gain below min_delta, restored the prompt, preserved methodology/frozen codebook/coding state and left project Git clean. Three invocations: Luna baseline9717 input/58 output, Astra operator10594/172, Luna candidate9753/56. No accuracy gain or exact remaining quota is claimed.

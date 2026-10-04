@@ -44,10 +44,10 @@ P11 live outcome: Codex gpt-6-luna passed through the actual public router. Clau
 - [x] P4.2 Metrics, benchmarks, pinned demo data and split manifests.
 - [x] P4.3 Evaluation UI, metric/oracle/idempotency gate; converge.
 - [x] P5.1 Spec Kit improvement artifacts and analysis.
-- [~] P5.2 Protected experiment protocol, policy and operator lanes.
+- [x] P5.2 Protected experiment protocol, policy and both operator lanes; decision04 Codex proposal mechanism verified.
 - [x] P5.3 History UI, I2/I3 and MVP browser gate; converge (offline scope).
 - [~] P6.1 Local hygiene and private CI pass; official scanner superseded, owner-run Claude security review remains a pre-public-release action.
-- [~] P6.2 Claude synthetic live experiment passed; Codex remains blocked by verified native runtime isolation failure.
+- [x] P6.2 Both bounded synthetic live experiments pass: Claude restricted tools and approved Codex no-tools proposals.
 - [x] P7.D0 Design guard and baseline screenshots.
 - [x] P7.D1 Tokens, fonts, theme, DESIGN.md.
 - [x] P7.D2 Workspace and review presentation.
@@ -58,11 +58,11 @@ P11 live outcome: Codex gpt-6-luna passed through the actual public router. Clau
 - [x] P7.D7 Design acceptance, final screenshots and bounded critique loop (literal font-property grep distinction documented).
 - [x] P8 Portfolio artifacts, snapshot, local demo, README, prepared Pages and performance gate; not deployed.
 - [x] P9 Jev Spec Kit artifacts, adapter, fixture tests and owner setup guide; live requirement closed in P12.
-- [~] P10 Offline acceptance, subscription documentation recheck, guide and final report done; native/security/live gates remain.
+- [~] P10 Offline/native/live acceptance and guide complete; final private CI and owner pre-public security review remain.
 
 ## Workstream audit
 
-Current: research, review, evaluation, fake improvement, analysis and visualization are implemented. Native subscription classification passed live checks under the approved invocation policy; Claude improvement is live-verified and Codex improvement remains gated. Jev passed live checks and is enabled for demo with its existing $1 daily local limit. Portfolio and user documentation are complete locally; hosting is not activated. Hygiene audits pass; the authorized official source scan failed its permission preflight. Owner decisions approve native operators and private-main pushes; setup is present. Claude improvement is verified; Codex remains blocked by actual runtime isolation failures. The official scanner is superseded by the owner's pre-release Claude security review. Constitution v1.0.0 preserved. Research DBs live outside the checkout. See FINAL-REPORT.md for the concrete handoff.
+Current: research, review, evaluation, fake improvement, analysis and visualization are implemented. Native subscription classification and both improvement operators passed live checks under the approved invocation policy; Codex uses no-tools proposals and trusted application. Jev passed live checks and is enabled for demo with its existing $1 daily local limit. Portfolio and user documentation are complete locally; hosting is not activated. Hygiene audits pass; the authorized official source scan failed its permission preflight. Owner decisions approve native operators and private-main pushes; setup is present. Both improvement workflows are verified; the failed Codex direct file-tool route remains disabled. The official scanner is superseded by the owner's pre-release Claude security review. Constitution v1.0.0 preserved. Research DBs live outside the checkout. See FINAL-REPORT.md for the concrete handoff.
 
 ## Preflight evidence
 
@@ -236,3 +236,7 @@ P14 TDD: proposal module39 tests initially fail import before implementation; im
 P14 repair2 (native auth): production no-tools capture passed, but actual empty-home CLI still contacted a synthetic custom endpoint despite forced_login_method. Read-only diagnosis approved operator-only bounded native login status after exact-version probe; accept only audited ChatGPT status, no credential reads or raw status logging. Exact operator46 tests now pass including native empty-home zero requests; positive tool-registry captures simulate only local auth status and execute actual version/exec. Classification unchanged.
 
 P14 repair3 (retired assertion): affected test forced operator unavailable but expected old direct-file isolation text. Read-only diagnosis required exact new OPERATOR_UNAVAILABLE_REASON plus explicit forbidden dispatch; separate old native-failure evidence test retained. Exact rerun:72 passed,1 platform skip in90.26s. Native backend/operator combined117 passed,1 platform skip; final operator47 passed including new post-response token threshold preserving usage. T015-T017 complete; T018 live/regression/convergence in progress. Independent review confirms all-before-write validation, partial-write restoration and complete dispatch-hash accounting, with no remaining blocker found.
+
+P14 live success: public tests/live/test_native_improvement.py -k codex -m live passed1/1 deselected in41.92s. One invented sentence/code,4-invocation maximum. Astra proposed classify.txt replacement (10594 input/172 output); Luna baseline9717/58 and candidate9753/56. Exactly3 admitted invocations/egress rows, positive usage, zero coding events, frozen methodology/codebook unchanged, final Git clean. Macro-F1/exact-match1.0 to1.0, ECE0 to0, agreement undefined; correct REVERT gain below min_delta. No model-quality improvement claim. Full regression is running; latest code checkpoint0fcc799.
+
+P14 full acceptance:534 passed,5 skipped (four Windows capabilities and unavailable Rscript),6 live deselected,256.82s. Existing Starlette/httpx deprecation remains, dependency unchanged. Ruff whole repo, staged Gitleaks (47.33KB), data guard and protected-file checks pass. No frontend changed; existing30 frontend/browser results remain applicable. Both live operators now pass under decisions02/04. Independent005 inventory reviewed12FR/5SC/3stories/18tasks/12plan decisions/7principles with no new implementation gap; T018 private CI/final docs remain.

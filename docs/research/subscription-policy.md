@@ -6,7 +6,7 @@ Verified 2026-10-03. Scope: one account owner using the providers' unmodified na
 
 Both providers document programmatic use of their native tools. Their documentation distinguishes that use from sharing an account, collecting subscription credentials, or operating a service through another person's subscription. This supports a narrower statement than either “subscription automation is forbidden” or “any subscription integration is approved.” The applicable account agreement, product integration conditions and usage limits still matter.
 
-Subsequent owner decision: [practical native limits and per-invocation accounting](../answers/01-native-usage.md) are approved for classification. Native classification retains exact-version, subscription-mode, no-action-tools and project-egress checks. File-editing improvement remains unavailable pending operator isolation. Documentation about permitted authentication alone is not a substitute for those implementation checks.
+Subsequent owner decision: [practical native limits and per-invocation accounting](../answers/01-native-usage.md) are approved for classification. Native classification retains exact-version, subscription-mode, no-action-tools and project-egress checks. Claude improvement is live-verified with restricted tools. Under owner decision04, Codex improvement is live-verified through no-tools proposals and trusted application; its failed direct file-tool route remains disabled. Documentation about permitted authentication alone is not a substitute for those implementation checks.
 
 ## OpenAI: documented functionality and limits
 
