@@ -20,8 +20,8 @@ export function Transcript({ w, review }: { w: WorkspaceController; review: Revi
           <p className="segment-text" data-testid={`segment-text-${segment.id}`}>{segment.text}</p>
           <AnnotationSync segmentId={segment.id} text={segment.text} codings={segment.codings} onSpan={w.receiveSpan} />
         </TextAnnotator></Annotorious>
-        <div className="segment-codes" aria-label="Current codes">{segment.codings.map(coding => <span key={coding.id} className={`code-mark ${review.isAcceptedModel(coding) ? 'accepted-model' : 'human'}`} style={codeStyle(w.codeIndex(coding.code_id)) as CSSProperties}>{w.eventCodeName(coding)}{review.isAcceptedModel(coding) && <span className="caption"> · m</span>}<span className="caption"> [{coding.span_start}:{coding.span_end}]</span></span>)}</div>
-        <div className="segment-codes" aria-label="Suggested codes">{segment.suggestions.map(item => <span key={item.id} className="code-mark suggested" style={codeStyle(w.codeIndex(item.code_id)) as CSSProperties}>{review.codeName(item)} <span className="caption">suggested · {review.modelScore(item.score)}</span></span>)}</div>
+        <div className="segment-codes" role="group" aria-label="Current codes">{segment.codings.map(coding => <span key={coding.id} className={`code-mark ${review.isAcceptedModel(coding) ? 'accepted-model' : 'human'}`} style={codeStyle(w.codeIndex(coding.code_id)) as CSSProperties}>{w.eventCodeName(coding)}{review.isAcceptedModel(coding) && <span className="caption"> · m</span>}<span className="caption"> [{coding.span_start}:{coding.span_end}]</span></span>)}</div>
+        <div className="segment-codes" role="group" aria-label="Suggested codes">{segment.suggestions.map(item => <span key={item.id} className="code-mark suggested" style={codeStyle(w.codeIndex(item.code_id)) as CSSProperties}>{review.codeName(item)} <span className="caption">suggested · {review.modelScore(item.score)}</span></span>)}</div>
       </article>)}
     </div>
   </section>
