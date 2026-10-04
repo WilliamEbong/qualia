@@ -4,7 +4,7 @@ Checked 2026-10-03 (America/Denver). Jev is an optional classifier with its own 
 
 Implementation and test evidence is recorded in [BUILD-STATE.md](BUILD-STATE.md).
 
-**This installation is now verified:** after you saved the key and requested the remaining setup, two tiny synthetic requests succeeded on 2026-10-03. The demo project has Jev/external processing enabled with its existing $1 daily local limit; new projects still default to off. Recorded combined test cost was $0.00003570. Account balance and billing controls were not changed. The steps below remain the installation guide for other devices and users.
+The [user guide, section 13](USER-GUIDE.md#13-set-up-optional-jev-processing) has the same steps in a shorter form, plus how to use Jev for classification, evaluation and threshold tuning. The project's own installation passed two synthetic live requests on 2026-10-03 (combined cost $0.00003570) and a full demo tuning run on 2026-10-04.
 
 ## 1. Check your account and spending settings
 
@@ -31,8 +31,10 @@ The official quick start directs you to obtain the key from the dashboard; API a
 Open PowerShell and run:
 
 ```powershell
-notepad "C:\Users\Owner\OneDrive\Documents\Qualia\.env"
+notepad .env
 ```
+
+Run this from the Qualia application folder.
 
 If Notepad asks to create the file, allow it. Preserve any existing lines. Find the existing `TYPESAFE_API_KEY=` line and replace only its value, or add the line once if it is absent:
 
@@ -45,7 +47,7 @@ Replace the placeholder in Notepad, then save. Do not put the actual key into a 
 The repository's `.gitignore` excludes `.env`. To check this without displaying its contents:
 
 ```powershell
-git -C "C:\Users\Owner\OneDrive\Documents\Qualia" check-ignore .env
+git check-ignore .env
 ```
 
 Expected output is `.env`. If it prints nothing, do not stage or commit the file; ask the coding agent to repair the ignore configuration. Never edit `.env.example` to contain the real key. These are Qualia's local secret-handling rules, not TypeSafe account requirements.
@@ -55,7 +57,6 @@ Expected output is `.env`. If it prints nothing, do not stage or commit the file
 From PowerShell in the application folder, run:
 
 ```powershell
-Set-Location "C:\Users\Owner\OneDrive\Documents\Qualia"
 uv run qualia jev check --project demo
 ```
 

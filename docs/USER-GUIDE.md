@@ -4,11 +4,11 @@
 
 Qualia helps you read research material, apply your own codebook, keep analytic notes, compare patterns across cases, and trace results back to the passages and decisions that produced them. You can work manually without an AI account. Optional classifiers produce suggestions for you to review; they do not decide your methodology.
 
-This guide is for a researcher using the local Windows installation. It describes implemented workflows and their limits. Availability messages in the app remain authoritative: native classification and improvement require an audited CLI version, your own subscription sign-in and project permission. Claude improvement uses restricted file tools; Codex supplies structured proposals that Qualia validates and applies. Both passed synthetic live experiments. Jev requires separate setup; this owner installation is verified and enabled for demo. The optional official scanner was superseded by your planned Claude Code `/security-review` before public release; no completed external security audit or public deployment is claimed. See [build status](BUILD-STATE.md) for current verification and remaining work.
+This guide is for researchers running Qualia on their own computer. Commands are shown for Windows PowerShell; other platforms work the same way with their usual paths. It describes implemented workflows and their limits. Messages in the app are authoritative: native Claude/Codex classification and improvement need an audited CLI version, your own subscription sign-in and project permission, and Jev needs its own TypeSafe account and key ([section 13](#13-set-up-optional-jev-processing)). See [build status](BUILD-STATE.md) for verification evidence.
 
 **Use Qualia's own browser UI for your research.** Start it with `uv run qualia open`, then use its Workspace, Codebook, Review and Analysis views. You do not need to keep an AI desktop app open. Native classification launches the installed Codex or Claude CLI as a local subprocess and lets that CLI use its existing official sign-in; it does not ask you to paste a subscription token into Qualia. Follow [AI backend setup](#12-generate-and-review-ai-suggestions) before using it.
 
-The Codebook, Matrix and Analysis illustrations below show the licensed read-only public snapshot. They explain the layout; disabled editing controls in those screenshots do not mean that editing is disabled in your local research project. The Workspace illustration shows the local AnnoMI demonstration and its coding provenance. The Review and Experiments illustrations show that local demonstration using the offline fake backend.
+Screenshots are cropped from the bundled AnnoMI demonstration project. Review suggestions come from the offline fake backend; evaluation, calibration and threshold-tuning results come from a real Jev run on the demo's validation split.
 
 ## Find the workflow you need
 
@@ -60,12 +60,13 @@ Qualia provides several familiar NVivo-style workflows: text coding, hierarchica
 
 ### First installation
 
-You need the existing Qualia application folder, Git, uv, Python 3.14 and Node 24. If a command is not recognized, install or repair that prerequisite before continuing. You do not need Claude, Codex, Jev or R for manual coding.
+You need Git, [uv](https://docs.astral.sh/uv/), Python 3.14 and Node 24. If a command is not recognized, install or repair that prerequisite before continuing. You do not need Claude, Codex, Jev or R for manual coding.
 
-Open PowerShell and run:
+Open PowerShell in the folder where you keep software and run:
 
 ```powershell
-Set-Location "C:\Users\Owner\OneDrive\Documents\Qualia"
+git clone https://github.com/WilliamEbong/qualia.git
+Set-Location qualia
 uv sync
 npm --prefix web ci
 npm --prefix web run build
@@ -105,7 +106,7 @@ A `QUALIA_PORT` setting in your environment or local `.env` overrides the comman
 The application folder contains software. Research workspaces live elsewhere, by default:
 
 ```text
-C:\Users\Owner\Qualia\
+%USERPROFILE%\Qualia\
   projects\your-study\    database, configuration, benchmarks and project Git history
   vault\your-study\       protected benchmark material and its integrity manifest
   recovery\your-study\    recovery evidence when an experiment is interrupted
@@ -227,7 +228,7 @@ Archiving a draft code preserves historical references. Freeze a new version to 
 
 Your codebook belongs to you. AI classification and improvement experiments do not edit code definitions or frozen methodology.
 
-![Codebook view showing definitions and frozen codebook history in the public snapshot](../design-review/final/codebook-1280.png)
+![A code card with its definition and, after tuning, the AI suggestion threshold](../design-review/final/features/codebook-threshold.png)
 
 Use this view to inspect definitions before choosing a frozen version for coding.
 
@@ -246,7 +247,7 @@ Use this view to inspect definitions before choosing a frozen version for coding
 
 Use **Use whole segment** or Escape to clear a text selection. Arrow keys move through the current source; keys 1–9 apply the corresponding displayed code, not a database code ID. Shortcuts do not operate while you are typing into a form.
 
-![Local AnnoMI workspace with source navigation, transcript passages, coding and provenance](../design-review/final/workspace-1280.png)
+![Workspace with sources, transcript segments, coded spans and numbered code shortcuts](../design-review/final/features/workspace-coding.png)
 
 Work from left to right: choose the source, read/select the passage, then inspect its coding and provenance. Wait until code buttons are enabled after saving before pressing the next coding shortcut.
 
@@ -287,7 +288,7 @@ Retrieval lists current coded spans. Several spans in one segment can produce se
 
 Repeated spans of the same code on one segment count once in a cell. Multi-case source links contribute to each applicable case. An empty matrix can mean no case links, not necessarily no coding.
 
-![Code-by-case matrix in the public snapshot](../design-review/final/matrix-1280.png)
+![Code-by-case matrix](../design-review/final/features/matrix.png)
 
 Use a cell as a route back to the supporting coded excerpts, not as a standalone explanation of the pattern.
 
@@ -295,7 +296,7 @@ Use a cell as a route back to the supporting coded excerpts, not as a standalone
 
 Analysis reads visible workspace data. It does not write coding, call AI or read the protected benchmark vault. It describes the data and decisions selected by your criteria; it does not establish statistical significance or causation.
 
-![Analysis workbench with criteria, descriptive results and evidence in the public snapshot](../design-review/final/analysis-1280.png)
+![Code frequency chart with its denominator](../design-review/final/features/analysis-frequencies.png)
 
 Set the criteria first, read the denominators and methods, then use the evidence links or exports to inspect the result.
 
@@ -411,7 +412,7 @@ The starters reproduce selected numeric summaries, pairwise correlations and cas
 | `claude`, `codex` | Native classification with your own eligible subscription sign-in and audited CLI version. External processing must be allowed for the project. Claude improvement uses restricted file tools; Codex improvement uses no-tools proposals and trusted application. |
 | `jev` | Optional external classifier, installed but off by default. Requires a locally configured key, project opt-in and a deliberate backend choice. |
 
-**What has actually been tested:** the [synthetic CLI preflight](research/preflight-ai.md), [adapter evidence](research/cli-classification.md) and [current build state](BUILD-STATE.md) distinguish standalone CLI calls, offline transport tests and actual normal-router smoke tests. The owner subsequently [approved practical native limits](answers/01-native-usage.md). This resolves the usage-policy gates, while file-editing operator isolation remains separate. The [subscription documentation review](research/subscription-policy.md) explains native-login use without claiming provider approval of every integration.
+**What has actually been tested:** the [synthetic CLI preflight](research/preflight-ai.md), [adapter evidence](research/cli-classification.md) and [current build state](BUILD-STATE.md) distinguish standalone CLI calls, offline transport tests and actual normal-router smoke tests. The practical native limits are recorded in the [native usage decision](answers/01-native-usage.md). The [subscription documentation review](research/subscription-policy.md) explains native-login use without claiming provider approval of every integration.
 
 ### Set up your own device and subscription
 
@@ -442,7 +443,9 @@ Classification uses the project's **latest frozen codebook** and budget/privacy 
 
 ### Review carefully
 
-[Open the illustrated Review view](../design-review/final/review-1280.png). The full-page example shows a fake suggestion queue; use the rationale, excerpt and provenance together before making a decision.
+![A suggestion card with its model-reported score, review reason, passage and accept/reject actions](../design-review/final/features/review-suggestion.png)
+
+The example comes from the fake backend; use the rationale, excerpt and provenance together before making a decision.
 
 1. Enter your **Reviewer** identity.
 2. Select a suggestion, read its excerpt and rationale, and use **Open segment** for context.
@@ -464,31 +467,89 @@ uv run qualia availability --project my-study
 
 ## 13. Set up optional Jev processing
 
-Follow the detailed [Jev setup guide](JEV-SETUP.md). It covers your TypeSafe account, credits, dedicated key, ignored local `.env`, and a tiny synthetic first request. An account alone does not verify a usable balance or authenticated API access. This owner installation passed two synthetic live checks and has Jev enabled for demo with its existing $1 daily local limit. New projects and other devices still require their own setup and explicit project permission.
+Jev is TypeSafe AI's "System One" decision model. Instead of writing text, it answers one yes/no question per code for each passage with a probability. That makes it fast and inexpensive, and its probabilities suit Qualia's [threshold tuning](#tune-per-code-suggestion-thresholds-without-ai). Jev is optional, off by default, and billed by TypeSafe separately from any Claude or ChatGPT subscription.
 
-Keep the key out of chat, screenshots, source code, shell command history and frontend settings. Save it locally as described in that guide. Qualia never needs you to paste a subscription login token.
+### Step 1 · Create an account and check spending
 
-Jev can reduce subscription usage when it performs classifications that would otherwise go to Claude or Codex. A Jev-first route can escalate only uncertain cases to a stronger subscription model; savings depend on escalation rate and must be measured. Adding a key does not automatically change routing, and Jev has separate usage charges. It does not replace the file-editing improvement agent.
+1. Sign in to the [TypeSafe console](https://console.typesafe.ai/) in your own browser.
+2. Check your available credits and the purchase amount before paying. An account alone does not prove you have usable credit.
+3. Leave automatic credit refills off unless you deliberately want recurring charges.
 
-Check local readiness:
+The published rate for Jev 1.13 is $0.042 per million input tokens, with free output tokens. As a guide, one full evaluation of the demo's 1,258 validation segments used about 2.5 million input tokens (roughly $0.10), and the complete threshold-tuning experiment cost about $0.35. Check TypeSafe's current terms before paying.
+
+### Step 2 · Create a key
+
+In the console's **API Keys** area, create a key named something like `Qualia local`, so you can recognise and revoke it later. Copy it into your password manager straight away; consoles often show a key only once. Never paste the key into chat, screenshots, issues, frontend settings or a shell command.
+
+### Step 3 · Save the key in Qualia's local `.env`
+
+From the Qualia application folder:
+
+```powershell
+notepad .env
+```
+
+Allow Notepad to create the file if asked, and keep any existing lines. Add or replace one line:
+
+```dotenv
+TYPESAFE_API_KEY=PASTE_YOUR_ACTUAL_KEY_HERE
+```
+
+Replace the placeholder with your key and save. If you use **Save As**, choose **All Files** and the name `.env`, not `.env.txt`. Confirm Git will never commit it:
+
+```powershell
+git check-ignore .env
+```
+
+The expected output is `.env`. Never put the real key in `.env.example`.
+
+### Step 4 · Check readiness (no network request)
 
 ```powershell
 uv run qualia jev check --project my-study
 ```
 
-This makes zero network requests. `key_configured: true` means a key is present, not that billing or authentication succeeded. To deliberately permit external AI and Jev for one project:
+`key_configured: true` means a key is present. It does not prove the key works or that you have credit. `allow_external` and `jev_enabled` stay `false` until you opt a project in.
+
+### Step 5 · Run a tiny synthetic first test
+
+Use a throwaway project with invented text before sending any research material:
 
 ```powershell
-uv run qualia jev enable --project my-study
+uv run qualia init jev-check
+uv run qualia codebook add Possibility --definition "Language describing a possible positive change." --project jev-check
+uv run qualia codebook freeze --project jev-check
+$samplePath = Join-Path $env:TEMP 'qualia-jev-smoke.txt'
+Set-Content -LiteralPath $samplePath -Value 'I could try a different approach tomorrow.' -Encoding utf8
+uv run qualia import $samplePath --project jev-check
+uv run qualia jev enable --project jev-check
+uv run qualia classify --project jev-check --backend jev --model jev-1.13.0
+uv run qualia jev disable --project jev-check
 ```
 
-Use the separate synthetic project in the setup guide before sending research material. Enabling changes that project's policy while preserving budgets; it does not classify anything by itself or enable other projects. To turn it off:
+Success means a validated answer with the returned model ID and token usage recorded, and the key never printed. If it fails, Qualia reports a sanitized reason:
 
-```powershell
-uv run qualia jev disable --project my-study
-```
+| Status | Meaning |
+|---|---|
+| `authentication` (401/403) | Missing, mistyped or revoked key |
+| `invalid_input` (422) | The request was rejected as invalid |
+| `rate_limit` (429) / `transient` (529) | Try again later |
+| Billing errors | Check your credit balance in the console |
 
-External processing is a research-data disclosure decision. Review participant consent, your data-handling requirements and provider terms. Local budget reservations limit requests but do not configure provider billing or establish data-retention guarantees. Unknown actual costs retain a conservative reservation rather than being treated as free.
+### Step 6 · Use Jev in your project
+
+1. Opt the project in: `uv run qualia jev enable --project my-study`. This allows external processing for that project only and keeps its budgets, including the default $1.00 per day Jev spending cap and 300 calls per day. `jev disable` turns it off again.
+2. Choose `jev` as the backend in **Review** (classification), **Evaluation** or **Experiments → Tune thresholds**.
+3. Qualia sends each segment with your frozen code definitions and asks one question per code. Large batches split automatically to fit Jev's request limit. A code becomes a suggestion when its probability reaches 0.5, or the code's tuned threshold.
+4. Run **Tune thresholds** once you have dev and validation benchmarks. On the demo, this raised validation macro F1 from 0.523 to 0.567 (0.572 on confirmation).
+
+A full tuning experiment on a large benchmark can exceed the default 300 daily calls. The demo needed about 420. If so, raise `daily_calls` in that project's `config/routing.yaml` deliberately for the run, then set it back.
+
+### Privacy and data
+
+Sending text to Jev is a research-data disclosure decision. Review participant consent, your data-handling rules and TypeSafe's terms. TypeSafe hosts in the US. Its customer agreement says customer data is not used to change model weights without consent, but ordinary accounts do not get zero data retention; TypeSafe offers that to enterprise customers through sales ([legal](https://docs.typesafe.ai/legal), [privacy policy](https://typesafe.ai/legal/privacy-policy)). Prefer synthetic or de-identified material unless your approvals cover it. Every request appears in the project's egress log and usage ledger. Local budgets limit requests but do not change billing settings with TypeSafe.
+
+Jev can also take load off Claude or Codex: set it as the cheap tier and escalate only uncertain segments to a stronger model. Savings depend on your escalation rate, so measure them with **Evaluation**. Technical background and the wire contract are in [Jev setup notes](JEV-SETUP.md) and [Jev research](research/jev.md).
 
 ## 14. Evaluate a classifier against reference labels
 
@@ -521,7 +582,13 @@ Each metric in the table has a one-line explanation under its name. The most use
 
 Below the metrics, a sentence turns the scores into a workload: for example, *reviewing suggestions with a model-reported score below 0.64 (35% of them) leaves the rest at 90% precision or better on this validation set*, followed by your current review threshold. If no score cutoff reaches 90%, Qualia says every suggestion needs review. These figures describe this validation set, not guaranteed future accuracy.
 
+![Validation metrics with plain-language explanations and the review-workload sentence](../design-review/final/features/evaluation-metrics.png)
+
+![Per-code precision and recall with 95% ranges](../design-review/final/features/evaluation-per-code.png)
+
 Open **Evaluation provenance and metric definitions** for the exact definitions and a **Calibration by score band** table showing, for each model-reported score band, how many suggestions fell there and how often they were correct.
+
+![Calibration by score band](../design-review/final/features/evaluation-calibration.png)
 
 ### Import your own benchmark
 
@@ -602,6 +669,8 @@ The fake operator makes a scripted change to fake classification behavior. A gai
 
 Some codes need a lower bar to be found; others need a higher bar to avoid noise. The `thresholds` agent learns one minimum model-reported score per code from your **dev** benchmark, then lets Qualia's normal policy decide on the **validation** benchmark.
 
+![The Tune suggestion thresholds form](../design-review/final/features/experiments-tune-form.png)
+
 **In the app:** open **Experiments**, choose the **Classifier to tune** under **Tune suggestion thresholds**, and select **Tune thresholds**. The page stays busy while it works (seconds for offline backends, several minutes for external ones), then selects the new attempt so you can read its KEEP or REVERT decision, the thresholds it tried and the measurements. If something prevents a run, such as a missing dev benchmark, the exact reason appears instead.
 
 **From a terminal**, the same experiment is:
@@ -615,13 +684,15 @@ uv run qualia improve --project my-study --agent thresholds --budget 1
 3. It writes the result to `code_thresholds` in `config/routing.yaml` and states each change in the hypothesis, for example *Change talk default -> 0.35*.
 4. Validation, tests and a confirming run decide KEEP or REVERT exactly as for other agents. A REVERT means the new cutoffs did not measurably help.
 
-No AI operator, subscription or extra cost is involved beyond the classifier calls themselves. Thresholds work best with backends that score every code, such as Jev; keyword rules and the fake backend use constant scores, so they rarely benefit. On the demo with Jev (2026-10-04), the agent fitted thresholds from 0.20 (reflection, change) to 0.70 (question) on 400 of 6,759 dev segments. Validation macro F1 rose from 0.523 to 0.567 and 0.572 on the fresh confirmation, exact code-set match from 0.365 to 0.405, and calibration error fell from 0.050 to 0.038, so Qualia kept it (experiment 2). The run took 13 minutes and cost about $0.35 in Jev usage. With the rules backend, by contrast, the agent finds no useful change and correctly records REVERT. Kept thresholds appear in **Codebook** as *AI suggests at score ≥ 0.35*. Dev data is fitting data; Qualia never uses the protected split.
+No AI operator, subscription or extra cost is involved beyond the classifier calls themselves. Thresholds work best with backends that score every code, such as Jev; keyword rules and the fake backend use constant scores, so they rarely benefit. On the demo with Jev (2026-10-04), the agent fitted thresholds from 0.20 (reflection, change) to 0.70 (question) on 400 of 6,759 dev segments. Validation macro F1 rose from 0.523 to 0.567 and 0.572 on the fresh confirmation, exact code-set match from 0.365 to 0.405, and calibration error fell from 0.050 to 0.038, so Qualia kept it (experiment 2). The run took 13 minutes and cost about $0.35 in Jev usage. With the rules backend, by contrast, the agent finds no useful change and correctly records REVERT. ![The kept Jev tuning experiment with its thresholds and measurements](../design-review/final/features/experiments-tuning-keep.png)
+
+Kept thresholds appear in **Codebook** as *AI suggests at score ≥ 0.35*. Dev data is fitting data; Qualia never uses the protected split.
 
 In **Experiments**, choose an attempt and read **Operator hypothesis**, **Measured validation results**, **Changed files** and **Experiment provenance**. Compare baseline, candidate and fresh confirmation. A candidate gain alone is insufficient: trusted policy also checks constraints and tests. Accepted changes receive a local commit/tag; rejected attempts retain their report and measurements.
 
 The fake demonstration previously increased macro F1 while reducing exact code-set match. This illustrates why one improved metric is not a blanket quality claim. Inspect the complete comparison and decide whether the methodology is appropriate for your study.
 
-![Local experiment history showing the fake demonstration's KEEP decision and baseline, candidate and confirmation measurements](../design-review/final/experiments-1280.png)
+![The fake demonstration's KEEP decision with baseline, candidate and confirmation measurements](../design-review/final/features/experiments-fake-keep.png)
 
 Read the recorded decision alongside the full metric table. In this example, the displayed macro F1 rises from 0.011 to 0.242 while exact code-set match falls to zero; the screenshot demonstrates the audit workflow, not trained-model quality.
 
@@ -659,7 +730,7 @@ The static demonstration is an approved public-data snapshot, separate from your
 
 You can navigate sources, inspect saved coding/provenance, retrieve evidence, view the matrix, explore its fixed Analysis report and download its precomputed exports. Analysis filters are disabled because the report scope is fixed. Creating projects, importing, coding, reviewing, classifying and evaluating are unavailable. The adapter serves the snapshot locally in the browser without API requests.
 
-Do not confuse the smaller static snapshot with the editable local `demo` project. Publishing is a separate owner decision; the existence of a local static build does not mean a public site has been deployed.
+Do not confuse the smaller static snapshot with the editable local `demo` project. The static snapshot is published separately through GitHub Pages; building it locally does not publish anything.
 
 ## 18. Back up your work and handle interruptions
 
@@ -671,7 +742,7 @@ For a straightforward complete backup:
 
 1. Finish any running import, evaluation or experiment.
 2. Stop the server with Ctrl+C and ensure all other Qualia CLI operations have finished. Closing the browser alone does not stop the server.
-3. Locate the actual `QUALIA_HOME` folder. By default it is `C:\Users\Owner\Qualia`.
+3. Locate the actual `QUALIA_HOME` folder. By default it is `%USERPROFILE%\Qualia` (for example `C:\Users\you\Qualia`).
 4. Copy the **entire folder** to a new dated backup location using File Explorer or your approved backup software. Include `projects`, `vault`, any `recovery` folder, hidden project `.git` directories and all database sidecar files that are present. Do not copy just `project.db` while the app is running.
 5. Check that the backup contains the expected project folders and files. Keep the original untouched until a recovery copy has been checked.
 6. Protect the backup as research data. Your application-folder `.env` is separate; keep any key in your password manager or approved secret backup rather than distributing it with a study export.
@@ -781,6 +852,9 @@ Run these from the application folder. Most project commands default to `demo`; 
 | Human review | `uv run qualia review SUGGESTION_ID accept --project my-study --actor researcher`; use `reject` to reject |
 | Validation evaluation | `uv run qualia evaluate --project my-study --backend rules --output "C:\Research\reports"` |
 | Fake experiment/history | `uv run qualia improve --project demo --agent fake --budget 1` / `uv run qualia history --project demo` |
+| Tune suggestion thresholds (no AI) | `uv run qualia improve --project my-study --agent thresholds --budget 1` (or **Experiments → Tune thresholds**) |
+| AI-proposed improvement | `uv run qualia improve --project my-study --agent claude --budget 1` (or `--agent codex`) |
+| Jev readiness / opt in / opt out | `uv run qualia jev check --project my-study` / `jev enable` / `jev disable` with the same project option |
 | Bundle export | `uv run qualia export --project my-study --bundle reproducibility --output "C:\Research\bundle.json"` |
 
 For Analysis, repeat `--code`, `--numeric` or `--stopword` for multiple selections. `--source-id`, `--case-id`, `--cooccurrence segment|overlap` and `--format json|csv|python|r` are available. Classification's `--segments` instead takes a comma-separated string. Do not paste literal placeholder names such as `SEGMENT_ID` into a real command.
