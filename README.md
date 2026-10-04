@@ -4,7 +4,7 @@
 
 Read transcripts, apply a human-defined codebook, review AI suggestions, and inspect the evidence behind every coding decision. Qualia keeps source spans, frozen codebook versions, actor identity, model provenance and experiment measurements together in a local workspace.
 
-The manual, rules and deterministic fake workflows are implemented and tested. Native classification uses each user's official CLI subscription sign-in with explicit project permission and bounded execution; file-editing improvement agents remain gated. Jev is installed but optional and disabled by default. This repository is private. The static public-data demonstration has been built locally and is not deployed.
+The manual, rules and deterministic fake workflows are implemented and tested. Native classification uses each user's official CLI subscription sign-in with explicit project permission and bounded execution; Claude improvement is enabled with verified restricted file tools; Codex improvement remains gated by native Windows read isolation. Jev is installed but optional and disabled by default. This repository is private. The static public-data demonstration has been built locally and is not deployed.
 
 ![Qualia: qualitative coding you can audit](docs/social-preview.png)
 
@@ -108,7 +108,7 @@ An interrupted finalization leaves a recovery journal at `QUALIA_HOME/recovery/<
 
 ## Optional AI setup
 
-Rules and fake classification need no provider account. Native classification uses your own official CLI subscription sign-in: audited Claude Code2.1.284 or Codex0.160.0, with exact-version checks at dispatch. The workflow stays in Qualia's UI; no AI desktop app needs to remain open. Each user installs/signs in locally, enables external processing deliberately and retains their own account and data. No API key is needed for subscription classification. Qualia does not read or proxy login tokens; Claude Console/API mode is rejected and Codex forces ChatGPT mode. File-editing improvement agents remain disabled pending filesystem isolation.
+Rules and fake classification need no provider account. Native classification uses your own official CLI subscription sign-in: audited Claude Code2.1.284 or Codex0.160.0, with exact-version checks at dispatch. The workflow stays in Qualia's UI; no AI desktop app needs to remain open. Each user installs/signs in locally, enables external processing deliberately and retains their own account and data. No API key is needed for subscription classification. Qualia does not read or proxy login tokens; Claude Console/API mode is rejected and Codex forces ChatGPT mode. Claude file-editing improvement is enabled and passed a synthetic live experiment; Codex improvement remains disabled because its native Windows patch verification can read outside the project. Classification is independent.
 
 The owner [approved practical native limits](docs/answers/01-native-usage.md): five-segment batches, bounded input/output,90-second default deadline, no automatic native application retry, and one reservation/egress record per CLI invocation. Internal provider requests may be multiple; native call counts are not exact HTTP or subscription-quota counts. Codex has no provider generation-token cap. See [setup and limits](docs/USER-GUIDE.md#12-generate-and-review-ai-suggestions), [adapter/live evidence](docs/research/cli-classification.md) and [subscription documentation assessment](docs/research/subscription-policy.md).
 
@@ -152,7 +152,7 @@ The locally verified static snapshot contains 24 utterances from two development
 
 ## Verification
 
-The latest full Python checkpoint passed **411 tests**, with five skips (four Windows capability checks and unavailable Rscript) and four live tests deselected. A subsequent safe-auth-error regression and final router/ledger/API suite passed31 checks. Actual synthetic public-router classification passed for both Claude haiku and Codex gpt-6-luna. Final frontend checks passed **30 tests**, TypeScript, and normal/static production builds. Browser evidence covers coding, review, experiments, analysis, exports and all ten static views. Backend CI was green at remote `8029a36`; later checkpoints are local, pending owner authorization to push private main. See [BUILD-STATE.md](docs/BUILD-STATE.md) and the [design audit](design-review/LOOP-REPORT.md) for exact evidence and remaining gates; this README does not claim the entire build is complete.
+The latest full Python checkpoint passed **445 tests**, with five skips (four Windows capability checks and unavailable Rscript) and six live tests deselected. A subsequent safe-auth-error regression and final router/ledger/API suite passed31 checks. Actual synthetic public-router classification passed for both Claude haiku and Codex gpt-6-luna. Final frontend checks passed **30 tests**, TypeScript, and normal/static production builds. Browser evidence covers coding, review, experiments, analysis, exports and all ten static views. Private CI passed at `2799152`; the owner has authorized continued verified private-main checkpoints. Current verification is recorded in BUILD-STATE. See [BUILD-STATE.md](docs/BUILD-STATE.md) and the [design audit](design-review/LOOP-REPORT.md) for exact evidence and remaining gates; this README does not claim the entire build is complete.
 
 ```powershell
 uv run pytest -m "not live"
@@ -177,3 +177,5 @@ The [MVP Playwright spec](tests/e2e/mvp.spec.ts) requires explicit URL, project,
 Software: [MIT](LICENSE). Dataset provenance and permissions: [DATA-LICENSES.md](DATA-LICENSES.md).
 
 Owner operator decision (2026-10-04): complete native Claude/Codex improvement under verified file confinement and per-invocation accounting. Codex may use the approved custom permission profile; the owner performs elevated setup personally. Verified checkpoints may be pushed to private main. The blocked official scanner is superseded by the owner-run Claude `/security-review` before public release. See [recorded decisions](docs/answers/02-native-operators.md).
+
+Native improvement verification (2026-10-04): Claude Opus5.5 edited an allowed prompt and completed an audited synthetic experiment. Haiku validation macro-F1 was1.0 before and1.0 after, so Qualia correctly chose REVERT. This proves integration, not a quality gain. Codex0.160.0 remains fail-closed after actual synthetic outside-read and loopback failures; see [isolation evidence](docs/research/agent-isolation.md#7-resume-evidence--native-windows-enforcement-2026-10-04).

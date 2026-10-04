@@ -26,3 +26,7 @@ Offline tasks below are verified; T004 retains its native readiness gate. Depend
 - [x] [T011] Create tests/e2e/mvp.spec.ts for demo → five keyboard codes → fake AI → accept/reject → measured gain/KEEP/tag → bundle provenance; run all exact I2/I3 gates.
 - [x] [T012] Use Playwright MCP to verify affected history/MVP screens; save evidence in design-review/phase-5/ and record live parity prerequisites in specs/005-improvement-loop/plan.md.
 - [x] [T013] Main runs phase analysis/convergence, full offline checks and gate reporting; Phase 6 owns scripts/smoke-agents.ps1 live parity and security/public-data sweep.
+
+## Phase 1: Convergence
+
+- [ ] [T014] Complete Codex operator activation only after native probes prove the owner-approved filesystem scope and tool/network restrictions; verify public admission, failure telemetry and one synthetic live experiment per FR-003/T004 (partial). The installed Windows runtime currently reads outside synthetic files before rejecting patch writes; do not enable it or broaden permissions.

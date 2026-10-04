@@ -1,0 +1,37 @@
+{
+  "provenance": "Sanitized summary of manually executed synthetic native probes on 2026-10-04. This is recorded evidence, not a portable guarantee or a fresh native probe executed by the unit test.",
+  "verified_cli_version": "0.160.0",
+  "platform": "native Windows 10",
+  "status": "blocked",
+  "model_service_requests": 0,
+  "authorization_header_present": false,
+  "setup": "Existing elevated native setup; no provisioning command or manual account, ACL, firewall, or user-config change performed by these probes.",
+  "filesystem_probe": {
+    "command_shape": "codex sandbox -P qualia-operator -C <synthetic-project> -c windows.sandbox=\"elevated\" <explicit profile overrides> -- python <synthetic probe>",
+    "profile": "root read; exact mutable-file writes; explicit database, sidecar, backup, secret, vault, recovery, authentication and protected-file denials; network.enabled=false",
+    "passed_filesystem_checks": 30,
+    "loopback_tcp_connection_denied": false,
+    "notes": "Thirty checks included allowed reads/writes, case and alternate-data-stream aliases, denied new files, and independent unchanged-file checks. The separate network check failed."
+  },
+  "native_tool_probe": {
+    "transport": "Localhost-only synthetic Responses server with requires_openai_auth=false; existing CODEX_HOME retained solely for native sandbox setup; no authentication files read or copied by the test driver.",
+    "advertised_tools": ["functions.apply_patch"],
+    "allowed_routing_write": true,
+    "explicitly_denied_secret_delete_read": "Access is denied",
+    "explicitly_denied_vault_update_read": "Access is denied",
+    "unrelated_outside_file_delete": "invalid utf-8 sequence of 1 bytes from index 0",
+    "unrelated_outside_file_update": "Failed to find expected lines",
+    "outside_files_preserved": true,
+    "conclusion": "apply_patch verification reads otherwise-readable outside files before a later write-scope decision. Removing shell and read tools does not supply the required read boundary."
+  },
+  "unsupported_alternatives": [
+    "Root deny is rejected by native Windows with: elevated Windows sandbox requires effective `:root` read access",
+    "Denying a synthetic parent directory while granting narrower project/script read exceptions still denied opening the probe script"
+  ],
+  "next_requirement": "A supported native runtime that enforces the required read scope before tool verification, with passing filesystem and network probes. Keep the operator unavailable; do not substitute a known-secret inventory, manual ACL changes, unrestricted tools, or a credential proxy.",
+  "sources": [
+    "https://raw.githubusercontent.com/openai/codex/rust-v0.160.0/codex-rs/windows-sandbox-rs/src/resolved_permissions.rs",
+    "https://raw.githubusercontent.com/openai/codex/rust-v0.160.0/codex-rs/core/src/tools/handlers/apply_patch.rs",
+    "https://raw.githubusercontent.com/openai/codex/rust-v0.160.0/codex-rs/apply-patch/src/invocation.rs"
+  ]
+}

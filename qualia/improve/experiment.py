@@ -15,6 +15,7 @@ from pathlib import Path
 
 from qualia.ai import ledger
 from qualia.ai.backends.fake import FakeBackend
+from qualia.ai.backends.process import BackendError
 from qualia.ai.schemas import routing_config
 from qualia.evaluation import evaluate_project
 from qualia.improve.policy import decide
@@ -171,9 +172,19 @@ def _operator(agent, injected):
         raise ValueError('unknown improvement agent')
     module = importlib.import_module(f'qualia.ai.backends.{agent}_cli')
     if not getattr(module, 'operator_available', lambda: False)():
-        raise ValueError(f'{agent} operator unavailable: confinement/accounting gate is not satisfied')
-    # Vendor operator enablement requires a future verified per-request admission contract.
-    raise ValueError(f'{agent} operator unavailable: verified request coordinator is required')
+        raise ValueError(module.OPERATOR_UNAVAILABLE_REASON)
+    if injected is not None:
+        raise ValueError('injected operators are supported only by the fake agent')
+    operator_model = 'opus' if agent == 'claude' else 'gpt-6-astra'
+    provider = getattr(module, 'ClaudeCLIBackend' if agent == 'claude' else 'CodexCLIBackend')()
+
+    def invoke(project, prompt, report_path):
+        config = routing_config(read_config(project))
+        return module.run_operator(project, prompt, model=operator_model,
+                                   max_output_tokens=config['max_output_tokens'],
+                                   report_path=report_path.relative_to(project).as_posix())
+
+    return invoke, provider, operator_model
 
 
 def _journal(path, values):
@@ -262,6 +273,8 @@ def improve_project(project, agent='fake', budget=1, *, operator=None, backend=N
                 raw, operator_error = None, None
                 try:
                     raw = invoke(project, prompt, report_path)
+                except BackendError as error:
+                    operator_error = error
                 except Exception:
                     operator_error = ValueError('operator failed')
                 reasons = ['operator failed'] if operator_error else []

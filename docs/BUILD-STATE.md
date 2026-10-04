@@ -23,7 +23,7 @@ P11 verification: full offline suite411 passed,5 skipped,4 live deselected,152.1
 P11 live outcome: Codex gpt-6-luna passed through the actual public router. Claude first failed at the fixture's512-token allowance; its one diagnostic retry reported four turns/2048 output tokens/no structured result, consistent with the existing native truncation fixture. Read-only diagnostician recommended increasing only the Claude live-test allowance to4096 (production remains8192). Exact Claude public-router test then passed in22.36s. Both providers validated synthetic output, recorded one admitted invocation/egress and positive aggregate usage, and wrote zero coding events. No API-key fallback, research disclosure, billing change or private-method bypass. Failed Claude invocations consumed quota and remain counted; no exact session-wide cost claim. Final router/ledger/API31 passed, Ruff clean, static rebuild passed. Local server restarted with current code; project egress settings unchanged. Full file-editing operator parity, native elevated setup/custom profile, official scanner permissions, Jev key/live test and private-main push remain separate open gates.
 
 - [x] P0.1 Tooling, login, model and toolbelt audit.
-- [~] P0.2 Environment schema, service/classification pings.
+- [x] P0.2 Environment schema, service/classification pings; remaining native strong models verified in P13.
 - [x] P0.3 Repo comparison and workstream classification.
 - [x] P0.4 Project safety kit, entrypoints, rule probes.
 - [x] P0.5 Constitution verification, private remote, subagent probe.
@@ -35,8 +35,8 @@ P11 live outcome: Codex gpt-6-luna passed through the actual public router. Clau
 - [x] P2.2 Import, segmentation, cases, codebook versions, memos and export.
 - [x] P2.3 Workspace UI, keyboard/span coding, retrieval and matrix; converge.
 - [x] P3.1 Spec Kit AI coding artifacts and analysis.
-- [~] P3.2 Backends, schemas, routing, budget, cache and egress ledger.
-- [~] P3.3 Review UI and feedback, I4/I5/budget gate; converge.
+- [x] P3.2 Backends, schemas, routing, budget, cache and egress ledger.
+- [x] P3.3 Review UI and feedback, I4/I5/budget gate; converge.
 - [x] P4.1 Spec Kit evaluation artifacts and analysis.
 - [x] P4.2 Metrics, benchmarks, pinned demo data and split manifests.
 - [x] P4.3 Evaluation UI, metric/oracle/idempotency gate; converge.
@@ -44,7 +44,7 @@ P11 live outcome: Codex gpt-6-luna passed through the actual public router. Clau
 - [~] P5.2 Protected experiment protocol, policy and operator lanes.
 - [x] P5.3 History UI, I2/I3 and MVP browser gate; converge (offline scope).
 - [~] P6.1 Hygiene/local checks pass; official security scan preflight and latest remote CI remain gated.
-- [ ] P6.2 Live Claude/Codex experiment parity.
+- [~] P6.2 Claude synthetic live experiment passed; Codex remains blocked by verified native runtime isolation failure.
 - [x] P7.D0 Design guard and baseline screenshots.
 - [x] P7.D1 Tokens, fonts, theme, DESIGN.md.
 - [x] P7.D2 Workspace and review presentation.
@@ -59,7 +59,7 @@ P11 live outcome: Codex gpt-6-luna passed through the actual public router. Clau
 
 ## Workstream audit
 
-Current: research, review, evaluation, fake improvement, analysis and visualization are implemented. Native subscription classification passed live checks under the approved invocation policy; file-editing operators remain gated. Jev passed live checks and is enabled for demo with its existing $1 daily local limit. Portfolio and user documentation are complete locally; hosting is not activated. Hygiene audits pass; the authorized official source scan failed its permission preflight. Native file-editing setup and private-main push still need explicit authorization. Constitution v1.0.0 preserved. Research DBs live outside the checkout. See FINAL-REPORT.md for the concrete handoff.
+Current: research, review, evaluation, fake improvement, analysis and visualization are implemented. Native subscription classification passed live checks under the approved invocation policy; file-editing operators remain gated. Jev passed live checks and is enabled for demo with its existing $1 daily local limit. Portfolio and user documentation are complete locally; hosting is not activated. Hygiene audits pass; the authorized official source scan failed its permission preflight. Owner decisions approve native operators and private-main pushes; setup is present. Claude improvement is verified; Codex remains blocked by actual runtime isolation failures. The official scanner is superseded by the owner's pre-release Claude security review. Constitution v1.0.0 preserved. Research DBs live outside the checkout. See FINAL-REPORT.md for the concrete handoff.
 
 ## Preflight evidence
 
@@ -185,3 +185,29 @@ Design repair cycle1: first final Lighthouse13.5 audit returned performance75/ac
 D3-D7 final: all ten static views pass 1280/375px without page overflow or API requests; local workspace/review/experiments and synthetic numeric charts captured in design-review/final. One evidence-based repair iteration reduced hero delivery to7.7/22.7KB, reserved loading height and fixed caption contrast. Final Lighthouse96 performance/100 accessibility/CLS0.0001251722.30 Vitest tests and TypeScript pass. Independent presentation diff verifies199 unchanged functional attributes and empty protected functional diff against295c712. LOOP-REPORT records the pre-existing SVG font-family property-name exception; no logic altered to silence grep. Portfolio GIF and social preview produced. Push remains owner-gated.
 
 Final local handoff: presentation saved at fe7b8e8; exact protected-path comparison to295c712 empty. D7 guard restored to build with no guard-file diff. Normal/static builds pass, including root base plus reserved .invalid sitemap test and restored /qualia/ preview. Final Gitleaks scans:17 committed revisions, staged documentation, normal dist and static dist all zero findings. Data guard passes;42 local documentation links resolve; doc01 changed only permitted section10; docs02–05 and constitution unchanged from baseline. Illustrated USER-GUIDE, JEV-SETUP, FINAL-REPORT and WELCOME-BACK are ready. Specs006 local scope converged;007 offline scope converged with actual-response/live test deferred. Native activation, official scanner preflight, owner-saved Jev key, private-main push/new CI and public hosting remain explicitly unclaimed. All unaffected work is finished; BUILD IN PROGRESS is retained for unresolved load-bearing gates.
+
+P13 preflight (2026-10-04): verifier confirms tool versions unchanged, Claude subscription logged in and Codex ChatGPT sign-in, repository PRIVATE, origin/main at 2799152 with Checks SUCCESS run37181000184. Public demo workflow is skipped. OWNER-ANSWERS confirms prior push was completed by the planning session. New owner-run sandbox provisioning log is newer than the previous audit; initial actual Codex file probes pass, but command-network denial failed on loopback and is under independent diagnosis. Claude native restricted-tools probe passed after the known pytest Temp ACL setup failure was diagnosed and the exact test rerun with scoped access (1 passed, 4.20s); no permission edits. Main operator coordination tests first failed six cases at the intentional unavailable stub; connecting admitted invocations and retaining BackendError usage follows that red evidence. No live experiment launched yet.
+
+P13 repair cycle 1 (test fixture): exact native coordinator tests reached REVERT but callback calls stayed zero (4 failed/2 passed). Read-only diagnostician traced the fixture opening a second Store without the active operation ID; the existing write lock correctly refused it. Corrected fixture to observe real ledger admission through the orchestrator-owned Store before callback, preserving all lock checks. Exact rerun follows.
+
+P13 coordinator verification: exact six native accounting tests now pass (20.86s). New public Claude operator contract + actual expanded native confinement suite: 28 passed/1 unprivileged-symlink skip; native junction probe passed. Read-only reviewer confirms live fixture uses one invented sentence/code, a fresh temporary home and four admitted CLI invocations maximum across baseline/operator/candidate/confirmation. Native injected callbacks are refused; no readiness bypass. Broader rollback/classifier regression is running before live use.
+
+P13 affected gate: pytest tests/test_improvement.py tests/test_cli_backends.py tests/test_claude_operator_contract.py tests/test_operator_backends.py -q -p no:cacheprovider: 116 passed, 2 capability skips, 163.42s. Ruff clean on main changed Python files. Missing strong-tier classifier check closed: tests/live/test_classification.py -k gpt-6-astra -m live passed (1 passed/2 deselected, 12.25s), through public router with one admitted invocation and synthetic text. Claude live experiment now running against the reviewed one-sentence fixture. Operator model defaults follow doc01: Opus (officially resolves Opus5.5 at installed2.1.284) and gpt-6-astra, separate from evaluation model.
+
+P13 native hard stop: installed Codex0.160.0 actual apply_patch-only probe read an unrelated outside synthetic file before edit-policy rejection (invalid UTF-8 read error and missing-anchor error). Only patch tool was advertised; thus removing shell/network tools does not close outside-read scope. Root-deny profile is unsupported by this native backend, and broad parent-deny prevents intended child access. Codex remains disabled; no research data was probed and no system settings changed. Independent diagnosis also retains the real loopback-network failure, not a pass.
+
+P13 repair cycle 2 (Claude live): exact pytest tests/live/test_improvement.py -k claude -m live -q -p no:cacheprovider failed its operator-success assertion after49.03s (1 failed/1 deselected). Normal orchestrator recorded one REVERT experiment and an error usage completion; no frozen methodology/coding changes. Read-only diagnostician is inspecting safe ledger/error metadata before one bounded retry; a rejected/error experiment does not satisfy successful operator parity.
+
+P13 Spec Kit convergence: independent003 audit covered11FR/5SC/3stories/13tasks/5architecture decisions/7constitutional principles and found no remaining classification gap under approved invocation accounting. Main refreshed003 task state/evidence; P3.2/P3.3 now complete. Independent005 audit covered12FR/5SC/3stories/13tasks/5architecture decisions/7principles; FR003/T004 remains HIGH partial for Codex. Added traceable T014 convergence work; no false native parity or BUILD COMPLETE claim.
+
+P13 Claude diagnostic repeat: unchanged public live test failed with safe code scope, input19031/output2115, CLI2.1.284,40.26s. Permissions held; result correctly reverted. This identifies a rejected model file request, not auth/quota. Read-only diagnosis is assessing explicit permitted-file context/instructions; no permission widening or limit change is authorized as a fix. One final exact verification may follow a justified prompt repair (cycle3 maximum for this issue).
+
+P13 Claude repair verified: clarified only permitted-file inventory and the read/edit/report sequence, without changing tool permissions, four-turn/90-second limits or budget. Exact live rerun passed1 test/1 deselected in42.39s. This proves successful admitted Opus operator integration with Haiku evaluation on one invented record, not a research-quality gain.
+
+P13 repair cycle 4 (collection): full offline pytest failed before execution because new tests/live/test_improvement.py shared a basename with tests/test_improvement.py under default prepend imports. Read-only diagnostician confirmed filename collision. Renamed only the new live fixture to tests/live/test_native_improvement.py; no pytest policy/cache/test weakening. Exact full command rerun follows. Future live command uses that new filename.
+
+P13 successful live outcome details: one Opus operator completion (13455 input/861 output tokens), Haiku baseline (4966/727) and candidate (5030/792). Three admitted invocations/egress rows, zero coding events, frozen codebook/methodology unchanged, project Git clean. Validation macro-F1 and exact-match1.0→1.0; ECE0→0 on a single invented record, agreement undefined. Policy REVERT reason: gain below min_delta. No quality-improvement claim or exact remaining subscription quota. Failed earlier invocations remain charged to their fixture ledgers.
+
+P13 whitespace repair: preserving committed CRLF in the two touched003/tasks and005/spec Markdown files caused12 added-line whitespace warnings. Independent verifier confirmed the same prior newline cause. Normalized only those two touched files to LF, with byte comparison proving no extra textual change; no whitespace rules, attributes or guards changed. Exact diff check follows.
+
+P13 final local regression: full offline pytest445 passed,5 skipped,6 live deselected,228.83s. One existing Starlette/httpx deprecation warning remains; dependency unchanged. Ruff whole repository clean, research-data guard clean, source docs02–05/constitution unchanged, doc01 only section10, diff whitespace clean. Scoped independent security review found no new blocker and does not replace the owner's deferred Claude security review. No frontend changed; existing30-test/build/MCP evidence retained. P6.2 remains partial for Codex runtime isolation; P10 cannot close. Private push/CI follows this verified local checkpoint.

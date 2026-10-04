@@ -22,8 +22,10 @@ from qualia.ai.backends.process import (
 VERIFIED_VERSION = '0.160.0'
 PROVIDER_ID = 'qualia-subscription'
 OPERATOR_UNAVAILABLE_REASON = (
-    'Codex operator is unavailable until native filesystem isolation and its '
-    'file-editing confinement profile are verified.'
+    'Codex operator remains unavailable: the audited native Windows runtime reads '
+    'outside the project while verifying patches, and its loopback network denial '
+    'did not hold. Required read and network isolation must pass before activation. '
+    'Classification availability is independent.'
 )
 
 

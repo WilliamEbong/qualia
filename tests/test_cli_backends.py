@@ -100,7 +100,8 @@ def test_classification_readiness_uses_command_discovery_only(monkeypatch, vendo
     backend = getattr(vendor, class_name)(runner=lambda *a, **kw: calls.append(a))
     assert backend.available() is True
     assert calls == []
-    assert vendor.operator_available() is False
+    if vendor is claude_cli:
+        assert vendor.operator_available() is True
     assert 'accounting' not in vendor.OPERATOR_UNAVAILABLE_REASON
     monkeypatch.setattr(vendor, 'resolve_command', lambda: None)
     assert backend.available() is False

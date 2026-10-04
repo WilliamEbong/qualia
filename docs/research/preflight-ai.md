@@ -75,3 +75,7 @@ A benign PowerShell shell-snapshot warning occurred with shell disabled; both is
 - One exact Claude retry confirmed external quota; no local repair attempted.
 - Evidence-writing first attempt failed in the orchestration JavaScript parser because Markdown backticks were embedded in a raw template. No command ran and no file was changed. Replaced with a structured apply_patch call, preserving literal text. Parent session also diagnosed and fixed its encoding/here-string command issues; those are tooling issues, not application failures.
 - Pending: Claude classification after reset, Claude strong tier, and application-level isolation/egress/budget/provenance tests.
+
+## Resume evidence — 2026-10-04
+
+Installed versions remain Codex0.160.0 and Claude2.1.284; safe status checks confirm own ChatGPT and first-party claude.ai subscription sign-in. Normal public-router `tests/live/test_classification.py -k gpt-6-astra -m live` passed1 test in12.25s, one synthetic record and one admitted invocation. This closes the missing strong Codex classification check. Prior Haiku/Luna and no-action-tool evidence is retained. Operator tests are separate and must not be inferred from classification success.

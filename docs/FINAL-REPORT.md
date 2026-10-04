@@ -1,6 +1,6 @@
 # Qualia implementation and handoff
 
-Verified 2026-10-03, America/Denver, with a subsequent owner-approved native-classification update. The local research application, analytics, presentation and user documentation are implemented and verified. **The overall build remains in progress:** file-editing Claude/Codex improvement and the official external security scan have unresolved requirements. Native classification now uses the approved invocation-accounting policy; see BUILD-STATE for its latest verification. Jev is live-verified and enabled for demo with its existing $1 daily local limit. No public release or latest private-main push is claimed.
+Verified 2026-10-03, America/Denver, with a subsequent owner-approved native-classification update. The local research application, analytics, presentation and user documentation are implemented and verified. **The overall build remains in progress:** Codex file-editing improvement fails required native Windows read isolation. Claude improvement passed a synthetic live experiment. The official scanner was superseded by the owner-run Claude security review before public release. Native classification now uses the approved invocation-accounting policy; see BUILD-STATE for its latest verification. Jev is live-verified and enabled for demo with its existing $1 daily local limit. No public release or latest private-main push is claimed.
 
 ## Open and use it
 
@@ -23,7 +23,7 @@ Use [the illustrated user guide](USER-GUIDE.md) for the complete step-by-step wo
 | Data science handoff | Case CSV, JSON metadata/provenance, SVG charts, and matching standard-library Python/base-R starters; no arbitrary script execution inside Qualia |
 | Offline AI workflow | Rules and deterministic fake suggestions; accept/reject review; honest model-reported scores and matching-validation calibration evidence |
 | Evaluation / experiments | Fixed benchmark metrics, protected split separation, validation-driven KEEP/REVERT, confirming evaluation, restricted fake operator and recovery records |
-| Optional providers | Native subscription classification with audited CLI versions and explicit project permission; file-editing operators disabled; Jev adapter and setup controls installed |
+| Optional providers | Native subscription classification with audited CLI versions and explicit project permission; Claude operator verified; Codex operator disabled; Jev adapter and setup controls installed |
 | Presentation | Archive of Looking tokens/type/artwork, dark theme, accessible focus, responsive views, final screenshots, GIF and social image |
 
 This is not complete NVivo parity. Audio/video coding, live multi-user collaboration, proprietary NVivo project import and advanced inference/model fitting remain outside this implementation. Descriptive statistics and reproducible exports support continued work in Python or R.
@@ -46,8 +46,8 @@ You use **Qualia's interface**. A classification action calls the local server, 
 | Performance |Lighthouse13.5:96 performance,100 accessibility,CLS0.0001251722;[audit and repair evidence](../design-review/LOOP-REPORT.md) |
 | Design boundary |295c712→fe7b8e8 protected functional diff empty;199 functional attributes unchanged; no new runtime dependencies |
 | Hygiene |Gitleaks0 findings in checked current tree/history; npm0 vulnerabilities across249 dependencies; pip-audit0 across31 production dependencies; no tracked research storage |
-| Remote CI |Last pushed8029a36 passed; newer local commits have local evidence and have not run remote CI |
-| External security review |Authorized bounded scan stopped before model analysis because of Windows credential-home ancestor permissions; no completed scan or clean-security verdict claimed |
+| Remote CI | Private Checks passed at2799152; continued verified private-main pushes are now approved. See BUILD-STATE for the latest checkpoint. |
+| External security review | Official scanner superseded by owner decision; planned Claude `/security-review` remains a pre-public-release action, not a passed scan. |
 
 Native-classification update: full offline suite411 passed,5 skipped,4 live deselected; final router/ledger/API31 passed, including a subsequent safe-auth-error regression. Both **Codex gpt-6-luna and Claude haiku passed actual synthetic public-router classification** with one-invocation budgets, egress/usage records, validated output and zero coding events. Claude's512-token test fixture truncated; independent diagnosis increased only that fixture allowance to4096, below the unchanged8192 production ceiling. Earlier failed attempts were recorded and consumed subscription usage. See [live evidence](research/cli-classification.md#approved-policy-live-verification).
 
@@ -59,26 +59,18 @@ The GIF is a visual tour assembled from actual screenshots, not an interaction r
 
 After the owner saved the key and authorized activation, two synthetic live requests passed. Their combined recorded cost was $0.00003570. Jev is enabled for demo with the existing $1 daily local limit; new projects remain off by default. Playwright confirmed that Jev is selectable and Run classification is enabled. No study data was sent and no billing settings were changed. Other devices and users can follow [Jev setup](JEV-SETUP.md).
 
-### 1. Remaining file-editing operator requirements
+### 1. Codex native operator isolation
 
-The owner approved both native usage-limit exceptions in [the recorded decision](answers/01-native-usage.md). Native calls now mean bounded CLI invocations, not individual internal HTTP requests; Codex uses local limits without a provider generation-token cap. These usage decisions are resolved. The remaining requirements concern agents that edit files:
+Your approvals were applied and elevated setup is present. Actual Codex0.160.0 synthetic probes found that apply_patch reads unrelated outside files before rejecting writes; network-disabled commands also reached loopback. The operator stays disabled. Another setup run or broader permissions is not a repair. Resume only with a supported runtime or an explicitly approved alternative architecture that passes native read/write/tool/network isolation checks. No research data was used in these probes.
 
-1. Authorize native Windows sandbox setup. It creates persistent account/ACL/firewall configuration and needs Administrator/UAC execution. The proposed command is `codex sandbox setup --elevated --current-user`. After authorization, setup and synthetic denied-read/allowed-write checks must pass before activation.
-2. Authorize a tested custom native operator permission profile in place of the runbook's workspace-write flag. Database, vault, secrets, recovery files and protected methodology must remain inaccessible; no fallback exposing research paths is acceptable.
-These remaining approvals permit operator implementation/testing, not immediate blanket activation. Classification uses the already verified no-action-tools path and does not require a file-editing operator. The earlier rejected private diagnostic is superseded by normal public-router verification under the accepted usage policy; no private readiness bypass is used.
+Claude improvement is enabled and live-verified with Opus5.5. On one invented record, Haiku validation macro-F1 stayed1.0→1.0; Qualia correctly recorded REVERT, preserved methodology/codebook/coding state, and left the project Git tree clean. The successful attempt used three admitted invocations within a cap of four. Two earlier rejected attempts remain honestly recorded; no session-wide quota estimate is claimed.
 
-### 2. Private repository checkpoint
+### 2. Before public release
 
-Authorize pushing the verified local commits to the existing **private main** branch if you want remote backup and fresh CI. This does not make the repository public. Public release is a separate owner action; the Pages workflow remains gated.
-
-### 3. Official security scanner environment
-
-The authorized scanner rejects a Windows credential-home ancestor because its validator finds an applicable replacement/Modify permission at `C:\`. The `.codex` state ancestors pass, but every path on that drive still includes the root. No ACL or credential changes were made. An administrator must review the drive permission policy, or supply an already-private path on another volume whose complete ancestor chain passes. Do not weaken the scanner check or change drive-wide ACLs casually. This finding is a scanner preflight limitation, not evidence of a compromise or an application vulnerability.
-
-**Why these actions remain pending:** automatic approval review rejected the persistent native sandbox setup and private-main push without explicit authorization for system changes and shared-branch mutation. The earlier private Claude diagnostic rejection no longer blocks classification: the owner subsequently approved native usage, and both providers passed normal public-router tests. The official security scan was authorized, then independently blocked by its own permission validation. All unaffected implementation, design and documentation work continued.
+Run your planned Claude Code `/security-review`. The official scanner is superseded, not passed. Private-main checkpoint pushes are authorized; public visibility and deployment remain your separate decisions. No drive-wide ACL, firewall, credential or billing change was made.
 
 ## Checkpoints and cost
 
 Functional baseline295c712 and final presentationfe7b8e8 preserve the implementation/design boundary. The final documentation commit follows them. `docs/BUILD-STATE.md` is the chronological evidence log; `WELCOME-BACK.md` is the concise resume entrypoint. Protected source documents02–05 and the constitution were not edited; only the permitted current-state section10 of doc01 was refreshed.
 
-Offline fake/rules tests recorded no external egress. Two synthetic Jev requests recorded a combined cost of $0.00003570; this is local usage accounting, not a verification of the account balance. Successful early Codex probes used the existing subscription; total session-wide provider quota/cost is not available and is not represented as zero. The security scanner failed before analysis. No public hosting, paid billing change or latest remote push was performed.
+Offline fake/rules tests recorded no external egress. Two synthetic Jev requests recorded a combined cost of $0.00003570; this is local usage accounting, not a verification of the account balance. Successful early Codex probes used the existing subscription; total session-wide provider quota/cost is not available and is not represented as zero. The official security scanner was superseded after its preflight failure. No public hosting or paid billing change was performed. Current private push/CI evidence is in BUILD-STATE.

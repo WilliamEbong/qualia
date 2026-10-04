@@ -39,7 +39,7 @@ def project(tmp_path):
 
 @pytest.mark.parametrize('vendor', [claude_cli, codex_cli])
 def test_operator_readiness_gate_never_launches(vendor, project, monkeypatch):
-    monkeypatch.setattr(vendor, 'resolve_command', lambda: pytest.fail('operator launched'))
+    monkeypatch.setattr(vendor, 'resolve_command', lambda: None)
     assert not vendor.operator_available() and vendor.OPERATOR_UNAVAILABLE_REASON
     with pytest.raises(BackendError, match='operator_unavailable'):
         vendor.run_operator(project, 'Synthetic task.', report_path='experiments/0002.md')
@@ -52,6 +52,8 @@ def test_operator_exact_argv_scope_and_output_fixture(project, monkeypatch):
     def runner(argv, **kwargs):
         if '--version' in argv:
             return ProcessResult(0, b'2.1.284', b'')
+        if 'auth' in argv:
+            return ProcessResult(0, b'{"loggedIn":true,"authMethod":"claude.ai","apiProvider":"firstParty"}', b'')
         settings_path = Path(argv[argv.index('--settings') + 1])
         settings = json.loads(settings_path.read_text())
         assert settings_path.parent != project
@@ -125,6 +127,11 @@ def test_native_claude_file_tool_confinement(project, tmp_path):
     vault = tmp_path / 'vault'
     vault.mkdir()
     (vault / 'gold.json').write_text('SECRET_VAULT_SENTINEL')
+    for name in ('project.db-wal', 'project.db-shm', 'project.db.bak', 'recovery.json'):
+        (project / name).write_text('SECRET_BACKUP_SENTINEL')
+    (project / 'config/prompts/.env.local').write_text('SECRET_NESTED_ENV_SENTINEL')
+    auth = tmp_path / 'auth.json'
+    auth.write_text('SECRET_AUTH_SENTINEL')
     home = tmp_path / 'synthetic-home'
     home.mkdir()
     settings = tmp_path / 'settings.json'
@@ -132,12 +139,15 @@ def test_native_claude_file_tool_confinement(project, tmp_path):
     requests = []
     reads = ['config/routing.yaml', 'project.db', 'codebook.json', '.env', '.git/config',
              'METHODOLOGY.md', 'experiments/0001.md', 'CLAUDE.md', 'AGENTS.md', 'improvement.yaml',
-             str(outside), '../outside.txt', str(vault / 'gold.json')]
+             str(outside), '../outside.txt', str(vault / 'gold.json'), str(auth),
+             'project.db-wal', 'project.db-shm', 'project.db.bak', 'recovery.json',
+             'config/prompts/.env.local']
     if os.name == 'nt':
         reads.extend(['PROJECT.DB', 'codebook.json::$DATA'])
     writes = [('Edit', {'file_path': str(project / 'config/routing.yaml'),
                        'old_string': 'before', 'new_string': 'after'}),
               ('Write', {'file_path': str(project / 'config/prompts/new.txt'), 'content': 'candidate'}),
+              ('Write', {'file_path': str(project / 'config/segmentation.yaml'), 'content': 'mode: sentence'}),
               ('Write', {'file_path': str(project / 'experiments/0002.md'), 'content': 'Hypothesis'}),
               ('Write', {'file_path': str(project / 'experiments/proposals/0002/idea.md'), 'content': 'Proposal'}),
               ('Write', {'file_path': str(project / 'METHODOLOGY.md'), 'content': 'FORBIDDEN'}),
@@ -145,7 +155,9 @@ def test_native_claude_file_tool_confinement(project, tmp_path):
               ('Write', {'file_path': str(outside), 'content': 'FORBIDDEN'})]
     writes.extend(('Write', {'file_path': str(project / path), 'content': 'FORBIDDEN'})
                   for path in ('codebook.json', '.env', '.git/config', 'experiments/0001.md',
-                               'CLAUDE.md', 'AGENTS.md', 'improvement.yaml', '../outside.txt'))
+                               'CLAUDE.md', 'AGENTS.md', 'improvement.yaml', '../outside.txt',
+                               'project.db.bak', 'recovery.json', 'experiments/0003.md',
+                               'config/prompts/.env.local'))
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *args):
@@ -208,6 +220,7 @@ def test_native_claude_file_tool_confinement(project, tmp_path):
     assert {tool['name'] for tool in requests[0]['tools']} == {'Read', 'Edit', 'Write'}
     assert (project / 'config/routing.yaml').read_text() == 'after'
     assert (project / 'config/prompts/new.txt').read_text() == 'candidate'
+    assert (project / 'config/segmentation.yaml').read_text() == 'mode: sentence'
     assert (project / 'experiments/0002.md').read_text() == 'Hypothesis'
     assert (project / 'experiments/proposals/0002/idea.md').read_text() == 'Proposal'
     assert (project / 'METHODOLOGY.md').read_text() == 'SECRET_METHOD_SENTINEL'
@@ -220,4 +233,9 @@ def test_native_claude_file_tool_confinement(project, tmp_path):
                            ('experiments/0001.md', 'SECRET_OLD_REPORT_SENTINEL')]:
         assert (project / path).read_text() == original
     assert outside.read_text() == 'SECRET_OUTSIDE_SENTINEL'
+    assert auth.read_text() == 'SECRET_AUTH_SENTINEL'
+    for name in ('project.db-wal', 'project.db-shm', 'project.db.bak', 'recovery.json'):
+        assert (project / name).read_text() == 'SECRET_BACKUP_SENTINEL'
+    assert (project / 'config/prompts/.env.local').read_text() == 'SECRET_NESTED_ENV_SENTINEL'
+    assert not (project / 'experiments/0003.md').exists()
     assert 'SECRET_' not in json.dumps(requests) + result.stdout.decode(errors='replace')

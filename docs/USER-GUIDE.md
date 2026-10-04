@@ -4,7 +4,7 @@
 
 Qualia helps you read research material, apply your own codebook, keep analytic notes, compare patterns across cases, and trace results back to the passages and decisions that produced them. You can work manually without an AI account. Optional classifiers produce suggestions for you to review; they do not decide your methodology.
 
-This guide is for a researcher using the local Windows installation. It describes implemented workflows and their limits. Availability messages in the app remain authoritative: native classification requires an audited CLI version, your own subscription sign-in and project permission; file-editing improvement operators remain unavailable. Jev requires separate setup; this owner installation is now verified and enabled for demo. The optional security scanner did not complete its Windows permission preflight; this guide does not claim a completed external security audit, deployment, or remote push. See [build status](BUILD-STATE.md) for current verification and remaining work.
+This guide is for a researcher using the local Windows installation. It describes implemented workflows and their limits. Availability messages in the app remain authoritative: native classification requires an audited CLI version, your own subscription sign-in and project permission; Claude improvement is enabled; Codex improvement remains unavailable because native Windows read isolation failed. Jev requires separate setup; this owner installation is now verified and enabled for demo. The optional official scanner was superseded by your planned Claude Code `/security-review` before public release; no completed external security audit or public deployment is claimed. See [build status](BUILD-STATE.md) for current verification and remaining work.
 
 **Use Qualia's own browser UI for your research.** Start it with `uv run qualia open`, then use its Workspace, Codebook, Review and Analysis views. You do not need to keep an AI desktop app open. Native classification launches the installed Codex or Claude CLI as a local subprocess and lets that CLI use its existing official sign-in; it does not ask you to paste a subscription token into Qualia. Follow [AI backend setup](#12-generate-and-review-ai-suggestions) before using it.
 
@@ -405,7 +405,7 @@ The starters reproduce selected numeric summaries, pairwise correlations and cas
 |---|---|
 | `rules` | Offline keyword baseline. Matches comma/newline-separated inclusion terms, or the code name when inclusion text is empty, as case-insensitive substrings. It does not interpret your full methodology. |
 | `fake` | Offline deterministic demonstration. Proposes configured first/all/no codes with a synthetic rationale. It is not a trained model or a research-quality recommendation system. |
-| `claude`, `codex` | Native classification with your own eligible subscription sign-in and audited CLI version. External processing must be allowed for the project. File-editing improvement remains disabled separately. |
+| `claude`, `codex` | Native classification with your own eligible subscription sign-in and audited CLI version. External processing must be allowed for the project. Claude improvement uses restricted file tools; Codex improvement remains blocked separately. |
 | `jev` | Optional external classifier, installed but off by default. Requires a locally configured key, project opt-in and a deliberate backend choice. |
 
 **What has actually been tested:** the [synthetic CLI preflight](research/preflight-ai.md), [adapter evidence](research/cli-classification.md) and [current build state](BUILD-STATE.md) distinguish standalone CLI calls, offline transport tests and actual normal-router smoke tests. The owner subsequently [approved practical native limits](answers/01-native-usage.md). This resolves the usage-policy gates, while file-editing operator isolation remains separate. The [subscription documentation review](research/subscription-policy.md) explains native-login use without claiming provider approval of every integration.
@@ -532,7 +532,7 @@ Use `--protected` without `--split protected`. A protected benchmark must alread
 
 An experiment proposes a change to implementation configuration/prompts, measures it on validation data, and records **KEEP** or **REVERT**. It does not authorize changing research code definitions, benchmark labels, methodology or protected test data.
 
-The currently usable demonstration operator is `fake`. Native Claude and Codex operators remain unavailable. The CLI's default agent is Claude, so specify fake explicitly for this demonstration:
+Use `fake` to practice offline. Claude is now available with the audited CLI and your own subscription. Codex improvement remains disabled after its native Windows runtime failed read-isolation probes; this does not disable Codex classification. Specify fake explicitly for this demonstration:
 
 ```powershell
 uv run qualia improve --project demo --agent fake --budget 1
@@ -540,6 +540,20 @@ uv run qualia history --project demo
 ```
 
 **Prerequisites:** a prepared validation benchmark, sufficient remaining call budget, and a clean project Git baseline. Check that you have not left uncommitted configuration or report files in the research workspace. Do not delete research files or use destructive Git commands to make an error disappear; save and review the intended changes first. Writing evaluation exports outside the workspace helps keep its experiment baseline clean.
+
+For a prepared study with external processing enabled, run the native Claude workflow from PowerShell:
+
+```powershell
+uv run qualia improve --project my-study --agent claude --budget 1
+uv run qualia history --project my-study
+```
+
+1. Prepare and import the validation benchmark described in section 14, then save the intended configuration as a clean project Git baseline.
+2. Confirm the project's external-processing permission and remaining local invocation budget. The operator uses Opus; the evaluation uses the project's configured classifier, or your explicit `--backend` and `--model` choices.
+3. Run one experiment. Claude may read and edit only the permitted implementation files; protected data and methodology remain inaccessible. Qualia records its invocation and any reported usage, then runs trusted validation.
+4. Open **Experiments** to inspect the hypothesis, changed files, metrics and KEEP/REVERT reason. REVERT is a valid outcome, not an instruction to bypass the policy.
+
+Each native classification batch contains at most five segments. A 1,258-segment validation split needs 252 invocations per pass; baseline plus candidate already exceeds the default 300 daily limit. Use an appropriately small validation workflow or deliberately configure a suitable budget; Qualia does not raise limits automatically. The live smoke test used one invented sentence and a four-invocation cap. Opus completed its allowed prompt edit, but Haiku macro-F1 remained 1.0→1.0, so the policy correctly reverted it. This is integration evidence, not improved research accuracy.
 
 The fake operator makes a scripted change to fake classification behavior. A gain verifies the measured experiment workflow; it is not model training or proof of better qualitative judgment. Repeating it after the change is already present may correctly produce REVERT.
 
@@ -641,7 +655,7 @@ There is no one-command recovery workflow. Do not delete the journal, lock, data
 | Analysis export says research data changed | The displayed input hash no longer matches current data/configuration. Select **Refresh analysis** to reload the workspace evidence and report, review the result, then download the complete CSV/JSON/starter set again. This also brings in edits from another CLI/tab. |
 | Analysis exceeds a budget | Narrow source/case scope, or use a smaller project when an input-table cap is exceeded. Counts are never silently truncated. |
 | Static controls are disabled | You are viewing the fixed public snapshot. Use the local app for editing or new analysis criteria. |
-| AI unavailable | Read **Backend availability and privacy** or run `availability`. Check the installed audited version, local subscription sign-in and project external-processing setting. File-editing operators remain disabled separately. |
+| AI unavailable | Read **Backend availability and privacy** or run `availability`. Check the installed audited version, local subscription sign-in and project external-processing setting. Claude improvement is enabled; Codex improvement has a separate native isolation blocker. |
 | `subscription_auth_required` | Open the official Claude CLI and sign in using your Claude subscription, not Console/API billing. Qualia deliberately rejects other modes. No token should be pasted into Qualia. |
 | `quota` | Your provider reported a usage/rate limit. Check your own subscription allowance and retry later; Qualia will not enable paid overages or automatically retry the invocation. |
 | Classification run too large | Choose **Current source** or pass explicit `--segments`; default whole-run limit is 2,000 segments. |

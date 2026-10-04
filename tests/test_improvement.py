@@ -120,11 +120,13 @@ def test_vault_tamper_is_flagged_and_preserved_without_parsing(project):
     assert git(project, 'status', '--porcelain') == ''
 
 
-def test_zero_invalid_dirty_and_unavailable_runs_launch_nothing(project):
+def test_zero_invalid_dirty_and_unavailable_runs_launch_nothing(project, monkeypatch):
+    from qualia.ai.backends import codex_cli
+    monkeypatch.setattr(codex_cli, "operator_available", lambda: False)
     assert improve(project, budget=0, operator=lambda *args: pytest.fail('operator called')) == []
     with pytest.raises(ValueError, match='budget'):
         improve(project, budget=-1)
-    with pytest.raises(ValueError, match='unavailable'):
+    with pytest.raises(ValueError, match='outside the project'):
         improve(project, agent='codex')
     (project/'unrelated.txt').write_text('owner work')
     with pytest.raises(ValueError, match='clean'):
@@ -254,3 +256,79 @@ def test_permission_only_protected_edit_is_reverted(project):
     row = improve(project, operator=operator)[0]
     assert row['decision'] == 'REVERT' and 'scope' in row['reason']
     assert stat.S_IMODE(path.stat().st_mode) == mode
+
+
+@pytest.mark.parametrize('agent', ['claude', 'codex'])
+@pytest.mark.parametrize('fails', [False, True])
+def test_native_operator_is_admitted_once_and_retains_usage(project, monkeypatch, agent, fails):
+    from qualia.ai.backends.process import BackendError
+    module = experiment.importlib.import_module(f'qualia.ai.backends.{agent}_cli')
+    monkeypatch.setattr(module, 'operator_available', lambda: True)
+    config_path = project / 'config/routing.yaml'
+    config = json.loads(config_path.read_text())
+    config.update(allow_external=True)
+    config_path.write_text(json.dumps(config))
+    git(project, 'add', '.')
+    git(project, '-c', 'user.name=Qualia', '-c', 'user.email=qualia@localhost',
+        'commit', '-qm', 'Admit synthetic native operator')
+    calls = []
+    admissions = []
+    reserve = experiment.ledger.reserve
+
+    def observe_admission(db, **kwargs):
+        reservation = reserve(db, **kwargs)
+        if kwargs['backend'].name == agent:
+            rows = db.rows('SELECT * FROM egress_log WHERE backend=?', (agent,))
+            assert len(rows) == 1
+            assert rows[0]['purpose'] == 'operator:cli_invocation'
+            admissions.append(reservation)
+        return reservation
+
+    monkeypatch.setattr(experiment.ledger, 'reserve', observe_admission)
+
+    def native(root, prompt, *, model, max_output_tokens, report_path):
+        assert len(admissions) == 1
+        assert report_path == 'experiments/0001.md'
+        assert model == ('opus' if agent == 'claude' else 'gpt-6-astra')
+        assert max_output_tokens == config['max_output_tokens']
+        calls.append(report_path)
+        if fails:
+            raise BackendError('quota', input_tokens=41, output_tokens=7,
+                               cli_version='synthetic-native')
+        (root / report_path).write_text('Measured experiment proposal.')
+        return {'hypothesis': 'Unchanged candidate must be rejected.', 'input_tokens': 41,
+                'output_tokens': 7, 'cli_version': 'synthetic-native'}
+
+    monkeypatch.setattr(module, 'run_operator', native)
+    row = improve(project, agent=agent)[0]
+    assert row['decision'] == 'REVERT'
+    assert len(calls) == 1
+    assert git(project, 'status', '--porcelain') == ''
+    with Store(project / 'project.db') as db:
+        attempts = db.rows('SELECT * FROM usage_ledger WHERE backend=? AND reservation_id IS NOT NULL', (agent,))
+        assert len(attempts) == 1
+        assert attempts[0]['status'] == ('error' if fails else 'ok')
+        assert attempts[0]['input_tokens'] == 41 and attempts[0]['output_tokens'] == 7
+        assert attempts[0]['cli_version'] == 'synthetic-native'
+        assert not db.rows('SELECT * FROM coding_events')
+
+
+@pytest.mark.parametrize('agent', ['claude', 'codex'])
+def test_native_operator_external_denial_prevents_dispatch(project, monkeypatch, agent):
+    module = experiment.importlib.import_module(f'qualia.ai.backends.{agent}_cli')
+    monkeypatch.setattr(module, 'operator_available', lambda: True)
+    monkeypatch.setattr(module, 'run_operator', lambda *a, **k: pytest.fail('external operator launched'))
+    with pytest.raises(ValueError, match='external'):
+        improve(project, agent=agent)
+    with Store(project / 'project.db') as db:
+        assert not db.rows('SELECT * FROM egress_log')
+
+
+@pytest.mark.parametrize('agent', ['claude', 'codex'])
+def test_native_injected_operator_cannot_bypass_vendor(project, monkeypatch, agent):
+    module = experiment.importlib.import_module(f'qualia.ai.backends.{agent}_cli')
+    monkeypatch.setattr(module, 'operator_available', lambda: True)
+    with pytest.raises(ValueError, match='injected'):
+        improve(project, agent=agent, operator=lambda *a: pytest.fail('injected native operator'))
+    with Store(project / 'project.db') as db:
+        assert not db.rows('SELECT * FROM egress_log')

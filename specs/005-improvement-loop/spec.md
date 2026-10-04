@@ -17,7 +17,7 @@ Governing sources: docs/01–05 and constitution v1.0.0. This is a prepared feat
 
 - FR-001: Provide qualia improve --agent claude|codex|fake --budget N with explicit finite nonnegative experiment count; zero budget launches no operator, invalid budget fails before mutation.
 - FR-002: Require clean baseline and snapshot mutable/protected state, config hashes and validation baseline before each experiment. Never call protected evaluation or read protected test contents.
-- FR-003: Implement run_operator in the existing Claude/Codex vendor files only: Claude print with Read/Edit/Write tools, Codex exec workspace-write, project cwd and IMPROVEMENT.md prompt; bound process execution and preserve subscription authentication.
+- FR-003: Implement run_operator in the existing Claude/Codex vendor files only: Claude print with Read/Edit/Write tools, Codex exec with the owner-approved native custom permission profile, project cwd and IMPROVEMENT.md prompt; bound process execution and preserve subscription authentication.
 - FR-004: Constrain candidate changes to mutable config, plus designated experiment-report/proposal outputs. Detect tracked and untracked changes, path escapes/symlinks and protected-hash mismatch; violations automatically REVERT.
 - FR-005: Evaluate candidate validation predictions through the sealed evaluator without changing coding_events; compute KEEP/REVERT exclusively from protected policy, test results, budgets and measured metrics.
 - FR-006: Require primary gain >=0.01, each priority-code regression <=0.02, no challenge regression, passing tests and calls <=1.2 times baseline; rerun any candidate that first qualifies and KEEP only if confirmation also qualifies.
@@ -60,3 +60,7 @@ Quoted shared gates retain their original scope. This feature proves its relevan
 - KEEP requires a second candidate evaluation using the same fixed benchmark and policy. Both candidate and confirmation must pass; operator claims never override measured metrics or the protected policy.
 - Changing segmentation config during an experiment affects only its implementation evaluation against fixed benchmark identities; it does not rewrite imported source text, stored human segments or gold labels.
 - The fake operator scripts deterministic gain, regression, out-of-scope and methodology attacks for tests. Live operators use the installed unmodified subscription CLIs only; their outputs are untrusted.
+
+## Owner-approved completion (2026-10-04)
+
+Apply docs/answers/01-native-usage.md and 02-native-operators.md: native admission counts bounded CLI invocations; Codex uses the tested custom permission profile instead of literal workspace-write. Claude improvement uses the verified Opus alias and Codex gpt-6-astra, independently of the evaluation backend. Real path-confinement evidence is required before each vendor is activated. Native setup is owner-run; no ACL or credential workaround. The official scanner is superseded by the later owner-run Claude security review. No other invariant changes.

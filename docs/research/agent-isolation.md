@@ -1,6 +1,6 @@
 # Agent isolation audit — Phase 3 and Phase 5
 
-**Latest status:** section 6 supersedes the preliminary native Windows profile recommendation; native enforcement remains unproved and setup is blocked by automatic approval review.
+**Latest status (2026-10-04):** owner approvals and Windows provisioning are now present. Section 7 records actual native runtime failures; Codex operator activation remains blocked by read/network enforcement, not missing approval or setup. Claude restricted file tools pass expanded synthetic enforcement probes.
 
 Audited 2026-10-03 against installed Codex 0.160.0, Claude Code 2.1.284, docs01/02, specs003/005, `qualia/ai/protocol.py`, `qualia/workspace.py`, and Store. This report changes no source contract or application code. No paid/model-service calls were made. Temporary localhost mock Responses requests used a fresh synthetic CODEX_HOME without credentials; they are not subscription-authentication tests.
 
@@ -263,3 +263,16 @@ Do not introduce an API-key backend, intercept subscription traffic, patch the C
 - **G2 — operator argv:** replace literal `-s workspace-write` with the supported custom permission profile (no -s), proven for the installed Windows backend. Current state: contract adaptation needed; profile parsing alone passed.
 - **G3 — native read scope:** explicit deny protection rather than unsupported root-deny allowlisting; no protected split, recovery snapshot, DB or credentials may be exposed. Current state: narrower native profile not yet proven.
 - **G4 — generation bound:** retain native max_tokens invariant and disable live Codex, or explicitly accept the bounded-local-runtime alternative above. Current state: native provider-token cap absent in verified 0.160.0.
+
+
+## 7. Resume evidence — native Windows enforcement (2026-10-04)
+
+The owner approved the operator adaptation and personally completed native setup. Installed npm Codex remains0.160.0. No setup, ACL, firewall or credential change was performed by this session.
+
+The synthetic native sandbox passed30 filesystem assertions for explicitly protected paths, including database/sidecar/backup, vault, recovery and authentication-shaped sentinels. However `network.enabled=false` still permitted loopback TCP. Source review and safe configuration inspection excluded the documented local-binding/proxy exceptions; the host cause remains unresolved.
+
+An actual localhost Responses fixture advertised only `functions.apply_patch`. A permitted config write succeeded; explicitly denied secret deletion and vault update failed at read access. Crucially, unrelated outside files that were not in the deny inventory were read during patch verification: deleting an invalid-UTF8 sentinel produced a UTF8 decoding error, and updating a valid sentinel produced an anchor mismatch. Neither file changed. The native runtime requires effective root-read; root-deny fails, and denying a parent also defeats its permitted child exceptions. Thus neither a known-secret inventory nor removing shell/read tools enforces the required outside-read boundary.
+
+All probes used synthetic files and localhost model fixtures, with no model-service requests and no Authorization header. The sanitized record is tests/fixtures/codex-operator-isolation.json. Raw request/argv artifacts remain temporary and are not committed. Independent review confirmed the failure interpretation. The public Codex operator continues to reject before dispatch and now explains the concrete reason. Its no-tools classifier remains independently verified.
+
+The next requirement is a supported native runtime enforcing the required read boundary before patch verification, plus passing filesystem/tool/network probes. Do not repeat provisioning or weaken permissions. An alternative isolation architecture would need a new explicit owner decision and verification; the existing approvals do not authorize exposing unrelated files.
