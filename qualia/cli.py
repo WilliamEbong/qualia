@@ -405,6 +405,14 @@ def open_command(port: int = typer.Option(8765, min=1024, max=65535), browser: b
         stopped.set()
 
 
+@app.command('app')
+def app_command(port: int | None = typer.Option(None, min=1024, max=65535)):
+    """Open Qualia in its own Edge/Chrome window; closing the window stops Qualia."""
+    from qualia.launcher import main
+
+    main(port)
+
+
 def _open_when_ready(server, port: int, stopped: threading.Event):
     deadline = time.monotonic() + 30
     while not stopped.wait(0.05) and time.monotonic() < deadline:
