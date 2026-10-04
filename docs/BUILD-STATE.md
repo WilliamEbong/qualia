@@ -6,6 +6,8 @@ Started 2026-10-03. Baseline: f1d8719. Owner authorized autonomous implementatio
 
 ## Adjusted plan and checkpoints
 
+- [~] P12 Jev activation: owner saved the key and requested remaining setup. Local readiness confirms key configured; verify one bounded synthetic request through normal admission, then enable only the public demo and verify UI readiness. No billing changes or private-study processing are included.
+
 - [x] P11 Native classification: owner-approved practical limits and per-invocation accounting implemented; real public-router Claude/Codex synthetic checks pass. Separate file-editing operator gates remain.
 
 P11 policy approval is recorded in docs/answers/01-native-usage.md. Assumption: this authorizes the existing no-tools classification path and small synthetic public-router verification, not elevated operator setup or private-main push. Six requirements/four success criteria/six tasks have full coverage. Initial native batch/retry tests failed as expected before implementation; five-segment cap, zero automatic native retries and explicit egress-purpose unit now pass. Targeted router/ledger29 passed. The first wider run hit the previously diagnosed pytest Temp ACL issue (24passed/5fixture errors); exact scoped-access rerun passed without changing tests or permissions. CLI-provided sanitized Claude status confirms subscription mode; no credential file was read.
