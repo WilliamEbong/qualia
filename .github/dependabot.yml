@@ -8,6 +8,10 @@ updates:
     directory: /web
     schedule:
       interval: weekly
+    ignore:
+      # pinned ~5.9.3: openapi-typescript's peer dependency rejects newer majors (docs/01 §7)
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
