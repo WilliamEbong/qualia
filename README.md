@@ -175,3 +175,5 @@ The [MVP Playwright spec](tests/e2e/mvp.spec.ts) requires explicit URL, project,
 - Owner-approved native accounting counts CLI invocations, retains failed attempts, and reports known aggregate tokens without pretending to measure internal HTTP requests or exact remaining subscription quota. Jev keeps separate direct-request accounting.
 
 Software: [MIT](LICENSE). Dataset provenance and permissions: [DATA-LICENSES.md](DATA-LICENSES.md).
+
+Owner operator decision (2026-10-04): complete native Claude/Codex improvement under verified file confinement and per-invocation accounting. Codex may use the approved custom permission profile; the owner performs elevated setup personally. Verified checkpoints may be pushed to private main. The blocked official scanner is superseded by the owner-run Claude `/security-review` before public release. See [recorded decisions](docs/answers/02-native-operators.md).
