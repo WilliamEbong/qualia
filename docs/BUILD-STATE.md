@@ -277,3 +277,5 @@ P17 evidence: windowless `qualia-app.exe` (gui-script) and `qualia app` open an 
 
 P17 release: eacbc92 pushed; Checks 37226290793 SUCCESS (https://github.com/WilliamEbong/qualia/actions/runs/37226290793). Tag v0.1.0 → Release workflow 37226412921 SUCCESS; GitHub release "Qualia v0.1.0" (https://github.com/WilliamEbong/qualia/releases/tag/v0.1.0) carries Qualia-v0.1.0.zip (43,076,583 bytes). The release becomes visible to the public when the owner makes the repository public.
 
+
+P17.1 default browser (owner request 2026-10-04): the launcher reads the Windows default browser (HKCU UrlAssociations https UserChoice ProgId) and opens a Chrome app window when Chrome is the default, otherwise Edge, then Chrome, then the default browser. Tests: launcher 8 passed (default chrome/edge/none ordering, ProgId parsing). Real check on this PC (Chrome default): the icon's program opened a Chrome app window in the owner's normal profile with no dialogs (UI Automation), and after closing it the server stopped in 169 s with no Qualia processes left.

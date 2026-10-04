@@ -12,7 +12,7 @@ from pathlib import Path
 
 # A windowless (GUI-script) launch has no console, so messages need a dialog instead of stderr.
 _CONSOLE = sys.stderr is not None
-_PROGRAMS = ('Microsoft/Edge/Application/msedge.exe', 'Google/Chrome/Application/chrome.exe')
+_PROGRAMS = {'edge': 'Microsoft/Edge/Application/msedge.exe', 'chrome': 'Google/Chrome/Application/chrome.exe'}
 _MAC_APPS = ('/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
              '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
 _COMMANDS = ('msedge', 'microsoft-edge', 'google-chrome', 'chromium', 'chromium-browser')
@@ -22,10 +22,27 @@ CHECK_SECONDS = 10
 IDLE_CHECKS = 18  # ponytail: ~3 awake minutes without page contact; shorten if users want faster exit
 
 
+def _default_browser():
+    """'chrome' or 'edge' when that is the Windows default browser, else None."""
+    try:
+        import winreg
+
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\Shell\Associations'
+                            r'\UrlAssociations\https\UserChoice') as key:
+            program = winreg.QueryValueEx(key, 'ProgId')[0]
+    except (ImportError, OSError):
+        return None
+    return 'chrome' if program.startswith('ChromeHTML') else 'edge' if program.startswith('MSEdgeHTM') else None
+
+
 def find_browser():
-    """Edge or Chrome, whose app mode gives Qualia a window without tabs or address bar."""
+    """Edge or Chrome, whose app mode gives Qualia a window without tabs or address bar.
+
+    The person's default browser wins when it is one of the two; otherwise Edge, which every
+    Windows 10/11 PC has."""
+    order = ('chrome', 'edge') if _default_browser() == 'chrome' else ('edge', 'chrome')
     roots = [os.environ.get(name) for name in ('ProgramFiles(x86)', 'ProgramFiles', 'LOCALAPPDATA')]
-    paths = [Path(root, program) for root in roots if root for program in _PROGRAMS]
+    paths = [Path(root, _PROGRAMS[browser]) for browser in order for root in roots if root]
     for path in [*paths, *map(Path, _MAC_APPS)]:
         if path.is_file():
             return str(path)

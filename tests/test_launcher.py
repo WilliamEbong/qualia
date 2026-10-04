@@ -98,9 +98,28 @@ def test_without_edge_or_chrome_the_default_browser_is_used(quiet, monkeypatch):
     assert opened == [f'http://127.0.0.1:{running.server_port}'] and quiet == []
 
 
-def test_find_browser_prefers_installed_edge(monkeypatch, tmp_path):
-    edge = tmp_path / 'Microsoft/Edge/Application/msedge.exe'
-    edge.parent.mkdir(parents=True)
-    edge.write_text('')
+@pytest.mark.parametrize('default,expected', [('chrome', 'chrome'), ('edge', 'edge'), (None, 'edge')])
+def test_find_browser_follows_the_default_browser_then_edge(monkeypatch, tmp_path, default, expected):
+    paths = {'edge': tmp_path / 'Microsoft/Edge/Application/msedge.exe',
+             'chrome': tmp_path / 'Google/Chrome/Application/chrome.exe'}
+    for path in paths.values():
+        path.parent.mkdir(parents=True)
+        path.write_text('')
     monkeypatch.setenv('ProgramFiles(x86)', str(tmp_path))
-    assert launcher.find_browser() == str(edge)
+    monkeypatch.setattr(launcher, '_default_browser', lambda: default)
+    assert launcher.find_browser() == str(paths[expected])
+
+
+def test_default_browser_is_read_from_windows_settings(monkeypatch):
+    class Key:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            pass
+
+    winreg = type('winreg', (), {'HKEY_CURRENT_USER': 0, 'OpenKey': lambda *args: Key(),
+                                 'QueryValueEx': lambda key, name: (prog, 1)})
+    monkeypatch.setitem(__import__('sys').modules, 'winreg', winreg)
+    for prog, expected in (('ChromeHTML', 'chrome'), ('MSEdgeHTM', 'edge'), ('FirefoxURL-308046B0AF4A39CB', None)):
+        assert launcher._default_browser() == expected

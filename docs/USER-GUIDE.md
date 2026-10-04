@@ -71,7 +71,7 @@ You do not need Claude, Codex, Jev or R for manual coding.
 
 ### Open and close Qualia
 
-Double-click the **Qualia** icon. Qualia opens in its own window, using Microsoft Edge or Google Chrome in app mode, so there are no tabs or address bar. Without either browser it opens in your default browser.
+Double-click the **Qualia** icon. Qualia opens in its own window with no tabs or address bar, using Google Chrome if that is your default browser and Microsoft Edge otherwise. If neither is installed, it opens in your default browser.
 
 To stop Qualia, close its window. Qualia notices that no window is open and shuts itself down within about three minutes; nothing keeps running in the background. Opening the icon again during that time simply reopens a window.
 
