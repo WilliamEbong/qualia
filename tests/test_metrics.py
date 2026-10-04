@@ -24,10 +24,14 @@ def test_hand_computed_multilabel_full_codebook_and_resources():
                    prediction('b', [(1, .6), (2, 1.0)])]
     result = evaluate_metrics(records, predictions, [2, 1, 3], calls=2,
                               latency_ms=123, escalated_segments=1)
+    one_of_one, one_of_two = [.2065493, 1.], [.0945312, .9054688]  # 95% Wilson, hand-derived
     assert result['per_code'] == [
-        {'code_id': 2, 'precision': 1., 'recall': .5, 'f1': 2/3, 'support': 2},
-        {'code_id': 1, 'precision': .5, 'recall': 1., 'f1': 2/3, 'support': 1},
-        {'code_id': 3, 'precision': 0., 'recall': 0., 'f1': 0., 'support': 0},
+        {'code_id': 2, 'precision': 1., 'recall': .5, 'f1': 2/3, 'support': 2,
+         'precision_ci95': pytest.approx(one_of_one), 'recall_ci95': pytest.approx(one_of_two)},
+        {'code_id': 1, 'precision': .5, 'recall': 1., 'f1': 2/3, 'support': 1,
+         'precision_ci95': pytest.approx(one_of_two), 'recall_ci95': pytest.approx(one_of_one)},
+        {'code_id': 3, 'precision': 0., 'recall': 0., 'f1': 0., 'support': 0,
+         'precision_ci95': None, 'recall_ci95': None},
     ]
     assert result['macro_f1'] == pytest.approx(4/9)
     assert result['micro_f1'] == pytest.approx(2/3)
@@ -41,6 +45,8 @@ def test_hand_computed_multilabel_full_codebook_and_resources():
     assert result['escalation_rate'] == pytest.approx(1/3)
     assert result['calls_per_1000'] == pytest.approx(2000/3)
     assert result['latency_ms'] == 123
+    # Scored assignments .6 (wrong), .8 and 1.0 (right): reviewing below .8 leaves 100% >= 90%.
+    assert result['review_share'] == pytest.approx(1/3) and result['review_cutoff'] == .8
 
 
 def test_empty_and_degenerate_agreement_are_not_reported_as_zero_accuracy():
@@ -50,6 +56,8 @@ def test_empty_and_degenerate_agreement_are_not_reported_as_zero_accuracy():
         assert result[key] is None
     assert result['per_code'][0]['support'] == 0
     assert result['per_code'][0]['f1'] is None
+    assert result['per_code'][0]['precision_ci95'] is result['per_code'][0]['recall_ci95'] is None
+    assert result['review_share'] is result['review_cutoff'] is None
     result = evaluate_metrics([reference('a', [])], [prediction('a', [])], [1])
     assert result['exact_match'] == result['partial_match'] == 1
     assert result['micro_f1'] == 0
@@ -100,3 +108,31 @@ def test_unknown_labels_and_invalid_totals_are_rejected():
         evaluate_metrics([reference('a', [1])], [prediction('a', [(9, .4)])], [1])
     with pytest.raises(ValueError, match='resource totals'):
         evaluate_metrics([], [], [1], escalated_segments=1)
+
+
+def scored(outcomes):
+    """One code-1 assignment per segment; correct when the reference also has code 1."""
+    records = [reference(str(index), [1] if right else []) for index, (_, right) in enumerate(outcomes)]
+    predictions = [prediction(str(index), [(1, score)]) for index, (score, _) in enumerate(outcomes)]
+    return evaluate_metrics(records, predictions, [1])
+
+
+def test_review_share_uses_lowest_cutoff_that_reaches_target_precision():
+    # The top-scored assignment is wrong, but nine of all ten are right: no review needed.
+    outcomes = [(.95, False)] + [(score / 10, True) for score in range(9, 0, -1)]
+    result = scored(outcomes)
+    assert result['review_share'] == 0 and result['review_cutoff'] == pytest.approx(.1)
+    result = scored([(.9, True), (.8, True), (.7, False), (.6, True), (.5, False)])
+    assert result['review_share'] == pytest.approx(.6) and result['review_cutoff'] == pytest.approx(.8)
+
+
+@pytest.mark.parametrize('outcomes', [[(.9, False)], [(.9, False), (.3, False)]])
+def test_unreachable_review_target_means_review_everything(outcomes):
+    result = scored(outcomes)
+    assert result['review_share'] == 1 and result['review_cutoff'] is None
+
+
+def test_metric_definitions_cover_uncertainty_additions():
+    definitions = evaluate_metrics([], [], [1])['definitions']
+    assert {'ci95', 'review_share', 'review_cutoff'} <= set(definitions)
+    assert 'Wilson' in definitions['ci95'] and '90%' in definitions['review_share']

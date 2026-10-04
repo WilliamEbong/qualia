@@ -85,6 +85,8 @@ def evaluate_project(db, project, *, split='validation', protected=False,
 
 def report_markdown(result):
     def display(value):
+        if isinstance(value, list):
+            return '[' + ', '.join(display(item) for item in value) + ']'
         return 'n/a' if value is None else f'{value:.6f}' if isinstance(value, float) else str(value)
 
     metrics = result['metrics']
@@ -93,10 +95,13 @@ def report_markdown(result):
              f"Frozen codebook: {result['codebook_version_id']} · Created: {result['created_at']}",
              f"Pipeline: `{result['pipeline_version']}`", '', '| Metric | Value |', '|---|---:|']
     for name in ('segment_count', 'macro_f1', 'micro_f1', 'exact_match', 'partial_match', 'kappa',
-                 'alpha', 'ece', 'escalation_rate', 'calls_per_1000', 'latency_ms', 'cache_hits'):
+                 'alpha', 'ece', 'review_share', 'review_cutoff', 'escalation_rate', 'calls_per_1000',
+                 'latency_ms', 'cache_hits'):
         lines.append(f'| {name} | {display(metrics[name])} |')
-    lines += ['', '| Code ID | Precision | Recall | F1 | Support |', '|---|---:|---:|---:|---:|']
-    lines += ['| ' + ' | '.join(display(row[key]) for key in ('code_id', 'precision', 'recall', 'f1', 'support'))
+    lines += ['', '| Code ID | Precision | Precision 95% CI | Recall | Recall 95% CI | F1 | Support |',
+              '|---|---:|---:|---:|---:|---:|---:|']
+    lines += ['| ' + ' | '.join(display(row[key]) for key in (
+        'code_id', 'precision', 'precision_ci95', 'recall', 'recall_ci95', 'f1', 'support'))
               + ' |' for row in metrics['per_code']]
     lines += ['', f"Alpha basis: {metrics['alpha_basis']}.", '', '## Definitions', '']
     lines += [f'- **{name}**: {value}' for name, value in metrics['definitions'].items()]

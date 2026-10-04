@@ -50,7 +50,9 @@ def test_evaluation_complete_provenance_no_gold_sent_or_coding_writes(tmp_path):
         assert again['metrics']['calls'] == 0
         assert again['metrics']['cache_hits'] == 1
         assert len(db.rows('SELECT * FROM evaluation_runs')) == 2
-    assert '| kappa | n/a |' in report_markdown(result)
+    report = report_markdown(result)
+    assert '| kappa | n/a |' in report and '| review_share |' in report
+    assert '| Precision 95% CI |' in report and '| [' in report
     paths = write_reports(result, project / 'reports')
     assert all(path.is_file() for path in paths)
     assert json.loads(paths[0].read_text()) == result

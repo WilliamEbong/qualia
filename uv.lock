@@ -680,6 +680,7 @@ dependencies = [
     { name = "httpx" },
     { name = "pydantic" },
     { name = "scikit-learn" },
+    { name = "scipy" },
     { name = "typer" },
     { name = "uvicorn" },
 ]
@@ -698,6 +699,7 @@ requires-dist = [
     { name = "httpx", specifier = ">=0.28,<1" },
     { name = "pydantic", specifier = ">=2.13,<2.14" },
     { name = "scikit-learn", specifier = ">=1.9,<1.10" },
+    { name = "scipy", specifier = ">=1.18,<1.19" },
     { name = "typer", specifier = ">=0.27,<0.28" },
     { name = "uvicorn", specifier = ">=0.54,<0.55" },
 ]

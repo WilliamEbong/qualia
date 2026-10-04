@@ -2,10 +2,39 @@
 
 import math
 
-from sklearn.metrics import cohen_kappa_score, precision_recall_fscore_support
+from scipy.stats import binomtest
+from sklearn.metrics import (
+    cohen_kappa_score,
+    precision_recall_curve,
+    precision_recall_fscore_support,
+)
 
 from qualia.eval.alpha import nominal_alpha
 from qualia.eval.calibration import expected_calibration_error
+
+REVIEW_PRECISION = .9
+
+
+def _wilson(successes, total):
+    if not total:
+        return None
+    interval = binomtest(successes, total).proportion_ci(confidence_level=.95, method='wilson')
+    return [float(interval.low), float(interval.high)]
+
+
+def _review(scores, correct):
+    """Share of scored assignments to review so those at or above the cutoff reach the target."""
+    if not scores:
+        return None, None
+    if not any(correct):
+        return 1.0, None
+    precision, _, thresholds = precision_recall_curve(correct, scores)
+    # precision[i] covers scores >= thresholds[i]; its extra final entry has no threshold.
+    eligible = [float(threshold) for value, threshold in zip(precision, thresholds) if value >= REVIEW_PRECISION]
+    if not eligible:
+        return 1.0, None
+    cutoff = min(eligible)
+    return sum(score < cutoff for score in scores) / len(scores), cutoff
 
 
 def _codes(values, allowed):
@@ -71,8 +100,10 @@ def evaluate_metrics(records, predictions, code_ids, *, calls=0, latency_ms=0, e
             precision, recall, f1, _ = precision_recall_fscore_support(
                 truth, guesses, average='binary', zero_division=0)
             precision, recall, f1 = float(precision), float(recall), float(f1)
+        hits = sum(left and right for left, right in zip(truth, guesses, strict=True))
         per_code.append({'code_id': code_id, 'precision': precision, 'recall': recall,
-                         'f1': f1, 'support': sum(truth)})
+                         'f1': f1, 'support': sum(truth), 'precision_ci95': _wilson(hits, sum(guesses)),
+                         'recall_ci95': _wilson(hits, sum(truth))})
     micro = None
     if count and code_ids:
         truth = [int(code in row) for row in gold for code in code_ids]
@@ -88,6 +119,7 @@ def evaluate_metrics(records, predictions, code_ids, *, calls=0, latency_ms=0, e
         kappa = value if math.isfinite(value) else None
     units = human_units if has_coders else list(zip(gold_categories, predicted_categories, strict=True))
     calibration = expected_calibration_error(scores, correct)
+    review_share, review_cutoff = _review(scores, correct)
     return {
         'per_code': per_code,
         'macro_f1': sum(row['f1'] for row in per_code) / len(per_code) if count and per_code else None,
@@ -100,6 +132,7 @@ def evaluate_metrics(records, predictions, code_ids, *, calls=0, latency_ms=0, e
         'calls_per_1000': calls * 1000 / count if count else None, 'latency_ms': float(latency_ms),
         'segment_count': count, 'scored_prediction_count': len(scores), 'calls': calls,
         'escalated_segments': escalated_segments, 'calibration_bins': calibration['bins'],
+        'review_share': review_share, 'review_cutoff': review_cutoff,
         'alpha_basis': 'human_coders' if has_coders else 'reference_vs_prediction',
         'definitions': {
             'zero_division': 'Per-code and micro precision/recall/F1 use zero when no positives; empty corpus uses null.',
@@ -111,5 +144,8 @@ def evaluate_metrics(records, predictions, code_ids, *, calls=0, latency_ms=0, e
             'escalation_rate': 'Distinct escalated segments divided by evaluated segments; empty denominator is null.',
             'calls_per_1000': 'Attempted backend dispatches divided by evaluated segments times 1000. Native Claude/Codex dispatches are CLI invocations, potentially containing multiple provider requests; Jev dispatches are HTTP requests including retries. Empty denominator is null.',
             'latency_ms': 'Total supplied wall-clock evaluation latency in milliseconds.',
+            'ci95': 'Per-code precision_ci95/recall_ci95 are 95% Wilson score intervals over predicted/reference segment counts; a zero denominator is null. Wide intervals mean few examples.',
+            'review_share': 'Share of scored predicted assignments scoring below review_cutoff: reviewing them leaves the rest at 90% precision or better on this evaluation set. 1.0 when no cutoff reaches 90%; null without scored assignments. Describes this set, not future accuracy.',
+            'review_cutoff': 'Lowest model-reported score at which assignments scoring at or above it reach 90% precision on this evaluation set; null when unreachable or unscored.',
         },
     }

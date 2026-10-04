@@ -6,7 +6,7 @@ requires-python = ">=3.14"
 license = "MIT"
 dependencies = [
   "fastapi>=0.142,<0.143", "uvicorn>=0.54,<0.55", "typer>=0.27,<0.28",
-  "pydantic>=2.13,<2.14", "httpx>=0.28,<1", "scikit-learn>=1.9,<1.10",
+  "pydantic>=2.13,<2.14", "httpx>=0.28,<1", "scikit-learn>=1.9,<1.10", "scipy>=1.18,<1.19",
 ]
 
 [project.scripts]
