@@ -76,7 +76,15 @@ Memos, retrieval and CSV, JSON, Python and R exports complete the workflow. A re
 
 ## Get started
 
-You need Python 3.14, Node 24, Git and [uv](https://docs.astral.sh/uv/). In Windows PowerShell:
+**On Windows (no terminal):**
+
+1. Download `Qualia-<version>.zip` from [Releases](https://github.com/WilliamEbong/qualia/releases), right-click it → **Properties** → tick **Unblock**, and extract it to a folder you keep.
+2. Double-click **Install Qualia**. It installs everything Qualia needs, adds the demo project and puts a **Qualia** icon on your Desktop and Start menu.
+3. Double-click the icon whenever you want to work. Qualia opens in its own window, and closing the window shuts Qualia down.
+
+Try Workspace, Review (choose `rules` or `fake`, both offline) and Analysis on the demo, or select **New project** to start your own study: import TXT, Markdown or CSV material, define codes and freeze a codebook version before coding.
+
+**From source (developers, any platform):** with Python 3.14, Node 24, Git and [uv](https://docs.astral.sh/uv/):
 
 ```powershell
 git clone https://github.com/WilliamEbong/qualia.git
@@ -86,19 +94,8 @@ npm --prefix web ci
 npm --prefix web run build
 uv run python scripts/fetch_demo.py
 uv run qualia demo
-uv run qualia open
+uv run qualia app
 ```
-
-Your browser opens at `http://127.0.0.1:8765` with the demo project. Try Workspace, Review (choose `rules` or `fake`, both offline) and Analysis.
-
-To start your own study:
-
-```powershell
-uv run qualia init my-study
-uv run qualia open
-```
-
-Then choose **my-study**, import TXT, Markdown or CSV material, define codes and freeze a codebook version before coding.
 
 The [illustrated user guide](docs/USER-GUIDE.md) walks through every workflow step by step, including AI setup, evaluation, tuning, exports, backups and troubleshooting.
 

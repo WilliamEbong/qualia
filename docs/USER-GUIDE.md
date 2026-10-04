@@ -6,7 +6,7 @@ Qualia helps you read research material, apply your own codebook, keep analytic 
 
 This guide is for researchers running Qualia on their own computer. Commands are shown for Windows PowerShell; other platforms work the same way with their usual paths. It describes implemented workflows and their limits. Messages in the app are authoritative: native Claude/Codex classification and improvement need an audited CLI version, your own subscription sign-in and project permission, and Jev needs its own TypeSafe account and key ([section 13](#13-set-up-optional-jev-processing)). See [build status](BUILD-STATE.md) for verification evidence.
 
-**Use Qualia's own browser UI for your research.** Start it with `uv run qualia open`, then use its Workspace, Codebook, Review and Analysis views. You do not need to keep an AI desktop app open. Native classification launches the installed Codex or Claude CLI as a local subprocess and lets that CLI use its existing official sign-in; it does not ask you to paste a subscription token into Qualia. Follow [AI backend setup](#12-generate-and-review-ai-suggestions) before using it.
+**Use Qualia's own window for your research.** Start it with the **Qualia** icon (or `uv run qualia app`), then use its Workspace, Codebook, Review and Analysis views. You do not need to keep an AI desktop app open. Native classification launches the installed Codex or Claude CLI as a local subprocess and lets that CLI use its existing official sign-in; it does not ask you to paste a subscription token into Qualia. Follow [AI backend setup](#12-generate-and-review-ai-suggestions) before using it.
 
 Screenshots are cropped from the bundled AnnoMI demonstration project. Review suggestions come from the offline fake backend; evaluation, calibration and threshold-tuning results come from a real Jev run on the demo's validation split.
 
@@ -58,11 +58,31 @@ Qualia provides several familiar NVivo-style workflows: text coding, hierarchica
 
 ## 2. Install and open Qualia
 
-### First installation
+### Install on Windows (no terminal needed)
 
-You need Git, [uv](https://docs.astral.sh/uv/), Python 3.14 and Node 24. If a command is not recognized, install or repair that prerequisite before continuing. You do not need Claude, Codex, Jev or R for manual coding.
+1. Download the latest `Qualia-<version>.zip` from the [Releases page](https://github.com/WilliamEbong/qualia/releases).
+2. Right-click the downloaded zip, choose **Properties**, tick **Unblock** and select **OK**. This prevents Windows security prompts for each file.
+3. Extract the zip to a folder you will keep, for example `Documents\Qualia`.
+4. Open that folder and double-click **Install Qualia**.
 
-Open PowerShell in the folder where you keep software and run:
+A window explains each step: it installs the tools Qualia needs (uv, Python and, if missing, Git, for which Windows may ask permission), installs Qualia, adds the AnnoMI demonstration project, and creates a **Qualia** icon on your Desktop and in the Start menu. The first run needs internet access and takes a few minutes. Qualia then opens by itself. If a step fails, the window says what to do; fix it and double-click **Install Qualia** again. Re-running is always safe.
+
+You do not need Claude, Codex, Jev or R for manual coding.
+
+### Open and close Qualia
+
+Double-click the **Qualia** icon. Qualia opens in its own window, using Microsoft Edge or Google Chrome in app mode, so there are no tabs or address bar. Without either browser it opens in your default browser.
+
+To stop Qualia, close its window. Qualia notices that no window is open and shuts itself down within about three minutes; nothing keeps running in the background. Opening the icon again during that time simply reopens a window.
+
+### Update or remove Qualia
+
+- **Update:** download the newer zip, extract it to the same folder (replace the files) or a new one, and double-click **Install Qualia** again. Your research projects are stored separately and are kept.
+- **Remove:** delete the Qualia folder and the two Qualia shortcuts. Your projects stay in your Qualia home folder (see below) until you delete them yourself.
+
+### For developers: install from source
+
+On any platform with Git, [uv](https://docs.astral.sh/uv/), Python 3.14 and Node 24:
 
 ```powershell
 git clone https://github.com/WilliamEbong/qualia.git
@@ -70,36 +90,25 @@ Set-Location qualia
 uv sync
 npm --prefix web ci
 npm --prefix web run build
-```
-
-**Expected result:** dependencies install and the web build completes without errors. These setup steps need internet access for downloads. Ordinary manual work is local after installation.
-
-To install the larger licensed AnnoMI demonstration:
-
-```powershell
 uv run python scripts/fetch_demo.py
 uv run qualia demo
 ```
 
 The fetch script verifies a pinned checksum. The demo command is repeatable without duplicating the imported sources, segments or annotations. Its visible research workspace contains 8,017 utterances from 106 transcripts, with seven expert-label codes. A separate protected split stays outside the visible workspace. Dataset provenance and licensing qualifications are in [DATA-LICENSES.md](../DATA-LICENSES.md).
 
-### Open and stop the app
+Start Qualia with either command:
+
+```powershell
+uv run qualia app
+```
+
+opens the app window and stops once it is closed, like the icon. Or:
 
 ```powershell
 uv run qualia open
 ```
 
-Keep this terminal open. The browser normally opens at `http://127.0.0.1:8765`. Choose a project under **Local project**, or open one from **Home**. Use **New project** to create a study.
-
-To stop the local server, return to its terminal and press **Ctrl+C**. To resume later, run `uv run qualia open` again. Refresh old browser tabs after restarting because each server launch has a new access token.
-
-If the port is occupied:
-
-```powershell
-uv run qualia open --port 8766
-```
-
-A `QUALIA_PORT` setting in your environment or local `.env` overrides the command-line port. `uv run qualia open --no-browser` starts the server without opening a browser tab.
+runs in the terminal with your default browser at `http://127.0.0.1:8765`; stop it with **Ctrl+C**. Refresh old browser tabs after restarting, because each launch has a new access token. If the port is occupied, use `uv run qualia open --port 8766`. A `QUALIA_PORT` setting in your environment or local `.env` overrides the command-line port, and `--no-browser` starts the server without opening a browser.
 
 ### Where your work is stored
 
@@ -741,7 +750,7 @@ There is no `qualia backup` or `qualia restore` command. The application's inter
 For a straightforward complete backup:
 
 1. Finish any running import, evaluation or experiment.
-2. Stop the server with Ctrl+C and ensure all other Qualia CLI operations have finished. Closing the browser alone does not stop the server.
+2. Close Qualia's window and wait about three minutes for it to shut down (or press Ctrl+C if you started it with `uv run qualia open`). Make sure no other Qualia command is still running.
 3. Locate the actual `QUALIA_HOME` folder. By default it is `%USERPROFILE%\Qualia` (for example `C:\Users\you\Qualia`).
 4. Copy the **entire folder** to a new dated backup location using File Explorer or your approved backup software. Include `projects`, `vault`, any `recovery` folder, hidden project `.git` directories and all database sidecar files that are present. Do not copy just `project.db` while the app is running.
 5. Check that the backup contains the expected project folders and files. Keep the original untouched until a recovery copy has been checked.
@@ -772,7 +781,7 @@ There is no one-command recovery workflow. Do not delete the journal, lock, data
 | Symptom | Check and next action |
 |---|---|
 | `uv`, `node`, `npm` or `git` is not recognized | Install/repair that prerequisite, then open a new PowerShell window. Run commands from the application folder. |
-| Browser cannot connect | Keep the `qualia open` terminal running; use its local URL. Check the port or `QUALIA_PORT`. |
+| Window shows a connection error | Qualia shut down after its window was closed or the computer slept for a long time. Close the window and open the Qualia icon again. With `qualia open`, keep its terminal running and check the port or `QUALIA_PORT`. |
 | Requests fail after restarting | Refresh the page so it receives the current per-launch token. Do not copy tokens into URLs or browser storage. |
 | Project missing | Check **Local project**, `uv run qualia list`, and that server/CLI use the same `QUALIA_HOME`. Changing the setting does not move data. |
 | Invalid project identifier | Use lowercase letters/digits separated by hyphens. Windows reserved names are rejected. |
@@ -835,7 +844,7 @@ Run these from the application folder. Most project commands default to `demo`; 
 |---|---|
 | Help | `uv run qualia --help` or `uv run qualia COMMAND --help` |
 | Create/list projects | `uv run qualia init my-study` / `uv run qualia list` |
-| Open local app | `uv run qualia open` |
+| Open local app | Qualia icon, `uv run qualia app` (own window, stops when closed) or `uv run qualia open` (terminal) |
 | Import text | `uv run qualia import "C:\Research\interview.txt" --project my-study` |
 | Add/freeze/list codes | `uv run qualia codebook add "Support" --definition "Help from others" --project my-study`; then `codebook freeze` / `codebook list` with the same project option |
 | Save a full draft code record | `uv run qualia codebook save "C:\Research\code.json" --project my-study --code-id CODE_ID` |
