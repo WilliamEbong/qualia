@@ -4,12 +4,18 @@ from pathlib import Path
 
 from fastapi import FastAPI
 
-from qualia.server.api_models import EvaluateInput, EvaluationResult
+from qualia.server.api_models import EvaluateInput, EvaluationResult, ExperimentResult
 from qualia.server.workspace_routes import existing_project
 from qualia.store.db import Store
 
 
 def register_evaluation_routes(app: FastAPI, home: Path | None):
+    @app.get('/api/projects/{slug}/experiments', response_model=list[ExperimentResult])
+    def history(slug: str):
+        path = existing_project(slug, home)
+        with Store(path / 'project.db') as db:
+            return db.rows('SELECT * FROM experiments ORDER BY id')
+
     @app.post('/api/projects/{slug}/evaluate', response_model=EvaluationResult)
     def evaluate(slug: str, record: EvaluateInput):
         from qualia.evaluation import evaluate_project, write_reports

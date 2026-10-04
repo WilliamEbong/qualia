@@ -307,6 +307,28 @@ def evaluate_command(project: str = 'demo', split: str = 'validation', protected
         raise typer.BadParameter(str(exc)) from exc
 
 
+@app.command('improve')
+def improve_command(project: str = 'demo', agent: str = 'claude',
+                    budget: int = typer.Option(1, min=0),
+                    backend: str | None = None, model: str | None = None):
+    """Run bounded implementation experiments; trusted measurements decide KEEP or REVERT."""
+    from qualia.improve.experiment import improve_project
+
+    try:
+        rows = improve_project(resolve_project(project), agent=agent, budget=budget,
+                               backend=backend, model=model)
+        typer.echo(json.dumps(rows, ensure_ascii=False))
+    except (OSError, ValueError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+
+@app.command('history')
+def history_command(project: str = 'demo'):
+    """Read recorded experiment decisions and reproduction identities."""
+    with Store(resolve_project(project) / 'project.db') as db:
+        typer.echo(json.dumps(db.rows('SELECT * FROM experiments ORDER BY id'), ensure_ascii=False))
+
+
 @app.command('demo')
 def demo_command(project: str = 'demo', file: Path | None = None):
     """Create the licensed, pinned AnnoMI demo. Fetch its raw CSV first with scripts/fetch_demo.py."""

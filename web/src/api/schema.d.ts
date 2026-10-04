@@ -311,6 +311,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/projects/{slug}/experiments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** History */
+        get: operations["history_api_projects__slug__experiments_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/projects/{slug}/evaluate": {
         parameters: {
             query?: never;
@@ -487,6 +504,36 @@ export interface components {
             metrics: {
                 [key: string]: unknown;
             };
+            /** Created At */
+            created_at: string;
+        };
+        /** ExperimentResult */
+        ExperimentResult: {
+            /** Id */
+            id: number;
+            /** Slug */
+            slug: string;
+            /** Agent */
+            agent: string;
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "KEEP" | "REVERT";
+            /** Reason */
+            reason: string;
+            /** Hypothesis */
+            hypothesis: string;
+            /** Before Json */
+            before_json: string;
+            /** After Json */
+            after_json: string;
+            /** Changed Files Json */
+            changed_files_json: string;
+            /** Commit Hash */
+            commit_hash: string | null;
+            /** Tag */
+            tag: string | null;
             /** Created At */
             created_at: string;
         };
@@ -1292,6 +1339,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["IdResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    history_api_projects__slug__experiments_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExperimentResult"][];
                 };
             };
             /** @description Validation Error */

@@ -27,3 +27,9 @@ Main owns migrations, openapi.json and backend protocol. Reconcile against the l
 ## Validation and handoff
 
 Implement tasks in listed dependency order; a main-owned contract update must finish before consumers change. Re-run exact failed checks during repair. Use the spec success criteria and verbatim excerpts as the gate checklist, then run converge (at most three rounds per runbook), record unresolved issues honestly and preserve the resumable state. Phase-specific test files and evidence locations appear in tasks.md; filenames may follow an equivalent existing owner without adding duplicate abstractions.
+
+## Implemented protocol and gates (2026-10-03)
+
+The orchestrator requires clean Git and an exclusive operation lock, snapshots the full project tree (including ignored files and file modes), and takes a consistent SQLite backup. Only routing, segmentation, prompt changes and designated new report/proposal outputs are accepted. Pinned manifests are compared without rebaselining existing artifacts. Unauthorized changes restore from the trusted snapshot; vault tampering preserves evidence and flags owner recovery without reading gold content. A pending recovery journal blocks ordinary writers when interrupted Git/DB accounting cannot be resolved safely.
+
+Baseline, candidate and confirmation use the same validation benchmark with caches bypassed. Protected evaluation is never called. Store remains sole writer; ledger accounting precedes dispatch. KEEP commits/tags before the append-only experiment row; failed coordination preserves recovery evidence. Fake workflows and exact I2/I3 checks pass. Native operators remain unavailable pending actual Windows isolation and per-process-versus-request accounting decisions, so live parity is not claimed. MCP executed the full default-demo acceptance sequence; the opt-in test file records the same sequence for a fresh explicitly selected fixture.

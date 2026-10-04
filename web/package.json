@@ -14,6 +14,9 @@
   },
   "dependencies": {
     "@annotorious/react": "3.9.3",
+    "@fontsource-variable/libre-franklin": "5.3.0",
+    "@fontsource/cormorant-garamond": "5.3.0",
+    "@fontsource/ibm-plex-mono": "5.3.0",
     "@recogito/react-text-annotator": "4.3.6",
     "@recogito/text-annotator": "4.3.6",
     "@tailwindcss/vite": "4.3.3",

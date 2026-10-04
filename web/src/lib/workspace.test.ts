@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { eventCodeName, orderedCodes, shortcut, uniqueSegmentCount } from './entities'
+import { codeStyle, eventCodeName, orderedCodes, shortcut, uniqueSegmentCount } from './entities'
 import { annotationSpan, codingAnnotation } from './annotation-offsets'
 import type { Code, Coding, Segment, Version } from './entities'
 
@@ -23,6 +23,16 @@ describe('saved annotation boundary', () => {
 })
 
 describe('workspace controls and counts', () => {
+  it('keeps the fixed code palette order and distinguishes repeated colors by hatch', () => {
+    expect(Array.from({ length: 8 }, (_, index) => codeStyle(index)['--code-color'])).toEqual([
+      'var(--code-1)', 'var(--code-2)', 'var(--code-3)', 'var(--code-4)',
+      'var(--code-5)', 'var(--code-6)', 'var(--code-7)', 'var(--code-8)',
+    ])
+    expect(codeStyle(7)['--code-pattern']).toBe('none')
+    expect(codeStyle(8)['--code-color']).toBe('var(--code-1)')
+    expect(codeStyle(8)['--code-pattern']).toBe('var(--code-hatch)')
+    expect(codeStyle(8)['--code-border']).toBe('solid')
+  })
   it('keeps each decision label tied to its frozen version after a rename', () => {
     const versions = [
       { id: 1, snapshot_json: JSON.stringify([{ id: 7, name: 'Original label' }]) },

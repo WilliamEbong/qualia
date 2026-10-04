@@ -26,7 +26,7 @@ Started 2026-10-03. Baseline: f1d8719. Owner authorized autonomous implementatio
 - [x] P4.3 Evaluation UI, metric/oracle/idempotency gate; converge.
 - [x] P5.1 Spec Kit improvement artifacts and analysis.
 - [~] P5.2 Protected experiment protocol, policy and operator lanes.
-- [ ] P5.3 History UI, I2/I3 and MVP browser gate; converge.
+- [x] P5.3 History UI, I2/I3 and MVP browser gate; converge (offline scope).
 - [ ] P6.1 Security/hygiene audits, CI and secret/data checks.
 - [ ] P6.2 Live Claude/Codex experiment parity.
 - [ ] P7.D0 Design guard and baseline screenshots.
@@ -43,7 +43,7 @@ Started 2026-10-03. Baseline: f1d8719. Owner authorized autonomous implementatio
 
 ## Workstream audit
 
-3.1 repo/kit: partial (Git, Spec Kit, docs, runner). 3.2–3.14: not started. Constitution v1.0.0 already ratified and consistent with docs 01 §6 and §4: preserve, do not recreate. No OWNER-ANSWERS.md. No .env, database, migrations or app yet; database connectivity does not apply until P1.
+Current: 3.1 repo/kit done except final evidence; 3.2–3.5 and 3.7–3.10 offline functionality done; 3.6 native CLI readiness gated; 3.11 Jev implemented, key/live test deferred; 3.12 portfolio preparation underway; 3.13 audits underway; 3.14 live parity blocked by native readiness. Constitution v1.0.0 preserved. Research DBs live outside the checkout. No owner answers received.
 
 ## Preflight evidence
 
@@ -122,3 +122,11 @@ Independent audit repair: protected evaluation rationale/cache leak fixed by dis
 Independent phase analysis:005 improvement12 FR/5 SC/13 tasks;006 portfolio8 FR/5 SC/11 tasks;007 Jev10 FR/5 SC/11 tasks, full task coverage. Prerequisite script resolves each supplied directory, current pointer005. Codex/Claude native operator accounting gates remain pending; doc02 blocked ladder authorizes fake loop, optional Jev and pre-design demo seam. Literal request-level accounting cannot be honestly claimed for internal CLI auth retries or multistep editing. Operator local synthetic native confinement probes pass, but readiness remains false.
 
 Jev checkpoint:46 offline adapter/router tests pass with1 opt-in live deselected, forced-key redaction and every privacy/budget denial proved. Root local readiness: key_configured false, external false, Jev false, network requests0. Installed CLI jev check/enable/disable tested; setup guide has exact synthetic instructions. Live compatibility/recorded response remains sacrificial-deferred until owner saves a key locally. No account/billing changes made.
+
+Phase5 offline convergence: 12 FR/5 SC/13 tasks reviewed. Native FR003 execution remains gated; all other requirements have implementation and targeted evidence. Exact I2/I3 policy, snapshot, rollback, scope/vault tamper, confirmation, Store recovery and API checks pass. Full offline suite before final native hard-gate fixtures:308 passed,4 capability skips,4 live deselected. Actual default demo MCP workflow:5 distinct keyboard codes,36 fake suggestions/2 calls, a/r reviews, fake operator KEEP with baseline validation macro F1 0.010584683481879744 -> candidate/confirmation0.24242446502221413,1258 segments and63 calls each. Exact match fell0.004769->0; this proves machinery, not useful model quality. Tag exp-0001-measured-gain, project commit360cbf24658aca80c28889e77f07209c3c63cbd3. Bundle8060 coding events, required provenance present, egress0, project Git clean. Shots design-review/phase-5/. Opt-in tests/e2e/mvp.spec.ts collected/typechecked; same acceptance sequence executed with Playwright MCP.
+
+Native final findings: Claude2.1.284 localhost max_tokens continuation caused4 HTTP requests, end_turn without serialization2, pause_turn2 despite max-turns2 and retry env bounds. Public Claude readiness/classify now fails closed, matching Codex. Fresh native Claude project session proved guard hook activation (exact protected-path denial), without reading/changing protected docs or making subscription traffic. Combined CLI/operator/snapshot/Jev checks115 passed,1 Windows capability skip,4 live deselected. Automatic approval review rejected one private live Claude diagnostic because production readiness was disabled and external multi-request/quota use was not explicitly authorized. No live request started. Owner decisions remain pending; independent work continues.
+
+Portfolio preparation: strict selected-dev snapshot builder17 tests pass; real snapshot2 transcripts/24 segments/original labels. Static adapter and normal build pass; Playwright MCP traversed all8 research screens with0 API requests, disabled write controls and inert coding/review shortcuts,375px no overflow. Initial favicon404 is a presentation repair for D1. Installed20 frontend tests pass after adding the fixed color-order/hatch contract before design freeze. Fonts verified via Context7 and registry: all3 approved packages5.3.0, installed with0 vulnerabilities. Toolshelf had no Lighthouse match; official GoogleChrome Lighthouse CLI13.5.0 selected for the runbook-required audit, without app dependency changes. Existing owner artwork generator is present.
+
+Pre-design freeze gate:330 Python tests passed,4 Windows capability skips,4 opt-in live deselected; Ruff clean.20 Vitest tests, TypeScript and both normal/static production builds passed. Both E2E specs collect successfully. Independent audits: npm0 vulnerabilities; pip-audit31 production dependencies0 findings; no credential-pattern candidates in260 current files/11 commits (not a substitute for gitleaks); no tracked research data. gitleaks runs in CI. Restarted local server after reviewer correctly spotted stale Claude availability from the pre-gate process.

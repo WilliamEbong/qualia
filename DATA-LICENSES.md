@@ -25,4 +25,10 @@ transcript isolation does not establish video independence or absence from model
 See [research evidence](docs/research/demo-data.md) for counts, exact rounding and limitations.
 
 The pre-authorized Zenodo fallback is not used: the pinned AnnoMI source is reachable.
-Any public static snapshot requires the separate Phase 8 license and protected-data check.
+The Phase 8 license recheck on 2026-10-03 confirmed the same primary Data Availability
+Statement. `demo/snapshot.json` contains two complete smallest dev transcripts (24 utterances)
+and their original expert labels, rebuilt from the exact pinned CSV. The builder verifies
+the bytes, split identities and frozen codebook; it excludes validation/protected transcripts,
+user edits, memos, generated rationales, evaluations, experiments and local configuration.
+Seventeen offline snapshot tests cover integrity and disclosure boundaries. The snapshot
+is approved for the prepared static demo on this documented licensing basis; it is not deployed.

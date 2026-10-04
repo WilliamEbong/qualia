@@ -157,3 +157,18 @@ class EvaluationResult(Record):
     pipeline_version: str
     metrics: dict
     created_at: str
+
+
+class ExperimentResult(Record):
+    id: int
+    slug: str
+    agent: str
+    decision: Literal['KEEP', 'REVERT']
+    reason: str
+    hypothesis: str
+    before_json: str
+    after_json: str
+    changed_files_json: str
+    commit_hash: str | None
+    tag: str | None
+    created_at: str

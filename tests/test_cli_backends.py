@@ -46,7 +46,7 @@ def test_claude_argv_empty_cwd_stdin_subscription_and_usage(monkeypatch):
         'usage': {'input_tokens': 11, 'output_tokens': 8,
                   'cache_read_input_tokens': 4, 'cache_creation_input_tokens': 2},
     }))
-    result = backend.classify(SEGMENTS, SCHEMA, {'model': 'haiku', 'codebook': []})
+    result = backend._classify(SEGMENTS, SCHEMA, {'model': 'haiku', 'codebook': []})
     argv, options, contents = calls[0]
     assert contents == []
     assert not Path(options['cwd']).exists()
@@ -80,7 +80,7 @@ def test_claude_errors_sanitized_and_usage_retained(monkeypatch, envelope, statu
     monkeypatch.setattr(claude_cli, 'resolve_command', lambda: ['installed-claude.exe'])
     backend = claude_cli.ClaudeCLIBackend(runner=fixture_runner([], envelope, status))
     with pytest.raises(BackendError) as failure:
-        backend.classify(SEGMENTS, SCHEMA, {})
+        backend._classify(SEGMENTS, SCHEMA, {})
     assert failure.value.code == code
     assert failure.value.segment_id == '7'
     assert 'private' not in str(failure.value) and 'secret' not in str(failure.value)
@@ -95,6 +95,17 @@ def test_codex_fails_closed_without_launch(monkeypatch):
     backend = codex_cli.CodexCLIBackend(runner=lambda *a, **kw: calls.append(a))
     assert backend.available() is False
     assert 'token' in backend.unavailable_reason
+    with pytest.raises(BackendError, match='unavailable'):
+        backend.classify(SEGMENTS, SCHEMA, {})
+    assert calls == []
+
+
+def test_claude_fails_closed_without_launch(monkeypatch):
+    monkeypatch.setattr(claude_cli, 'resolve_command', lambda: ['installed-claude.exe'])
+    calls = []
+    backend = claude_cli.ClaudeCLIBackend(runner=lambda *a, **kw: calls.append(a))
+    assert backend.available() is False
+    assert 'request' in backend.unavailable_reason
     with pytest.raises(BackendError, match='unavailable'):
         backend.classify(SEGMENTS, SCHEMA, {})
     assert calls == []
@@ -235,7 +246,7 @@ def test_claude_unknown_version_never_dispatches(monkeypatch, version):
     backend = claude_cli.ClaudeCLIBackend(runner=runner)
     assert not backend.available()
     with pytest.raises(BackendError):
-        backend.classify(SEGMENTS, SCHEMA, {})
+        backend._classify(SEGMENTS, SCHEMA, {})
     assert all('--version' in argv for argv in calls)
 
 
@@ -247,7 +258,7 @@ def test_claude_malformed_json_is_safe_and_record_specific(monkeypatch, payload)
         return ProcessResult(0, b'2.1.284' if '--version' in argv else payload, b'')
 
     with pytest.raises(BackendError, match='segment 7') as failure:
-        claude_cli.ClaudeCLIBackend(runner=runner).classify(SEGMENTS, SCHEMA, {})
+        claude_cli.ClaudeCLIBackend(runner=runner)._classify(SEGMENTS, SCHEMA, {})
     assert 'private' not in str(failure.value)
 
 
@@ -262,7 +273,7 @@ def test_transport_rejects_nested_duplicate_properties(monkeypatch, duplicate):
         return ProcessResult(0, b'2.1.284' if '--version' in argv else payload, b'')
 
     with pytest.raises(BackendError, match='invalid_response'):
-        claude_cli.ClaudeCLIBackend(runner=runner).classify(SEGMENTS, SCHEMA, {})
+        claude_cli.ClaudeCLIBackend(runner=runner)._classify(SEGMENTS, SCHEMA, {})
 
 
 def test_blocked_stdin_obeys_deadline(tmp_path):
@@ -301,7 +312,7 @@ def test_input_bounds_before_provider_dispatch(monkeypatch):
     calls = []
     backend = claude_cli.ClaudeCLIBackend(runner=lambda *args, **kw: calls.append(args))
     with pytest.raises(BackendError, match='segment oversized'):
-        backend.classify([{'id': 'oversized', 'text': 'x' * 10000}], SCHEMA, {})
+        backend._classify([{'id': 'oversized', 'text': 'x' * 10000}], SCHEMA, {})
     assert calls == []
     with pytest.raises(BackendError):
         classification_prompt(SEGMENTS, SCHEMA, {'prompt': 'x' * 1_048_576})
@@ -332,6 +343,61 @@ def local_recorder(request):
             body = self.rfile.read(int(self.headers['Content-Length']))
             requests.append((self.path, json.loads(body)))
             status = getattr(request, 'param', 400)
+            if status == 'guard':
+                messages = [entry for path, entry in requests if path.startswith('/v1/messages')]
+                block = ({'type': 'tool_use', 'id': 'synthetic_guard', 'name': 'Bash', 'input': {
+                    'command': 'node -e "console.log(\'docs/02-qualia-build.md\')"',
+                    'description': 'Harmless print-only guard activation probe', 'timeout': 1000}}
+                    if len(messages) == 1 else {'type': 'text', 'text': 'Synthetic guard audit complete.'})
+                self.send_response(200)
+                self.send_header('Content-Type', 'text/event-stream')
+                self.end_headers()
+                events = [
+                    {'type': 'message_start', 'message': {'id': 'synthetic', 'type': 'message',
+                     'role': 'assistant', 'content': [], 'model': 'claude-haiku-4-5',
+                     'stop_reason': None, 'stop_sequence': None,
+                     'usage': {'input_tokens': 10, 'output_tokens': 1}}},
+                    {'type': 'content_block_start', 'index': 0, 'content_block':
+                     {**block, 'input': {}} if block['type'] == 'tool_use'
+                     else {'type': 'text', 'text': ''}},
+                    {'type': 'content_block_delta', 'index': 0, 'delta':
+                     {'type': 'input_json_delta', 'partial_json': json.dumps(block['input'])}
+                     if block['type'] == 'tool_use' else
+                     {'type': 'text_delta', 'text': block['text']}},
+                    {'type': 'content_block_stop', 'index': 0},
+                    {'type': 'message_delta', 'delta': {'stop_reason':
+                     'tool_use' if len(messages) == 1 else 'end_turn',
+                     'stop_sequence': None}, 'usage': {'output_tokens': 20}},
+                    {'type': 'message_stop'},
+                ]
+                for event in events:
+                    self.wfile.write(('event: ' + event['type'] + '\ndata: '
+                                      + json.dumps(event) + '\n\n').encode())
+                return
+            if status in ('truncated_text', 'plain_text', 'pause_turn'):
+                reason = {'truncated_text': 'max_tokens', 'plain_text': 'end_turn',
+                          'pause_turn': 'pause_turn'}[status]
+                events = [
+                    {'type': 'message_start', 'message': {'id': 'synthetic', 'type': 'message',
+                     'role': 'assistant', 'content': [], 'model': 'claude-haiku-4-5',
+                     'stop_reason': None, 'stop_sequence': None,
+                     'usage': {'input_tokens': 10, 'output_tokens': 1}}},
+                    {'type': 'content_block_start', 'index': 0,
+                     'content_block': {'type': 'text', 'text': ''}},
+                    {'type': 'content_block_delta', 'index': 0,
+                     'delta': {'type': 'text_delta', 'text': 'Synthetic incomplete result.'}},
+                    {'type': 'content_block_stop', 'index': 0},
+                    {'type': 'message_delta', 'delta': {'stop_reason': reason,
+                     'stop_sequence': None}, 'usage': {'output_tokens': 20}},
+                    {'type': 'message_stop'},
+                ]
+                self.send_response(200)
+                self.send_header('Content-Type', 'text/event-stream')
+                self.end_headers()
+                for event in events:
+                    self.wfile.write(('event: ' + event['type'] + '\ndata: '
+                                      + json.dumps(event) + '\n\n').encode())
+                return
             if status in ('structured', 'invalid_structured'):
                 prediction = {'predictions': PREDICTIONS if status == 'structured' else 'invalid'}
                 events = [
@@ -410,7 +476,8 @@ def test_installed_codex_advertises_no_tools_to_localhost(tmp_path, local_record
     assert 'max_output_tokens' not in body  # Explicit reason the production gate stays closed.
 
 
-@pytest.mark.parametrize('local_recorder', [400, 500, 'structured', 'invalid_structured'], indirect=True)
+@pytest.mark.parametrize('local_recorder', [400, 500, 'structured', 'invalid_structured',
+                                          'truncated_text', 'plain_text', 'pause_turn'], indirect=True)
 def test_installed_claude_advertises_only_schema_transport_to_localhost(
         tmp_path, local_recorder, request):
     command = claude_cli.resolve_command()
@@ -430,7 +497,12 @@ def test_installed_claude_advertises_only_schema_transport_to_localhost(
                          timeout_seconds=20, max_output_bytes=65536)
     assert not result.failure
     messages = [body for path, body in requests if path.startswith('/v1/messages')]
-    assert len(messages) == 1
+    scenario = request.node.callspec.params['local_recorder']
+    expected_requests = {'truncated_text': 4, 'plain_text': 2, 'pause_turn': 2}.get(scenario, 1)
+    assert len(messages) == expected_requests
+    if expected_requests > 1:
+        assert not claude_cli.ClaudeCLIBackend().available()
+        assert not json.loads(result.stdout).get('structured_output')
     # --json-schema uses a pure serializer, not an action capability.
     advertised = messages[0]['tools']
     assert len(advertised) == 1 and advertised[0]['name'] == 'StructuredOutput'
@@ -442,3 +514,34 @@ def test_installed_claude_advertises_only_schema_transport_to_localhost(
     if request.node.callspec.params['local_recorder'] == 'invalid_structured':
         assert result.returncode != 0
         assert not json.loads(result.stdout).get('structured_output')
+
+
+@pytest.mark.parametrize('local_recorder', ['guard'], indirect=True)
+def test_installed_claude_project_guard_loads_at_fresh_session(tmp_path, local_recorder):
+    command = claude_cli.resolve_command()
+    if command is None:
+        pytest.skip('installed Claude required for offline native hook activation probe')
+    endpoint, requests = local_recorder
+    home = tmp_path/'home'
+    home.mkdir()
+    root = Path(__file__).resolve().parents[1]
+    protected = [root/'docs/02-qualia-build.md', root/'.claude/settings.json',
+                 root/'.claude/hooks/guard.cjs', root/'.claude/hooks/guard-config.json']
+    before = [path.read_bytes() for path in protected]
+    env = subscription_environment()
+    env.update(ANTHROPIC_BASE_URL=endpoint, ANTHROPIC_API_KEY='synthetic-local-only',
+               CLAUDE_CONFIG_DIR=str(home), CLAUDE_CODE_MAX_RETRIES='0',
+               CLAUDE_CODE_MAX_OUTPUT_TOKENS='128',
+               CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC='1')
+    argv = [*command, '-p', '--output-format', 'json', '--model', 'haiku',
+            '--max-turns', '2', '--no-session-persistence', '--tools', 'Bash',
+            '--allowedTools', 'Bash', '--strict-mcp-config', '--setting-sources', 'project',
+            '--disable-slash-commands', '--no-chrome', '--permission-mode', 'dontAsk',
+            '--permission-prompts', 'none']
+    result = run_process(argv, prompt='Synthetic localhost-only harmless guard activation probe.',
+                         cwd=root, env=env, timeout_seconds=30, max_output_bytes=65536)
+    assert before == [path.read_bytes() for path in protected]
+    assert not result.failure
+    messages = [body for path, body in requests if path.startswith('/v1/messages')]
+    assert len(messages) >= 2
+    assert 'Shell mutation references a protected path' in json.dumps(messages[-1]['messages'])

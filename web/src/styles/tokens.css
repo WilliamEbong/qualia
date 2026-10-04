@@ -5,10 +5,17 @@
   --code-1: #236292; --code-2: #a2573b; --code-3: #2c9a88; --code-4: #ba9232;
   --code-5: #4e6a58; --code-6: #6e8496; --code-7: #b98a3e; --code-8: #a5b096;
   --heat-rgb: 35 98 146;
+  --decision-keep: var(--code-3); --decision-revert: var(--code-2);
   --font-display: 'Cormorant Garamond', Georgia, serif;
   --font-body: 'Libre Franklin', system-ui, sans-serif;
   --font-caption: 'IBM Plex Mono', Consolas, monospace;
   --radius: 0;
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #2c2a27; --surface: #1c2127; --foreground: #f3efe4;
+  --secondary: #f3efe4b3; --caption: #f3efe4b3; --border: #f3efe440;
+  --accent: #b98a3e; --focus: #a9c1d3;
 }
 @theme inline {
   --color-background: var(--background); --color-foreground: var(--foreground);
@@ -17,4 +24,4 @@
 }
 html { font-family: var(--font-body); }
 h1, h2, h3 { font-family: var(--font-display); }
-pre, .caption, .provenance, .matrix-cell { font-family: var(--font-caption); }
+pre, .caption, .provenance, .matrix-cell, .metric-value, .decision-caption { font-family: var(--font-caption); }

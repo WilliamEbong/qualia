@@ -55,6 +55,24 @@ pre { overflow: auto; max-width: 100%; white-space: pre-wrap; overflow-wrap: any
 .selection-note blockquote { font-size: 13px; max-height: 180px; overflow: auto; }
 .assignment { border-top: 1px solid var(--border); padding: 16px 0; } .assignment blockquote { max-height: 140px; overflow: auto; font-size: 13px; }
 .provenance { border-top: 1px solid var(--border); font-size: 12px; }
+.suggestion { border-left: 3px dashed var(--code-color); padding: 12px 16px; margin: 16px 0; }
+.suggestion.selected-suggestion { background: var(--surface); }
+.suggestion-select { border: 0; padding-left: 0; font-weight: 500; }
+.suggestion .caption { margin: 8px 0; }
+.suggestion .actions { margin-top: 16px; }
+.code-mark.suggested { border-left-style: dashed; }
+.code-mark.accepted-model, .code-mark.human { border-left-style: solid; }
+.run-result { padding: 16px 0; border-bottom: 1px solid var(--border); }
+.metric-value { padding: 12px; font-variant-numeric: tabular-nums; }
+.experiment-timeline { list-style: none; padding: 0; margin: 0; }
+.experiment-timeline li { border-left: 3px solid var(--border); padding-left: 16px; margin: 0 0 20px; }
+.experiment-timeline .button { width: 100%; }
+.experiment-timeline .button[aria-current=true] { background: var(--surface); }
+.timeline-date { display: block; margin: 8px 0; }
+.decision-caption { font-size: 13px; display: inline-block; }
+.experiment-detail { border-left: 3px solid var(--border); padding-left: 24px; }
+[data-decision=KEEP] { border-left-color: var(--decision-keep); }
+[data-decision=REVERT] { border-left-color: var(--decision-revert); }
 .empty, .empty-note { padding: 24px; border-top: 1px solid var(--border); margin: 24px 0; color: var(--secondary); } .empty h3 { margin-top: 0; }
 .content-page { max-width: 1280px; margin: 0 auto; padding: 40px; }
 .two-column { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 40px; align-items: start; margin-top: 32px; }
@@ -69,6 +87,12 @@ pre { overflow: auto; max-width: 100%; white-space: pre-wrap; overflow-wrap: any
 th, td { border: 1px solid var(--border); text-align: left; padding: 0; } th { padding: 12px; background: var(--surface); font-weight: 500; }
 .matrix-cell { display: block; width: 100%; min-height: 48px; padding: 12px; border: 0; background: rgb(var(--heat-rgb) / var(--heat)); }
 .landing { max-width: 800px; padding: 80px 32px; margin: 0 auto; min-height: 60vh; } .landing h2 { font-size: 44px; }
+.home-introduction { max-width: 68ch; padding: 40px 0; }
+.home-introduction h2 { font-size: 44px; }
+.project-catalogue { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,280px),1fr)); gap: 20px; }
+.project-drawer { border: 1px solid var(--border); padding: 24px; }
+.project-drawer h3 { margin-top: 0; }
+.snapshot-attribution { border-top: 1px solid var(--border); margin-top: 40px; padding-top: 24px; overflow-wrap: anywhere; }
 .app-footer { padding: 24px 32px; border-top: 1px solid var(--border); }
 .skip-link { position: absolute; top: -100px; left: 12px; padding: 12px; z-index: 50; background: var(--background); } .skip-link:focus { top: 12px; }
 @media (max-width: 1200px) { .workspace-grid { grid-template-columns: 220px minmax(0,1fr) 280px; } .transcript-panel { padding: 24px 16px; } .source-panel, .coding-panel { padding: 20px 16px; } }

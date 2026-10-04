@@ -23,6 +23,7 @@ demo/data/
 # build output and tooling
 node_modules/
 dist/
+web/dist-demo/
 .venv/
 __pycache__/
 *.pyc

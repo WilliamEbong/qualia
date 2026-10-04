@@ -901,6 +901,49 @@
         }
       }
     },
+    "/api/projects/{slug}/experiments": {
+      "get": {
+        "summary": "History",
+        "operationId": "history_api_projects__slug__experiments_get",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ExperimentResult"
+                  },
+                  "title": "Response History Api Projects  Slug  Experiments Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/projects/{slug}/evaluate": {
       "post": {
         "summary": "Evaluate",
@@ -1373,6 +1416,93 @@
           "created_at"
         ],
         "title": "EvaluationResult"
+      },
+      "ExperimentResult": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "agent": {
+            "type": "string",
+            "title": "Agent"
+          },
+          "decision": {
+            "type": "string",
+            "enum": [
+              "KEEP",
+              "REVERT"
+            ],
+            "title": "Decision"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "hypothesis": {
+            "type": "string",
+            "title": "Hypothesis"
+          },
+          "before_json": {
+            "type": "string",
+            "title": "Before Json"
+          },
+          "after_json": {
+            "type": "string",
+            "title": "After Json"
+          },
+          "changed_files_json": {
+            "type": "string",
+            "title": "Changed Files Json"
+          },
+          "commit_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Commit Hash"
+          },
+          "tag": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tag"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "agent",
+          "decision",
+          "reason",
+          "hypothesis",
+          "before_json",
+          "after_json",
+          "changed_files_json",
+          "commit_hash",
+          "tag",
+          "created_at"
+        ],
+        "title": "ExperimentResult"
       },
       "ExportResult": {
         "properties": {

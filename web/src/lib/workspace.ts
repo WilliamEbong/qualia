@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import type { components } from '../api/schema'
-import { request } from './client'
+import { readOnly, request } from './client'
+import type { DemoSnapshot } from './demo'
 import { useMatrix } from './matrix'
 import { codeDepth, eventCodeName, frozenCodes, isEditingTarget, orderedCodes, segmentText, shortcut } from './entities'
 import type { Case, Code, Coding, MatrixCell, Memo, Project, Retrieval, Span, View, Workspace } from './entities'
@@ -19,7 +20,8 @@ export function useWorkspace() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
-  const [view, setView] = useState<View>('workspace')
+  const [view, setView] = useState<View>(new URLSearchParams(location.search).has('project') ? 'workspace' : 'home')
+  const [attribution, setAttribution] = useState<DemoSnapshot['attribution'] | null>(null)
   const [sourceId, setSourceId] = useState<number | null>(null)
   const [caseId, setCaseId] = useState<number | null>(null)
   const [activeId, setActiveId] = useState<number | null>(null)
@@ -40,6 +42,7 @@ export function useWorkspace() {
   scope.current = slug
 
   const chooseProject = useCallback((value: string) => {
+    if (scope.current === value) { setView('workspace'); return }
     setSlug(value); setData(null); setSourceId(null); setCaseId(null); setActiveId(null); setSpan(null); setVersionId(null)
     setEditCode(null); setEditMemo(null); setEditCase(null); setPanel(null); setView('workspace'); setError(''); setNotice('')
     setRetrievalCode(null); setRetrievalCase(null); setRetrieval([]); setMatrix([]); setQueryLoading(false)
@@ -52,10 +55,14 @@ export function useWorkspace() {
     const controller = new AbortController()
     request<Project[]>('projects', { signal: controller.signal }).then(items => {
       setProjects(items)
-      if (!slug && items.length) chooseProject(items[0].slug)
+      if (!slug && items.length) { chooseProject(items[0].slug); setView('home') }
       else if (!slug) setLoading(false)
     }).catch(reason => { if (!controller.signal.aborted) { setError(String(reason.message ?? reason)); setLoading(false) } })
     return () => controller.abort()
+  }, [])
+
+  useEffect(() => {
+    if (readOnly) request<DemoSnapshot['attribution']>('demo/attribution').then(setAttribution).catch(() => {})
   }, [])
 
   const reload = useCallback(async () => {
@@ -80,6 +87,7 @@ export function useWorkspace() {
   }, [])
 
   const mutate = useCallback(async <T,>(route: string, body?: T, method = 'POST') => {
+    if (readOnly) throw new Error('This public demo is read-only.')
     return request<components['schemas']['IdResult']>(`projects/${encodeURIComponent(slug)}/${route}`, { method, body: body === undefined ? undefined : JSON.stringify(body) })
   }, [slug])
 
@@ -94,7 +102,7 @@ export function useWorkspace() {
   const codingCodes = useMemo(() => orderedCodes(frozenCodes(version)).filter(item => item.status === 'active'), [version])
   const activeCodings = useMemo(() => data?.current_codings.filter(item => item.segment_id === active?.id) ?? [], [data, active?.id])
   const activeEvents = useMemo(() => data?.coding_events.filter(item => item.segment_id === active?.id).reverse() ?? [], [data, active?.id])
-  const segmentViews = useMemo(() => segments.map(segment => ({ ...segment, text: data ? segmentText(data, segment) : '', codings: data?.current_codings.filter(item => item.segment_id === segment.id) ?? [] })), [data, segments])
+  const segmentViews = useMemo(() => segments.map(segment => ({ ...segment, text: data ? segmentText(data, segment) : '', codings: data?.current_codings.filter(item => item.segment_id === segment.id) ?? [], suggestions: data?.suggestions.filter(item => item.segment_id === segment.id) ?? [] })), [data, segments])
   const codeViews = useMemo(() => codes.map(code => ({ ...code, depth: codeDepth(code, codes), positive: exampleLines(code.examples_pos), negative: exampleLines(code.examples_neg) })), [codes])
 
   const activate = useCallback((id: number) => {
@@ -123,7 +131,7 @@ export function useWorkspace() {
         event.preventDefault(); const next = segments[action.index]; activate(next.id)
         document.getElementById(`segment-${next.id}`)?.focus({ preventScroll: true })
         document.getElementById(`segment-${next.id}`)?.scrollIntoView({ block: 'nearest' })
-      } else if (action.codeIndex !== undefined && codingCodes[action.codeIndex]) {
+      } else if (!readOnly && action.codeIndex !== undefined && codingCodes[action.codeIndex]) {
         event.preventDefault(); void assign(codingCodes[action.codeIndex].id)
       } else if (event.key === 'Escape') setSpan(null)
     }
@@ -204,7 +212,7 @@ export function useWorkspace() {
     void run(async () => {
       const query = new URLSearchParams({ format: field(form, 'format'), no_text: String(form.get('include_text') !== 'on') })
       if (form.get('bundle') === 'on') query.set('bundle', 'reproducibility')
-      const result = await request<components['schemas']['ExportResult']>(`projects/${encodeURIComponent(slug)}/export?${query}`)
+      const result = await request<components['schemas']['ExportResult']>(readOnly ? 'demo/export' : `projects/${encodeURIComponent(slug)}/export?${query}`)
       const url = URL.createObjectURL(new Blob([result.content], { type: result.media_type }))
       const link = document.createElement('a'); link.href = url; link.download = result.filename; link.click()
       setTimeout(() => URL.revokeObjectURL(url), 1000); setPanel(null); setNotice(`Downloaded ${result.filename}.`)
@@ -218,7 +226,7 @@ export function useWorkspace() {
   }
   const matrixView = useMatrix(codeViews, data?.cases ?? [], matrix, drillDown)
 
-  return { projects, slug, data, loading, busy, error, notice, view, setView, chooseProject, createProject, run, reload,
+  return { projects, slug, data, loading, busy, error, notice, view, setView, chooseProject, createProject, run, reload, readOnly, attribution,
     sources, source, segments: segmentViews, active, activeText, currentSpan, activate, receiveSpan, selectSource, caseId, setCaseId,
     codes: codeViews, codingCodes, version, setVersionId, activeCodings, activeEvents, actor, setActor, assign, remove,
     clearSpan: () => setSpan(null), panel, setPanel, editCode, setEditCode, editMemo, setEditMemo, editCase, setEditCase,

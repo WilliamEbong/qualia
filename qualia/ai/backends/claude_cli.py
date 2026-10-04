@@ -20,6 +20,11 @@ from qualia.ai.backends.process import (
 )
 
 VERIFIED_VERSION = '2.1.284'
+CLASSIFICATION_UNAVAILABLE_REASON = (
+    'Claude classification is unavailable pending an explicit CLI request-accounting decision. '
+    'Version 2.1.284 can send multiple model requests per invocation despite zero HTTP retries; '
+    'one invocation reservation does not satisfy one egress record per HTTP request.'
+)
 OPERATOR_UNAVAILABLE_REASON = (
     'Claude operator is unavailable until native file confinement and per-model-request '
     'egress accounting are verified. Classification availability is independent.'
@@ -186,22 +191,18 @@ class ClaudeCLIBackend:
 
     @property
     def unavailable_reason(self):
-        return ('Claude CLI is missing, cannot be resolved, or is not verified version '
-                f'{VERIFIED_VERSION}. Subscription quota is checked only on an authorized call.')
+        return CLASSIFICATION_UNAVAILABLE_REASON
 
     def available(self):
-        command = resolve_command()
-        if command is None:
-            return False
-        with tempfile.TemporaryDirectory(prefix='qualia-claude-version-') as directory:
-            result = self.runner([*command, '--version'], prompt='', cwd=Path(directory),
-                                 env=subscription_environment(), timeout_seconds=10,
-                                 max_output_bytes=8192)
-        match = re.search(rb'\b(\d+\.\d+\.\d+(?:[-.][a-zA-Z0-9]+)?)\b', result.stdout)
-        return (not result.failure and not result.returncode and match is not None
-                and match.group(1).decode('ascii') == VERIFIED_VERSION)
+        return False
 
     def classify(self, segments, schema, context):
+        if not self.available():
+            raise BackendError('unavailable', first_segment(segments))
+        return self._classify(segments, schema, context)
+
+    def _classify(self, segments, schema, context):
+        """Testable dispatch behind the public request-accounting gate."""
         record = first_segment(segments)
         command = resolve_command()
         if command is None:

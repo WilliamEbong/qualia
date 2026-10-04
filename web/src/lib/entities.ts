@@ -5,20 +5,20 @@ export type Source = { id: number; name: string; text: string; content_hash: str
 export type Segment = { id: number; source_id: number; start: number; end: number; ordinal: number; speaker: string | null }
 export type Code = { id: number; parent_id: number | null; name: string; status: 'active' | 'archived'; definition: string; include: string; exclude: string; examples_pos: string; examples_neg: string }
 export type Version = { id: number; hash: string; frozen_at: string; snapshot_json: string }
-export type Coding = { id: number; segment_id: number; code_id: number; span_start: number; span_end: number; action: string; actor_type: string; actor: string; backend: string | null; model: string | null; cli_version: string | null; codebook_version_id: number; pipeline_version: string; prompt_hash: string; created_at: string; score: number | null; reviewed_by: string | null }
+export type Coding = { id: number; segment_id: number; code_id: number; span_start: number; span_end: number; action: string; actor_type: string; actor: string; backend: string | null; model: string | null; cli_version: string | null; codebook_version_id: number; pipeline_version: string; prompt_hash: string; created_at: string; score: number | null; reviewed_by: string | null; rationale: string | null; review_trigger: string | null; suggestion_id: number | null; review_status: string }
 export type Memo = { id: number; title: string; text: string; segment_id: number | null; code_id: number | null }
 export type Case = { id: number; name: string }
 export type Attribute = { id: number; case_id: number | null; source_id: number | null; key: string; value: string }
 export type SourceCase = { source_id: number; case_id: number }
-export type Workspace = Omit<components['schemas']['Workspace'], 'sources' | 'segments' | 'codes' | 'codebook_versions' | 'coding_events' | 'current_codings' | 'memos' | 'cases' | 'attributes' | 'source_cases'> & {
+export type Workspace = Omit<components['schemas']['Workspace'], 'sources' | 'segments' | 'codes' | 'codebook_versions' | 'coding_events' | 'current_codings' | 'suggestions' | 'memos' | 'cases' | 'attributes' | 'source_cases'> & {
   sources: Source[]; segments: Segment[]; codes: Code[]; codebook_versions: Version[];
-  coding_events: Coding[]; current_codings: Coding[]; memos: Memo[]; cases: Case[];
+  coding_events: Coding[]; current_codings: Coding[]; suggestions: Coding[]; memos: Memo[]; cases: Case[];
   attributes: Attribute[]; source_cases: SourceCase[];
 }
 export type Span = { segmentId: number; start: number; end: number }
 export type MatrixCell = { code_id: number; case_id: number; count: number }
 export type Retrieval = Coding & { source_id: number; segment_text: string; excerpt: string; source_name: string }
-export type View = 'workspace' | 'codebook' | 'memos' | 'retrieval' | 'matrix'
+export type View = 'home' | 'workspace' | 'codebook' | 'memos' | 'retrieval' | 'matrix' | 'review' | 'evaluation' | 'experiments'
 
 export function segmentText(data: Workspace, segment: Segment): string {
   const source = data.sources.find(item => item.id === segment.source_id)
@@ -76,4 +76,4 @@ export function uniqueSegmentCount(codings: Coding[], codeId: number, sourceIds:
   return new Set(codings.filter(item => item.code_id === codeId && valid.has(item.segment_id)).map(item => item.segment_id)).size
 }
 
-export const codeStyle = (index: number) => ({ '--code-color': `var(--code-${index % 8 + 1})`, '--code-border': index >= 8 ? 'dashed' : 'solid' })
+export const codeStyle = (index: number) => ({ '--code-color': `var(--code-${index % 8 + 1})`, '--code-border': 'solid', '--code-pattern': index >= 8 ? 'var(--code-hatch)' : 'none' })
