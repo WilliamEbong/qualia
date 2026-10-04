@@ -55,6 +55,8 @@ describe('uncertainty shown in plain language', () => {
     expect(reviewSentence({ review_share: .35, review_cutoff: .64 }, .7)).toBe('Reviewing suggestions with a model-reported score below 0.64 (35% of them) leaves the rest at 90% precision or better on this validation set. Current review threshold: 0.70.')
     expect(reviewSentence({ review_share: 1, review_cutoff: null }, undefined)).toBe('No score cutoff reached 90% precision on this validation set, so every AI suggestion needs review.')
     expect(reviewSentence({ review_share: 0, review_cutoff: .1 }, .7)).toContain('already reach 90% precision')
+    expect(reviewSentence({ review_share: .9994, review_cutoff: .88 }, .7)).toContain('(more than 99% of them)')
+    expect(reviewSentence({ review_share: .004, review_cutoff: .2 }, .7)).toContain('(less than 1% of them)')
     expect(reviewSentence({}, .7)).toBe('')
   })
   it('lists only populated calibration bands', () => {

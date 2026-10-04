@@ -83,7 +83,9 @@ export function reviewSentence(metrics: EvaluationMetrics, threshold: unknown): 
   const current = finite(threshold) ? ` Current review threshold: ${threshold.toFixed(2)}.` : ''
   if (!finite(cutoff)) return `No score cutoff reached 90% precision on this validation set, so every AI suggestion needs review.${current}`
   if (share === 0) return `All scored suggestions together already reach 90% precision on this validation set.${current}`
-  return `Reviewing suggestions with a model-reported score below ${cutoff.toFixed(2)} (${Math.round(share * 100)}% of them) leaves the rest at 90% precision or better on this validation set.${current}`
+  const percent = Math.round(share * 100)
+  const portion = percent >= 100 ? 'more than 99%' : percent <= 0 ? 'less than 1%' : `${percent}%`
+  return `Reviewing suggestions with a model-reported score below ${cutoff.toFixed(2)} (${portion} of them) leaves the rest at 90% precision or better on this validation set.${current}`
 }
 
 export function calibrationRows(metrics: EvaluationMetrics) {
