@@ -4,7 +4,7 @@
 
 Read transcripts, apply a human-defined codebook, review AI suggestions, and inspect the evidence behind every coding decision. Qualia keeps source spans, frozen codebook versions, actor identity, model provenance and experiment measurements together in a local workspace.
 
-The manual, rules and deterministic fake workflows are implemented and tested. Native subscription AI remains gated; Jev is installed but optional and disabled by default. This repository is private. The static public-data demonstration has been built locally and is not deployed.
+The manual, rules and deterministic fake workflows are implemented and tested. Native classification uses each user's official CLI subscription sign-in with explicit project permission and bounded execution; file-editing improvement agents remain gated. Jev is installed but optional and disabled by default. This repository is private. The static public-data demonstration has been built locally and is not deployed.
 
 ![Qualia: qualitative coding you can audit](docs/social-preview.png)
 
@@ -108,7 +108,9 @@ An interrupted finalization leaves a recovery journal at `QUALIA_HOME/recovery/<
 
 ## Optional AI setup
 
-Rules and fake classification need no provider account. Native Claude/Codex classification and operator production paths remain unavailable pending the required isolation, output-bound and per-request accounting evidence. The installed Codex CLI passed two real synthetic classification probes and a delegation probe using existing sign-in; those are not an end-to-end Qualia activation test. The intended workflow stays in Qualia's UI: its local server invokes the official CLI, which uses its own sign-in. No AI desktop app needs to remain open. Qualia does not read or proxy subscription login tokens. See [preflight evidence](docs/research/preflight-ai.md) and [subscription documentation assessment](docs/research/subscription-policy.md).
+Rules and fake classification need no provider account. Native classification uses your own official CLI subscription sign-in: audited Claude Code2.1.284 or Codex0.160.0, with exact-version checks at dispatch. The workflow stays in Qualia's UI; no AI desktop app needs to remain open. Each user installs/signs in locally, enables external processing deliberately and retains their own account and data. No API key is needed for subscription classification. Qualia does not read or proxy login tokens; Claude Console/API mode is rejected and Codex forces ChatGPT mode. File-editing improvement agents remain disabled pending filesystem isolation.
+
+The owner [approved practical native limits](docs/answers/01-native-usage.md): five-segment batches, bounded input/output,90-second default deadline, no automatic native application retry, and one reservation/egress record per CLI invocation. Internal provider requests may be multiple; native call counts are not exact HTTP or subscription-quota counts. Codex has no provider generation-token cap. See [setup and limits](docs/USER-GUIDE.md#12-generate-and-review-ai-suggestions), [adapter/live evidence](docs/research/cli-classification.md) and [subscription documentation assessment](docs/research/subscription-policy.md).
 
 Jev's adapter and local controls are installed. The verified setup found no configured key, so no live Jev request was made. Account credits, a dedicated key and the deliberate project egress choice remain owner steps. Follow [Jev setup](docs/JEV-SETUP.md); keep the key in ignored `.env`, never in chat or frontend configuration. Check readiness without a network request:
 
@@ -150,7 +152,7 @@ The locally verified static snapshot contains 24 utterances from two development
 
 ## Verification
 
-The latest full Python checkpoint passed **390 tests**, with five skips (four Windows capability checks and unavailable Rscript) and four live tests deselected. Final frontend checks passed **30 tests**, TypeScript, and normal/static production builds. Browser evidence covers coding, review, experiments, analysis, exports and all ten static views. Backend CI was green at remote `8029a36`; later checkpoints are local, pending owner authorization to push private main. See [BUILD-STATE.md](docs/BUILD-STATE.md) and the [design audit](design-review/LOOP-REPORT.md) for exact evidence and remaining gates; this README does not claim the entire build is complete.
+The latest full Python checkpoint passed **411 tests**, with five skips (four Windows capability checks and unavailable Rscript) and four live tests deselected. A subsequent safe-auth-error regression and final router/ledger/API suite passed31 checks. Actual synthetic public-router classification passed for both Claude haiku and Codex gpt-6-luna. Final frontend checks passed **30 tests**, TypeScript, and normal/static production builds. Browser evidence covers coding, review, experiments, analysis, exports and all ten static views. Backend CI was green at remote `8029a36`; later checkpoints are local, pending owner authorization to push private main. See [BUILD-STATE.md](docs/BUILD-STATE.md) and the [design audit](design-review/LOOP-REPORT.md) for exact evidence and remaining gates; this README does not claim the entire build is complete.
 
 ```powershell
 uv run pytest -m "not live"
@@ -170,5 +172,6 @@ The [MVP Playwright spec](tests/e2e/mvp.spec.ts) requires explicit URL, project,
 - External AI and Jev are off by default. Unknown priced-call usage retains its conservative reservation rather than releasing spend capacity.
 - Real validation measurements decide KEEP/REVERT. Operator claims never substitute for metrics, tests or confirmation.
 - Subscription limitations and incomplete live gates are reported explicitly; local research work continues through manual, rules and fake paths.
+- Owner-approved native accounting counts CLI invocations, retains failed attempts, and reports known aggregate tokens without pretending to measure internal HTTP requests or exact remaining subscription quota. Jev keeps separate direct-request accounting.
 
 Software: [MIT](LICENSE). Dataset provenance and permissions: [DATA-LICENSES.md](DATA-LICENSES.md).

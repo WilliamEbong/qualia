@@ -23,7 +23,8 @@ DEFAULT_MODELS = {'rules': 'rules-v1', 'fake': 'fake-v1', 'claude': 'haiku', 'co
                   'jev': 'jev-1.13.0'}
 RETRYABLE = {'timeout', 'transient', 'process_failed', 'transport_error', 'rate_limit'}
 SAFE_FAILURES = RETRYABLE | {'invalid_model', 'unavailable', 'input_limit', 'output_limit',
-                            'unsupported_version', 'invalid_input', 'tool_call', 'invalid_response'}
+                            'unsupported_version', 'invalid_input', 'tool_call', 'invalid_response',
+                            'subscription_auth_required', 'quota'}
 
 
 class UnavailableBackend:
@@ -129,8 +130,12 @@ def classify_segments(db, segments, codebook, config, *, prompt, codebook_versio
         context = {'codebook': codebook, 'model': model_name, 'prompt': prompt,
                    'max_output_tokens': config['max_output_tokens'], 'fake_mode': config['fake_mode'],
                    'task': task}
-        for offset in range(0, len(inputs), config['segments_per_call']):
-            batch = inputs[offset:offset + config['segments_per_call']]
+        # Owner-approved native accounting is per invocation, not per internal HTTP request.
+        native = backend_name in ('claude', 'codex')
+        batch_size = min(config['segments_per_call'], 5) if native else config['segments_per_call']
+        retries = 0 if native else config['max_retries']
+        for offset in range(0, len(inputs), batch_size):
+            batch = inputs[offset:offset + batch_size]
             context_hash = hashlib.sha256(canonical({'batch': batch, 'context': context}).encode()).hexdigest()
             keys = {segment['id']: cache_key(segment=segment, prompt_hash=prompt_hash,
                     codebook_version_id=codebook_version_id, backend=backend_name,
@@ -164,7 +169,7 @@ def classify_segments(db, segments, codebook, config, *, prompt, codebook_versio
             if not ready:
                 failures.append(('unavailable', f'backend {backend_name} is unavailable'))
                 return collected
-            for attempt in range(config['max_retries'] + 1):
+            for attempt in range(retries + 1):
                 # Optional backend cost hooks let a priced adapter reserve a conservative ceiling.
                 try:
                     reserved_usd = provider.estimate_cost(batch, context) if hasattr(provider, 'estimate_cost') else 0.0
@@ -193,7 +198,7 @@ def classify_segments(db, segments, codebook, config, *, prompt, codebook_versio
                                   error=exc, latency_ms=(time.monotonic()-started)*1000,
                                   reserved_usd=reserved_usd)
                     retryable = getattr(exc, 'code', None) in RETRYABLE
-                    if retryable and attempt < config['max_retries']:
+                    if retryable and attempt < retries:
                         continue
                     identity = (exc.segment_id if isinstance(exc, ResponseValidationError) and
                                 exc.segment_id in {segment['id'] for segment in batch} else batch[0]['id'])

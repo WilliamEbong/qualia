@@ -6,7 +6,7 @@ Verified 2026-10-03. Scope: one account owner using the providers' unmodified na
 
 Both providers document programmatic use of their native tools. Their documentation distinguishes that use from sharing an account, collecting subscription credentials, or operating a service through another person's subscription. This supports a narrower statement than either “subscription automation is forbidden” or “any subscription integration is approved.” The applicable account agreement, product integration conditions and usage limits still matter.
 
-Qualia's native classification and improvement backends remain unavailable. Documentation about permitted authentication does not resolve the separately observed generation bounds, request accounting and operator isolation gaps.
+Subsequent owner decision: [practical native limits and per-invocation accounting](../answers/01-native-usage.md) are approved for classification. Native classification retains exact-version, subscription-mode, no-action-tools and project-egress checks. File-editing improvement remains unavailable pending operator isolation. Documentation about permitted authentication alone is not a substitute for those implementation checks.
 
 ## OpenAI: documented functionality and limits
 
@@ -41,4 +41,4 @@ The intended boundary is an owner-controlled local invocation of a genuine provi
 
 The existing [CLI evidence](cli-classification.md) remains controlling for implementation readiness: Claude 2.1.284 can issue multiple model requests within a bounded invocation; Codex 0.160.0 has unresolved generation-token and authentication-retry accounting limits. Operator filesystem isolation is a separate requirement. Current rolling documentation does not erase those version-specific observations.
 
-Before any future activation: resolve those engineering gates, recheck the provider's current documentation against the exact installed version and intended personal/product use, and obtain any genuinely required owner/provider decision. Until then, manual work, rules and fake backends remain the supported offline paths. No subscription-policy approval, successful live subscription classification, or production-native readiness is claimed by this research.
+Classification activation follows the owner-approved policy and recorded adapter tests, not a blanket conclusion from this research. Manual work, rules and fake backends remain the offline paths. This document itself makes no provider-approval or live-success claim; current executable verification belongs in cli-classification.md and BUILD-STATE.

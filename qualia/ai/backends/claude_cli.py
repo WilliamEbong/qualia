@@ -21,13 +21,12 @@ from qualia.ai.backends.process import (
 
 VERIFIED_VERSION = '2.1.284'
 CLASSIFICATION_UNAVAILABLE_REASON = (
-    'Claude classification is unavailable pending an explicit CLI request-accounting decision. '
-    'Version 2.1.284 can send multiple model requests per invocation despite zero HTTP retries; '
-    'one invocation reservation does not satisfy one egress record per HTTP request.'
+    'Claude classification requires an installed official Claude CLI. '
+    'Dispatch verifies the audited version and an eligible Claude subscription sign-in.'
 )
 OPERATOR_UNAVAILABLE_REASON = (
-    'Claude operator is unavailable until native file confinement and per-model-request '
-    'egress accounting are verified. Classification availability is independent.'
+    'Claude operator is unavailable until native filesystem isolation is verified. '
+    'Classification availability is independent.'
 )
 
 
@@ -194,7 +193,7 @@ class ClaudeCLIBackend:
         return CLASSIFICATION_UNAVAILABLE_REASON
 
     def available(self):
-        return False
+        return resolve_command() is not None
 
     def classify(self, segments, schema, context):
         if not self.available():
@@ -202,7 +201,7 @@ class ClaudeCLIBackend:
         return self._classify(segments, schema, context)
 
     def _classify(self, segments, schema, context):
-        """Testable dispatch behind the public request-accounting gate."""
+        """Dispatch one owner-approved bounded native invocation after login validation."""
         record = first_segment(segments)
         command = resolve_command()
         if command is None:
@@ -222,13 +221,27 @@ class ClaudeCLIBackend:
             version_cwd.mkdir()
             probe = self.runner([*command, '--version'], prompt='', cwd=version_cwd,
                                 env=environment, timeout_seconds=10, max_output_bytes=8192)
-            match = re.search(rb'\b(\d+\.\d+\.\d+(?:[-.][a-zA-Z0-9]+)?)\b', probe.stdout)
+            match = re.search(rb'\b(\d+\.\d+\.\d+(?:[-+.][a-zA-Z0-9]+)*)\b', probe.stdout)
             if probe.failure or probe.returncode or not match:
                 raise BackendError('unavailable', record)
             version = match.group(1).decode('ascii')
             # These additive isolation switches were verified on this release.
             if version != VERIFIED_VERSION:
                 raise BackendError('unsupported_version', record, cli_version=version)
+            auth_cwd = root / 'auth'
+            auth_cwd.mkdir()
+            auth = self.runner([*command, 'auth', 'status', '--json'], prompt='', cwd=auth_cwd,
+                               env=environment, timeout_seconds=10, max_output_bytes=8192)
+            try:
+                status = json_object(auth.stdout)
+                if (auth.failure or auth.returncode or status.get('loggedIn') is not True
+                        or status.get('authMethod') != 'claude.ai'
+                        or status.get('apiProvider') != 'firstParty'):
+                    raise ValueError
+            except (ValueError, TypeError, UnicodeError, RecursionError):
+                # Native status may contain account details; never retain or echo it.
+                raise BackendError('subscription_auth_required', record,
+                                   cli_version=version) from None
             cwd = root / 'cwd'
             cwd.mkdir()
             try:

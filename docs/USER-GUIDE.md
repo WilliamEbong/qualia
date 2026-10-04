@@ -4,9 +4,9 @@
 
 Qualia helps you read research material, apply your own codebook, keep analytic notes, compare patterns across cases, and trace results back to the passages and decisions that produced them. You can work manually without an AI account. Optional classifiers produce suggestions for you to review; they do not decide your methodology.
 
-This guide is for a researcher using the local Windows installation. It describes implemented workflows and their limits. Availability messages in the app remain authoritative: native Claude and Codex classifiers and improvement operators are currently unavailable, and Jev requires separate setup. The optional security scanner did not complete its Windows permission preflight; this guide does not claim a completed external security audit, deployment, or remote push. See [build status](BUILD-STATE.md) for current verification and remaining work.
+This guide is for a researcher using the local Windows installation. It describes implemented workflows and their limits. Availability messages in the app remain authoritative: native classification requires an audited CLI version, your own subscription sign-in and project permission; file-editing improvement operators remain unavailable. Jev requires separate setup. The optional security scanner did not complete its Windows permission preflight; this guide does not claim a completed external security audit, deployment, or remote push. See [build status](BUILD-STATE.md) for current verification and remaining work.
 
-**Use Qualia's own browser UI for your research.** Start it with `uv run qualia open`, then use its Workspace, Codebook, Review and Analysis views. You do not need to keep an AI desktop app open. The intended native AI integration launches the installed Codex or Claude CLI as a local subprocess and lets that CLI use its existing official sign-in; it does not ask you to paste a subscription token into Qualia. That integration remains disabled until the engineering gates described in [AI backend availability](#12-generate-and-review-ai-suggestions) are resolved.
+**Use Qualia's own browser UI for your research.** Start it with `uv run qualia open`, then use its Workspace, Codebook, Review and Analysis views. You do not need to keep an AI desktop app open. Native classification launches the installed Codex or Claude CLI as a local subprocess and lets that CLI use its existing official sign-in; it does not ask you to paste a subscription token into Qualia. Follow [AI backend setup](#12-generate-and-review-ai-suggestions) before using it.
 
 The Codebook, Matrix and Analysis illustrations below show the licensed read-only public snapshot. They explain the layout; disabled editing controls in those screenshots do not mean that editing is disabled in your local research project. The Workspace illustration shows the local AnnoMI demonstration and its coding provenance. The Review and Experiments illustrations show that local demonstration using the offline fake backend.
 
@@ -405,16 +405,32 @@ The starters reproduce selected numeric summaries, pairwise correlations and cas
 |---|---|
 | `rules` | Offline keyword baseline. Matches comma/newline-separated inclusion terms, or the code name when inclusion text is empty, as case-insensitive substrings. It does not interpret your full methodology. |
 | `fake` | Offline deterministic demonstration. Proposes configured first/all/no codes with a synthetic rationale. It is not a trained model or a research-quality recommendation system. |
-| `claude`, `codex` | Currently unavailable for production classification and improvement. Logging in does not resolve the request-accounting/confinement gates. |
+| `claude`, `codex` | Native classification with your own eligible subscription sign-in and audited CLI version. External processing must be allowed for the project. File-editing improvement remains disabled separately. |
 | `jev` | Optional external classifier, installed but off by default. Requires a locally configured key, project opt-in and a deliberate backend choice. |
 
-**What has actually been tested:** the recorded [synthetic CLI preflight](research/preflight-ai.md) successfully called Codex `gpt-6-luna` twice on a tiny invented classification and completed a `gpt-6-astra` delegation probe. Claude returned an authenticated quota-limit response, so that preflight did not establish successful Claude generation. These were direct CLI diagnostics, not successful calls through Qualia's production integration. Later [adapter checks](research/cli-classification.md) identified unresolved per-request accounting, generation-limit and operator-isolation requirements; logging in or opening an AI desktop app does not remove those gates. The [subscription documentation review](research/subscription-policy.md) explains the narrower documented native-login use without claiming provider approval of every integration.
+**What has actually been tested:** the [synthetic CLI preflight](research/preflight-ai.md), [adapter evidence](research/cli-classification.md) and [current build state](BUILD-STATE.md) distinguish standalone CLI calls, offline transport tests and actual normal-router smoke tests. The owner subsequently [approved practical native limits](answers/01-native-usage.md). This resolves the usage-policy gates, while file-editing operator isolation remains separate. The [subscription documentation review](research/subscription-policy.md) explains native-login use without claiming provider approval of every integration.
+
+### Set up your own device and subscription
+
+1. Install Qualia on your own computer. Install the official [Codex CLI](https://github.com/openai/codex) or [Claude Code](https://code.claude.com/docs/en/setup) separately. The currently audited versions are Codex **0.160.0** and Claude Code **2.1.284**. An unaudited version is rejected before classification; do not assume an automatic CLI update has been verified.
+2. Run `codex` and choose **Sign in with ChatGPT**, or run `claude` and use your eligible Claude subscription account. These are your accounts; no shared developer account is supplied. No API key is required for these subscription paths. Qualia rejects Claude Console/API authentication and forces ChatGPT authentication for Codex.
+3. Confirm your subscription permits the selected model. Keep paid extra usage disabled unless you independently choose it; Qualia does not change billing settings. A successful login does not guarantee remaining quota.
+4. Start with a small synthetic study. Close or finish any active classification. Open that project's `config/routing.yaml` in your local research folder (default `%USERPROFILE%\Qualia\projects\my-study\config\routing.yaml`) in a text editor. The file uses JSON syntax. Preserve the other fields, change `"allow_external": false` to `true`, and consider `"daily_calls": 10` for your initial trial. Save it. This is your explicit permission to send the selected study text and codebook to the provider. Setting the value back to `false` prevents new external dispatches; it does not recall a request already sent.
+5. Reopen or refresh Qualia, choose the project, and inspect **Review → Backend availability and privacy**. “Available” means the executable can be found; exact version, sign-in and provider response are checked during dispatch. Choose `claude` or `codex` and **Current source** for a small first request.
+
+Each installation keeps its own projects, CLI login and optional Jev key. No subscription token or API key is shipped with Qualia. If you customize `QUALIA_HOME`, use that directory instead of the default path above.
+
+### Understand the usage limits
+
+Native classification batches contain at most five segments, each at most 4,000 characters. The default process deadline is 90 seconds, input is capped at 1 MiB and captured output at 256 KiB. Claude also uses its supported generation limit and a two-turn control. Codex has no verified provider generation-token cap; its byte/time limits are local controls. The configured output-token threshold is also checked after the response, which can reject an over-limit result but cannot undo provider usage.
+
+For Claude/Codex, each recorded **call** and native egress record means one CLI invocation. The CLI may issue several internal provider requests, including retries or continuation. Qualia does not automatically retry a failed native invocation. Failed attempts still consume the local invocation budget; reported aggregate tokens are retained when available. Missing token telemetry must not be interpreted as proof of zero provider usage. These counters do not show your exact remaining subscription allowance. Jev calls are direct HTTP requests with separate accounting and billing.
 
 ### Generate a small batch
 
 1. Freeze your codebook and select a source in **Workspace**.
 2. Open **Review**.
-3. Choose **Backend**. Use `rules` for a local keyword baseline, or `fake` only to practice the review workflow.
+3. Choose **Backend**. Use `rules` for a local keyword baseline, `fake` only to practice, or your configured native/Jev classifier after completing its setup.
 4. Choose **Current source** under **Scope**. The large AnnoMI demo exceeds the default 2,000-segment run limit when all project segments are selected.
 5. Leave **Model override (optional)** empty unless you have a verified reason to set it.
 6. Select **Run classification**, then inspect the result and pending suggestions.
@@ -446,6 +462,8 @@ uv run qualia availability --project my-study
 Follow the detailed [Jev setup guide](JEV-SETUP.md). It covers your TypeSafe account, credits, dedicated key, ignored local `.env`, and a tiny synthetic first request. An account alone does not verify a usable balance or authenticated API access.
 
 Keep the key out of chat, screenshots, source code, shell command history and frontend settings. Save it locally as described in that guide. Qualia never needs you to paste a subscription login token.
+
+Jev can reduce subscription usage when it performs classifications that would otherwise go to Claude or Codex. A Jev-first route can escalate only uncertain cases to a stronger subscription model; savings depend on escalation rate and must be measured. Adding a key does not automatically change routing, and Jev has separate usage charges. It does not replace the file-editing improvement agent.
 
 Check local readiness:
 
@@ -623,7 +641,9 @@ There is no one-command recovery workflow. Do not delete the journal, lock, data
 | Analysis export says research data changed | The displayed input hash no longer matches current data/configuration. Select **Refresh analysis** to reload the workspace evidence and report, review the result, then download the complete CSV/JSON/starter set again. This also brings in edits from another CLI/tab. |
 | Analysis exceeds a budget | Narrow source/case scope, or use a smaller project when an input-table cap is exceeded. Counts are never silently truncated. |
 | Static controls are disabled | You are viewing the fixed public snapshot. Use the local app for editing or new analysis criteria. |
-| AI unavailable | Read **Backend availability and privacy** or run `availability`. Native gates are intentional; signing in alone does not enable them. |
+| AI unavailable | Read **Backend availability and privacy** or run `availability`. Check the installed audited version, local subscription sign-in and project external-processing setting. File-editing operators remain disabled separately. |
+| `subscription_auth_required` | Open the official Claude CLI and sign in using your Claude subscription, not Console/API billing. Qualia deliberately rejects other modes. No token should be pasted into Qualia. |
+| `quota` | Your provider reported a usage/rate limit. Check your own subscription allowance and retry later; Qualia will not enable paid overages or automatically retry the invocation. |
 | Classification run too large | Choose **Current source** or pass explicit `--segments`; default whole-run limit is 2,000 segments. |
 | No rules suggestions | Inclusion terms/name did not match. Rules perform literal keyword matching, not semantic coding. |
 | A suggestion appears in several groups | It has several review reasons. Reviewing its ID resolves the same suggestion across groups. |

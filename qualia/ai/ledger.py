@@ -5,6 +5,8 @@ import math
 
 
 def reserve(db, *, backend, model, run_id, segments, config, purpose, reserved_usd=0.0):
+    if backend.name in ('claude', 'codex'):
+        purpose += ':cli_invocation'
     return db.reserve_attempt(backend=backend.name, model=model, run_id=run_id,
                               segment_hashes=[hashlib.sha256(item['text'].encode('utf-8')).hexdigest()
                                               for item in segments], external=backend.external,

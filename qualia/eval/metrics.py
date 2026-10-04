@@ -109,7 +109,7 @@ def evaluate_metrics(records, predictions, code_ids, *, calls=0, latency_ms=0, e
             'alpha': 'Nominal code-set categories; missing ratings and units with fewer than two ratings excluded; undefined is null.',
             'ece': 'Predicted (segment, code) assignments; repeated spans use maximum model-reported score. Correct means code is in reference. Ten equal-width bins; final bin includes 1. No scored assignments gives null. This does not measure missed-label calibration.',
             'escalation_rate': 'Distinct escalated segments divided by evaluated segments; empty denominator is null.',
-            'calls_per_1000': 'All attempted provider calls including retries divided by evaluated segments times 1000; empty denominator is null.',
+            'calls_per_1000': 'Attempted backend dispatches divided by evaluated segments times 1000. Native Claude/Codex dispatches are CLI invocations, potentially containing multiple provider requests; Jev dispatches are HTTP requests including retries. Empty denominator is null.',
             'latency_ms': 'Total supplied wall-clock evaluation latency in milliseconds.',
         },
     }

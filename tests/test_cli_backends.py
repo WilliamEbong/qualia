@@ -24,12 +24,15 @@ PREDICTIONS = [{'segment_id': '7', 'codes': [{'code_id': 1, 'score': 0.8,
                 'rationale': 'Explicit hope.', 'span_start': 0, 'span_end': 6}]}]
 SCHEMA = {'type': 'object', 'properties': {'predictions': {'type': 'array'}},
           'required': ['predictions'], 'additionalProperties': False}
+SUBSCRIPTION_AUTH = {'loggedIn': True, 'authMethod': 'claude.ai', 'apiProvider': 'firstParty'}
 
 
 def fixture_runner(calls, envelope, returncode=0):
     def run(argv, **kwargs):
         if '--version' in argv:
             return ProcessResult(0, b'2.1.284 (Claude Code)', b'')
+        if argv[-3:] == ['auth', 'status', '--json']:
+            return ProcessResult(0, json.dumps(SUBSCRIPTION_AUTH).encode(), b'')
         calls.append((argv, kwargs, list(Path(kwargs['cwd']).iterdir())))
         return ProcessResult(returncode, json.dumps(envelope).encode(), b'')
     return run
@@ -46,7 +49,7 @@ def test_claude_argv_empty_cwd_stdin_subscription_and_usage(monkeypatch):
         'usage': {'input_tokens': 11, 'output_tokens': 8,
                   'cache_read_input_tokens': 4, 'cache_creation_input_tokens': 2},
     }))
-    result = backend._classify(SEGMENTS, SCHEMA, {'model': 'haiku', 'codebook': []})
+    result = backend.classify(SEGMENTS, SCHEMA, {'model': 'haiku', 'codebook': []})
     argv, options, contents = calls[0]
     assert contents == []
     assert not Path(options['cwd']).exists()
@@ -80,7 +83,7 @@ def test_claude_errors_sanitized_and_usage_retained(monkeypatch, envelope, statu
     monkeypatch.setattr(claude_cli, 'resolve_command', lambda: ['installed-claude.exe'])
     backend = claude_cli.ClaudeCLIBackend(runner=fixture_runner([], envelope, status))
     with pytest.raises(BackendError) as failure:
-        backend._classify(SEGMENTS, SCHEMA, {})
+        backend.classify(SEGMENTS, SCHEMA, {})
     assert failure.value.code == code
     assert failure.value.segment_id == '7'
     assert 'private' not in str(failure.value) and 'secret' not in str(failure.value)
@@ -89,26 +92,93 @@ def test_claude_errors_sanitized_and_usage_retained(monkeypatch, envelope, statu
         assert failure.value.output_tokens == 1
 
 
-def test_codex_fails_closed_without_launch(monkeypatch):
-    monkeypatch.setattr(codex_cli, 'resolve_command', lambda: ['installed-codex.exe'])
+@pytest.mark.parametrize('vendor,class_name', [
+    (codex_cli, 'CodexCLIBackend'), (claude_cli, 'ClaudeCLIBackend')])
+def test_classification_readiness_uses_command_discovery_only(monkeypatch, vendor, class_name):
+    monkeypatch.setattr(vendor, 'resolve_command', lambda: ['installed-official-cli.exe'])
     calls = []
-    backend = codex_cli.CodexCLIBackend(runner=lambda *a, **kw: calls.append(a))
+    backend = getattr(vendor, class_name)(runner=lambda *a, **kw: calls.append(a))
+    assert backend.available() is True
+    assert calls == []
+    assert vendor.operator_available() is False
+    assert 'accounting' not in vendor.OPERATOR_UNAVAILABLE_REASON
+    monkeypatch.setattr(vendor, 'resolve_command', lambda: None)
     assert backend.available() is False
-    assert 'token' in backend.unavailable_reason
     with pytest.raises(BackendError, match='unavailable'):
         backend.classify(SEGMENTS, SCHEMA, {})
     assert calls == []
 
 
-def test_claude_fails_closed_without_launch(monkeypatch):
+@pytest.mark.parametrize('status', [
+    {'loggedIn': False, 'authMethod': 'claude.ai', 'apiProvider': 'firstParty'},
+    {'loggedIn': 1, 'authMethod': 'claude.ai', 'apiProvider': 'firstParty'},
+    {'loggedIn': True, 'authMethod': 'api_key', 'apiProvider': 'firstParty'},
+    {'loggedIn': True, 'authMethod': 'console', 'apiProvider': 'firstParty'},
+    {'loggedIn': True, 'authMethod': 'claude.ai', 'apiProvider': 'bedrock'},
+    {'loggedIn': True, 'authMethod': 'profile', 'apiProvider': 'firstParty'},
+    {'loggedIn': True}, {}, [], 'not-json-private',
+])
+def test_claude_wrong_auth_mode_never_dispatches(monkeypatch, status):
     monkeypatch.setattr(claude_cli, 'resolve_command', lambda: ['installed-claude.exe'])
     calls = []
-    backend = claude_cli.ClaudeCLIBackend(runner=lambda *a, **kw: calls.append(a))
-    assert backend.available() is False
-    assert 'request' in backend.unavailable_reason
-    with pytest.raises(BackendError, match='unavailable'):
+
+    def runner(argv, **options):
+        calls.append((argv, options))
+        assert options['prompt'] == ''
+        assert options['timeout_seconds'] == 10 and options['max_output_bytes'] == 8192
+        assert list(Path(options['cwd']).iterdir()) == []
+        if '--version' in argv:
+            return ProcessResult(0, b'2.1.284', b'')
+        assert argv[-3:] == ['auth', 'status', '--json']
+        body = status.encode() if isinstance(status, str) else json.dumps(status).encode()
+        return ProcessResult(0, body, b'private stderr')
+
+    backend = claude_cli.ClaudeCLIBackend(runner=runner)
+    with pytest.raises(BackendError, match='subscription_auth_required') as caught:
         backend.classify(SEGMENTS, SCHEMA, {})
-    assert calls == []
+    assert len(calls) == 2
+    assert caught.value.cli_version == '2.1.284'
+    assert caught.value.input_tokens == caught.value.output_tokens == 0
+    assert 'private' not in str(caught.value)
+    assert all(not Path(options['cwd']).exists() for _, options in calls)
+
+
+@pytest.mark.parametrize('failure,returncode', [('timeout', -1), ('output_limit', -1), (None, 1)])
+def test_claude_failed_auth_probe_never_dispatches(monkeypatch, failure, returncode):
+    monkeypatch.setattr(claude_cli, 'resolve_command', lambda: ['installed-claude.exe'])
+    calls = []
+
+    def runner(argv, **options):
+        calls.append(argv)
+        if '--version' in argv:
+            return ProcessResult(0, b'2.1.284', b'')
+        assert argv[-3:] == ['auth', 'status', '--json']
+        return ProcessResult(returncode, json.dumps(SUBSCRIPTION_AUTH).encode(), b'', failure)
+
+    with pytest.raises(BackendError, match='subscription_auth_required'):
+        claude_cli.ClaudeCLIBackend(runner=runner).classify(SEGMENTS, SCHEMA, {})
+    assert len(calls) == 2
+
+
+def test_claude_subscription_probe_precedes_public_dispatch(monkeypatch):
+    monkeypatch.setattr(claude_cli, 'resolve_command', lambda: ['installed-claude.exe'])
+    calls = []
+
+    def runner(argv, **options):
+        calls.append(argv)
+        assert list(Path(options['cwd']).iterdir()) == []
+        assert 'ANTHROPIC_API_KEY' not in options['env']
+        if '--version' in argv:
+            return ProcessResult(0, b'2.1.284', b'')
+        if argv[-3:] == ['auth', 'status', '--json']:
+            assert options['prompt'] == '' and options['max_output_bytes'] == 8192
+            return ProcessResult(0, json.dumps({**SUBSCRIPTION_AUTH, 'subscriptionType': 'max'}).encode(), b'')
+        assert '--tools' in argv and len(calls) == 3
+        return ProcessResult(0, json.dumps({'structured_output': {'predictions': PREDICTIONS},
+                             'usage': {'input_tokens': 1, 'output_tokens': 2}}).encode(), b'')
+
+    result = claude_cli.ClaudeCLIBackend(runner=runner).classify(SEGMENTS, SCHEMA, {})
+    assert result['predictions'] == PREDICTIONS and len(calls) == 3
 
 
 def test_codex_builder_exact_isolation_and_restricted_catalog(tmp_path):
@@ -199,8 +269,7 @@ def test_codex_complete_dispatch_with_synthetic_runner(monkeypatch, model):
                              'usage': {'input_tokens': 10, 'output_tokens': 4}}).encode(), b'')
 
     backend = codex_cli.CodexCLIBackend(model, runner=runner)
-    # Patch only this fixture instance. No production constructor/env/context gate bypass exists.
-    monkeypatch.setattr(backend, 'available', lambda: True)
+    assert backend.available()
     result = backend.classify(SEGMENTS, SCHEMA, {'model': model})
     assert result == {'predictions': PREDICTIONS, 'input_tokens': 10,
                       'output_tokens': 4, 'cli_version': '0.160.0'}
@@ -226,7 +295,6 @@ def test_codex_failure_preserves_completed_usage(monkeypatch, violation):
         return ProcessResult(0, data.encode(), b'private stderr')
 
     backend = codex_cli.CodexCLIBackend(runner=runner)
-    monkeypatch.setattr(backend, 'available', lambda: True)
     with pytest.raises(BackendError) as caught:
         backend.classify(SEGMENTS, SCHEMA, {})
     assert caught.value.input_tokens == 12 and caught.value.output_tokens == 6
@@ -244,10 +312,27 @@ def test_claude_unknown_version_never_dispatches(monkeypatch, version):
         return ProcessResult(0, version.encode(), b'')
 
     backend = claude_cli.ClaudeCLIBackend(runner=runner)
-    assert not backend.available()
+    assert backend.available()
     with pytest.raises(BackendError):
-        backend._classify(SEGMENTS, SCHEMA, {})
+        backend.classify(SEGMENTS, SCHEMA, {})
     assert all('--version' in argv for argv in calls)
+
+
+@pytest.mark.parametrize('version', ['0.159.0', '0.161.0', '0.160.0-beta.1',
+                                    '0.160.0+build', 'bad output'])
+def test_codex_unknown_version_never_dispatches(monkeypatch, version):
+    monkeypatch.setattr(codex_cli, 'resolve_command', lambda: ['installed-codex.exe'])
+    monkeypatch.setattr(codex_cli, 'load_catalog', lambda model: {'models': [{'slug': model}]})
+    calls = []
+
+    def runner(argv, **options):
+        calls.append(argv)
+        assert '--version' in argv
+        return ProcessResult(0, version.encode(), b'')
+
+    with pytest.raises(BackendError):
+        codex_cli.CodexCLIBackend(runner=runner).classify(SEGMENTS, SCHEMA, {})
+    assert len(calls) == 1
 
 
 @pytest.mark.parametrize('payload', [b'not json private key', b'[]', b'{"usage":NaN}'])
@@ -255,10 +340,12 @@ def test_claude_malformed_json_is_safe_and_record_specific(monkeypatch, payload)
     monkeypatch.setattr(claude_cli, 'resolve_command', lambda: ['installed-claude.exe'])
 
     def runner(argv, **kwargs):
+        if argv[-3:] == ['auth', 'status', '--json']:
+            return ProcessResult(0, json.dumps(SUBSCRIPTION_AUTH).encode(), b'')
         return ProcessResult(0, b'2.1.284' if '--version' in argv else payload, b'')
 
     with pytest.raises(BackendError, match='segment 7') as failure:
-        claude_cli.ClaudeCLIBackend(runner=runner)._classify(SEGMENTS, SCHEMA, {})
+        claude_cli.ClaudeCLIBackend(runner=runner).classify(SEGMENTS, SCHEMA, {})
     assert 'private' not in str(failure.value)
 
 
@@ -270,10 +357,12 @@ def test_transport_rejects_nested_duplicate_properties(monkeypatch, duplicate):
                '"structured_output":{"predictions":[{' + duplicate + '}]}}').encode()
 
     def runner(argv, **kwargs):
+        if argv[-3:] == ['auth', 'status', '--json']:
+            return ProcessResult(0, json.dumps(SUBSCRIPTION_AUTH).encode(), b'')
         return ProcessResult(0, b'2.1.284' if '--version' in argv else payload, b'')
 
     with pytest.raises(BackendError, match='invalid_response'):
-        claude_cli.ClaudeCLIBackend(runner=runner)._classify(SEGMENTS, SCHEMA, {})
+        claude_cli.ClaudeCLIBackend(runner=runner).classify(SEGMENTS, SCHEMA, {})
 
 
 def test_blocked_stdin_obeys_deadline(tmp_path):
@@ -312,7 +401,7 @@ def test_input_bounds_before_provider_dispatch(monkeypatch):
     calls = []
     backend = claude_cli.ClaudeCLIBackend(runner=lambda *args, **kw: calls.append(args))
     with pytest.raises(BackendError, match='segment oversized'):
-        backend._classify([{'id': 'oversized', 'text': 'x' * 10000}], SCHEMA, {})
+        backend.classify([{'id': 'oversized', 'text': 'x' * 10000}], SCHEMA, {})
     assert calls == []
     with pytest.raises(BackendError):
         classification_prompt(SEGMENTS, SCHEMA, {'prompt': 'x' * 1_048_576})
@@ -473,7 +562,8 @@ def test_installed_codex_advertises_no_tools_to_localhost(tmp_path, local_record
     assert not body.get('tools')
     additional = [item for item in body['input'] if item.get('type') == 'additional_tools']
     assert additional and all(not item['tools'] for item in additional)
-    assert 'max_output_tokens' not in body  # Explicit reason the production gate stays closed.
+    # Owner-approved byte/time limits are local bounds, not a provider token cap.
+    assert 'max_output_tokens' not in body
 
 
 @pytest.mark.parametrize('local_recorder', [400, 500, 'structured', 'invalid_structured',
@@ -501,7 +591,7 @@ def test_installed_claude_advertises_only_schema_transport_to_localhost(
     expected_requests = {'truncated_text': 4, 'plain_text': 2, 'pause_turn': 2}.get(scenario, 1)
     assert len(messages) == expected_requests
     if expected_requests > 1:
-        assert not claude_cli.ClaudeCLIBackend().available()
+        assert claude_cli.ClaudeCLIBackend().available()
         assert not json.loads(result.stdout).get('structured_output')
     # --json-schema uses a pure serializer, not an action capability.
     advertised = messages[0]['tools']

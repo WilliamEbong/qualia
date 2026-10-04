@@ -1,4 +1,4 @@
-"""Isolated Codex CLI recipe; live availability fails closed at the token-bound gate."""
+"""Bounded subscription Codex classifier with no advertised action tools."""
 
 import copy
 import json
@@ -22,8 +22,8 @@ from qualia.ai.backends.process import (
 VERIFIED_VERSION = '0.160.0'
 PROVIDER_ID = 'qualia-subscription'
 OPERATOR_UNAVAILABLE_REASON = (
-    'Codex operator is unavailable: native Windows confinement setup/profile, provider '
-    'generation limits and authentication-retry accounting remain unresolved.'
+    'Codex operator is unavailable until native filesystem isolation and its '
+    'file-editing confinement profile are verified.'
 )
 
 
@@ -144,10 +144,8 @@ class CodexCLIBackend:
     name = 'codex'
     external = True
     unavailable_reason = (
-        'Codex classification is unavailable: native CLI 0.160.0 has no verified provider '
-        'output-token cap or verified zero-retry subscription configuration. The owner '
-        'decision is pending; local byte/time limits are not a generation-token cap. '
-        'No provider request will be started.'
+        'Codex classification requires an installed official Codex CLI. '
+        'Dispatch verifies the audited version and requires native ChatGPT sign-in.'
     )
 
     def __init__(self, model='gpt-6-luna', *, runner=None, timeout_seconds=90,
@@ -158,10 +156,11 @@ class CodexCLIBackend:
         self.max_output_bytes = max_output_bytes
 
     def available(self):
-        return False
+        return resolve_command() is not None
 
     def classify(self, segments, schema, context):
-        # No constructor/env/context switch bypasses the unresolved owner gate.
+        # Native invocation admission is handled by the router; local bounds do
+        # not imply a provider generation-token cap or one internal HTTP request.
         record = first_segment(segments)
         if not self.available():
             raise BackendError('unavailable', record)
@@ -179,7 +178,7 @@ class CodexCLIBackend:
             version_cwd.mkdir()
             probe = self.runner([*command, '--version'], prompt='', cwd=version_cwd,
                                 env=environment, timeout_seconds=10, max_output_bytes=8192)
-            match = re.search(rb'\b(\d+\.\d+\.\d+)\b', probe.stdout)
+            match = re.search(rb'\b(\d+\.\d+\.\d+(?:[-+.][a-zA-Z0-9]+)*)\b', probe.stdout)
             if probe.failure or probe.returncode or not match:
                 raise BackendError('unavailable', record)
             version = match.group(1).decode('ascii')

@@ -67,6 +67,55 @@ def test_retry_has_separate_reservation_egress_and_sanitized_error():
         assert 'RAW_SECRET' not in json.dumps(result)
 
 
+@pytest.mark.parametrize('name', ['claude', 'codex'])
+def test_native_invocations_are_small_pre_reserved_and_not_retried(name):
+    class NativeFixture(CountingBackend):
+        def classify(self, segments, schema, context):
+            assert len(segments) <= 5
+            assert len(db.rows("SELECT * FROM usage_ledger WHERE status='reserved'")) == self.calls + 1
+            assert len(db.rows('SELECT * FROM egress_log')) == self.calls + 1
+            return super().classify(segments, schema, context)
+
+    provider = NativeFixture(external=True)
+    provider.name = name
+    segments = [{'id': str(i), 'text': f'Synthetic {i}.'} for i in range(6)]
+    with Store(':memory:') as db:
+        result = classify_segments(db, segments, [{'id': 1, 'name': 'Synthetic'}],
+            {**ROUTING, 'allow_external': True, 'segments_per_call': 20, 'max_retries': 2},
+            prompt='Synthetic.', codebook_version_id=1, pipeline_version='native-policy',
+            backend=name, model='synthetic', registry={name: provider})
+        assert result['status'] == 'completed'
+        assert result['calls'] == provider.calls == 2
+        assert [row['purpose'] for row in db.rows('SELECT * FROM egress_log')] == [
+            'classification:cli_invocation', 'classification:cli_invocation']
+
+    provider = NativeFixture(external=True, failures=1)
+    provider.name = name
+    with Store(':memory:') as db:
+        result = classify_segments(db, segments[:1], [{'id': 1, 'name': 'Synthetic'}],
+            {**ROUTING, 'allow_external': True, 'max_retries': 2},
+            prompt='Synthetic.', codebook_version_id=1, pipeline_version='native-policy',
+            backend=name, model='synthetic', registry={name: provider})
+        assert result['status'] == 'error'
+        assert result['calls'] == provider.calls == 1
+        assert db.rows("SELECT * FROM usage_ledger WHERE status='error'")
+
+
+def test_subscription_signin_failure_is_actionable_without_account_details():
+    from qualia.ai.backends.process import BackendError
+
+    class WrongLogin(CountingBackend):
+        def classify(self, segments, schema, context):
+            raise BackendError('subscription_auth_required', segments[0]['id'],
+                               cli_version='2.1.284')
+
+    with Store(':memory:') as db:
+        result = run(db, WrongLogin(external=True), config={'allow_external': True})
+        assert result['status'] == 'error'
+        assert result['errors'] == ['segment s1: classification failed (subscription_auth_required)']
+        assert db.one("SELECT cli_version FROM usage_ledger WHERE status='error'")['cli_version'] == '2.1.284'
+
+
 def test_retry_respects_budget_and_evaluation_never_writes_coding():
     backend = CountingBackend(external=True, failures=1)
     with Store(':memory:') as db:
