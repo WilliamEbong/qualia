@@ -1,3 +1,7 @@
+@import '@fontsource/cormorant-garamond/latin-400.css';
+@import '@fontsource-variable/libre-franklin/wght.css';
+@import '@fontsource/ibm-plex-mono/latin-400.css';
+
 :root {
   --background: #f3efe4; --surface: #e9e1cd; --foreground: #1d1c1a;
   --secondary: #3c3a35; --caption: #6b665c; --border: #1d1c1a4d;
@@ -6,16 +10,26 @@
   --code-5: #4e6a58; --code-6: #6e8496; --code-7: #b98a3e; --code-8: #a5b096;
   --heat-rgb: 35 98 146;
   --decision-keep: var(--code-3); --decision-revert: var(--code-2);
+  --stripe-human: solid; --stripe-suggested: dashed; --stripe-width: 3px;
+  --uncertain: #8a6420; --uncertain-ground: #f3efe4; --error: #a2573b;
+  --horizon: #1d1c1a59;
+  --plate-ground: #1d1c1a; --plate-ink: #f3efe4; --plate-caption: #f3efe4cc; --plate-rule: #f3efe459;
+  --code-hatch: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' viewBox='0 0 4 4'%3E%3Cpath d='M-1 1L1-1M0 4L4 0M3 5L5 3' stroke='black' stroke-width='1'/%3E%3C/svg%3E");
   --font-display: 'Cormorant Garamond', Georgia, serif;
-  --font-body: 'Libre Franklin', system-ui, sans-serif;
+  --font-body: 'Libre Franklin Variable', Arial, sans-serif;
   --font-caption: 'IBM Plex Mono', Consolas, monospace;
   --radius: 0;
+  --motion-ui: 150ms; --motion-media: 300ms; --motion-ease: cubic-bezier(.3,0,.7,1);
+  --rail-source: 280px; --rail-coding: 340px; --measure: 68ch;
+  --type-xs: 12px; --type-caption: 13px; --type-body: 15px; --type-reading: 17px;
+  --type-subtitle: 20px; --type-small-heading: 24px; --type-heading: 32px; --type-title: 44px;
 }
 [data-theme="dark"] {
   color-scheme: dark;
   --background: #2c2a27; --surface: #1c2127; --foreground: #f3efe4;
   --secondary: #f3efe4b3; --caption: #f3efe4b3; --border: #f3efe440;
   --accent: #b98a3e; --focus: #a9c1d3;
+  --horizon: #f3efe459;
 }
 @theme inline {
   --color-background: var(--background); --color-foreground: var(--foreground);
@@ -24,4 +38,5 @@
 }
 html { font-family: var(--font-body); }
 h1, h2, h3 { font-family: var(--font-display); }
-pre, .caption, .provenance, .matrix-cell, .metric-value, .decision-caption { font-family: var(--font-caption); }
+pre, code, .caption, .provenance, .matrix-cell, .metric-value, .decision-caption,
+.version > summary, .analysis-chart text, .local-status, .timeline-dot-label { font-family: var(--font-caption); }

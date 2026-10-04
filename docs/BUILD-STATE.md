@@ -30,8 +30,8 @@ Started 2026-10-03. Baseline: f1d8719. Owner authorized autonomous implementatio
 - [ ] P6.1 Security/hygiene audits, CI and secret/data checks.
 - [ ] P6.2 Live Claude/Codex experiment parity.
 - [x] P7.D0 Design guard and baseline screenshots.
-- [~] P7.D1 Tokens, fonts, theme, DESIGN.md.
-- [ ] P7.D2 Workspace and review presentation.
+- [x] P7.D1 Tokens, fonts, theme, DESIGN.md.
+- [x] P7.D2 Workspace and review presentation.
 - [ ] P7.D3 Experiments presentation.
 - [ ] P7.D4 Codebook and matrix presentation.
 - [ ] P7.D5 Landing/demo presentation.
@@ -155,3 +155,8 @@ Full offline regression after export consistency repair: 390 passed, 5 skipped (
 008 converged: 12 FR, 5 success criteria and 8 tasks satisfied. Final Playwright entry/Refresh/Apply each sends one workspace GET then one analysis POST, with no request loop; selected criteria remain accurate. Full offline390 and web30 tests pass. D0 baseline captured seven views at1280/375, no page overflow. Starting presentation-only work from this checkpoint.
 
 D0 activated at 295c712. core.hooksPath=.githooks; physical guard mode design remains intentionally unstaged through the presentation pass. Both direct Node validation and actual git commit rejected the staged harmless qualia/__init__.py probe: 'Qualia design guard: protected staged paths; unstage them and record required changes in DESIGN-NOTES.md.' Original bytes restored and probe unstaged; no probe commit created. Seven baseline screens at1280/375 have no overflow. Fontsource/art plates are already in this baseline; no new dependencies permitted. D1–D6 assigned presentation-only; final protected-path diff compares against295c712.
+
+Final local hygiene at 547ef6f: official Gitleaks 8.30.1 (Windows x32 archive checksum verified against the release checksums) found zero findings in 313 current tracked/unignored files and all 15 Git commits. Built-in rules, redacted output, no repository configuration/ignore exclusions, 120-second cap; scans remained local. npm audit: zero known vulnerabilities across 249 dependency entries. pip-audit 2.10.1: zero across 31 production packages. Dependency manifests/locks unchanged. Redacted local reports retained under Temp/qualia-gitleaks-73cf5eb1109442f995b36e4f09fc58ca. The official OpenAI model-based scan remains separately blocked before analysis; a local audit is not misrepresented as that scan.
+
+D1 browser: self-hosted Libre Franklin Variable and Cormorant verified as computed fonts, body15px; light/dark1280 and dark375 screenshots show no page overflow. Literal font-family search has one pre-existing property-name reference in frozen lib/analysis.ts for copying computed font styling into standalone SVG downloads; this declares no theme/font value. All actual CSS font declarations and color literals remain in tokens.css. This semantic distinction is recorded rather than changing protected export logic or hiding the search hit.
+D1/D2 pass: fonts and fixed tokens loaded; desktop rails280/340, transcript17px/27.2px(1.6) and68chmaximum, containedmobile sources/cases, no pageoverflow at1280/375. All34reviewcards retained model-reported captions and3pxdashedstripes; human/accepted marks3pxsolid withaccepted m. Componentdiffcontainsstaticclassnamesonly. Vitest30/30 andtypecheck pass; protectedlogicdiffvs295c712empty. Screens design-review/D1 andD2. Theme/font/export-property distinction recorded above.

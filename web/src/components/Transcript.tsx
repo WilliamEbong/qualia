@@ -10,7 +10,7 @@ import { Suggestion } from './Review'
 
 export function Transcript({ w, review }: { w: WorkspaceController; review: ReviewController }) {
   return <section className="transcript-panel" aria-label="Transcript">
-    <header className="section-heading"><div><p className="caption">Source {w.source?.id ?? '—'}</p><h2>{w.source?.name ?? 'Your research begins here'}</h2></div><Button disabled={w.readOnly} onClick={() => w.setPanel('import')}>Import transcript</Button></header>
+    <header className="section-heading transcript-heading"><div><p className="caption">Source {w.source?.id ?? '—'}</p><h2>{w.source?.name ?? 'Your research begins here'}</h2></div><Button disabled={w.readOnly} onClick={() => w.setPanel('import')}>Import transcript</Button></header>
     <p className="caption">{w.readOnly ? 'Read-only snapshot · ↑ / ↓ move between segments · inspect saved coding and provenance' : '↑ / ↓ move between segments · 1–9 assign a code · select text for a span · Esc clears the span'}</p>
     {!w.segments.length && <div className="empty"><h3>No transcript selected</h3><p>Import a TXT, Markdown, or mapped CSV file. Your text stays in this local project.</p></div>}
     <div className="transcript">
@@ -29,7 +29,7 @@ export function Transcript({ w, review }: { w: WorkspaceController; review: Revi
 
 export function CodingPanel({ w, review }: { w: WorkspaceController; review: ReviewController }) {
   return <aside className="coding-panel" aria-label="Coding and provenance">
-    <h2>Code this passage</h2>
+    <h2 className="rail-title">Code this passage</h2>
     <label>Human actor<input disabled={w.readOnly} value={w.actor} onChange={event => w.setActor(event.target.value)} maxLength={200} /></label>
     <label>Frozen codebook<select value={w.version?.id ?? ''} onChange={event => w.setVersionId(Number(event.target.value))}><option value="" disabled>No frozen version</option>{w.data?.codebook_versions.map(version => <option key={version.id} value={version.id}>Version {version.id} · {version.frozen_at}</option>)}</select></label>
     {!w.version && <p className="empty-note">Create codes and freeze your codebook before assigning a code.</p>}
