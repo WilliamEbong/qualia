@@ -6,7 +6,7 @@ Started 2026-10-03. Baseline: f1d8719. Owner authorized autonomous implementatio
 
 ## Adjusted plan and checkpoints
 
-- [~] P15 Calibrated decisions (decision05): P15.0 Jev request-size batching fix; P15.1 feature 010 evaluation uncertainty; P15.2 feature 011 per-code thresholds, thresholds agent and review UX.
+- [~] P15 Calibrated decisions (decision05): [x] P15.0 Jev request-size batching fix; [~] P15.1 feature 010 evaluation uncertainty; P15.2 feature 011 per-code thresholds, thresholds agent and review UX.
 
 - [x] P14 Codex improvement: approved no-tools proposals implemented, live-verified, documented and private CI green. Failed direct file-tool path disabled.
 - [x] P14.1 Decision04 and005 T015-T018 complete: strict proposals, trusted application, full input accounting, live/regression evidence and guide.
