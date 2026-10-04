@@ -1,52 +1,65 @@
-# Qualia - calibrated decisions shipped (decision05)
+# Qualia - threshold tuning proven on real data, now built into the app
 
-Everything you asked for overnight is built, tested and committed. The scope came from the open-source Jev ecosystem review and is recorded in docs/answers/05-calibrated-decisions.md: no local model backend; scipy declared; threshold tuning as a no-AI agent.
+You asked me to try tuning, check Lighthouse and keep these tools inside Qualia. All three are done, verified and pushed to private main.
 
-## What changed
+## Headline: tuning measurably improved the demo
 
-1. **Bug fix: Jev works on the demo again.** With the demo's 7-code codebook, the default 20-segment batch exceeded Qualia's 64 KB Jev request bound, so every demo Jev call failed. The router now shrinks a batch until the provider accepts it. A live check sent 20 real demo segments in 2 calls, cost $0.00136 and created no coding events.
-2. **Evaluation explains itself (feature 010).**
-   - Per-code precision and recall show 95% ranges, for example `0.750 (0.30–0.95)`.
-   - Every metric has a one-line plain-language explanation.
-   - Kappa and alpha get cited words such as "substantial" or "tentative".
-   - A sentence says how much of the AI's work to review to reach 90% precision, next to your current review threshold.
-   - A calibration table shows how often each score band was right.
-3. **Per-code thresholds and a no-AI tuning agent (feature 011).**
-   - `code_thresholds` in a project's routing sets the minimum score for each code to be suggested. Jev's 0.5 cutoff now lives in the router, and thresholds apply to cached scores, so changing them needs no new AI calls.
-   - `uv run qualia improve --project my-study --agent thresholds` fits one threshold per code on up to 400 dev segments. Qualia's existing policy then keeps it only if validation improves.
-4. **Review is friendlier.**
-   - Each suggestion says why it waits, for example *Below review threshold (current threshold 0.70)*.
-   - The least certain suggestions come first.
-   - The Codebook shows any tuned threshold.
-   - The empty Experiments page explains how to run an agent.
+On your demo, with Jev, `Tune thresholds` learned one score threshold per code from 400 dev segments:
 
-The user guide covers all of this in §1 (glossary), §12 (review), §14 (reading results) and §15 ("Tune per-code suggestion thresholds without AI").
+| Code | reflection | question | therapist_input | other | change | sustain | neutral |
+|---|---|---|---|---|---|---|---|
+| Threshold | 0.20 | 0.70 | 0.60 | 0.45 | 0.20 | 0.25 | 0.35 |
 
-## Evidence
+Qualia then measured the change on the 1,258-segment validation split and **kept it** (experiment 2, tag `exp-0002-measured-gain`).
 
-- **Tests:** full offline suite 559 passed, 5 skipped, 6 live deselected. Ruff, data guard, pip-audit, gitleaks and the web checks (typecheck, 36 tests, build) all pass. An independent read-only review of the diff found no correctness bugs.
-- **Screenshots:** 16 at 1280/375 in light and dark, in design-review/P15/. No horizontal overflow and no console errors. New text meets WCAG AA contrast.
-- **Thresholds agent:** reaches KEEP in a synthetic test. On a full-size scratch copy of the demo with the keyword rules backend, it correctly found no useful change and recorded REVERT in about 30 seconds.
-- **Specs:** specs/010-evaluation-uncertainty and specs/011-decision-thresholds hold spec, plan, tasks, analysis and convergence.
-- **Not claimed:**
-  - No Lighthouse score; Lighthouse is not installed and I did not download it unattended.
-  - No real-data accuracy gain from thresholds; I did not spend money running Jev tuning on the demo.
+| Measure | Before | After | Fresh confirmation |
+|---|---|---|---|
+| Macro F1 | 0.523 | 0.567 | 0.572 |
+| Exact code-set match | 0.365 | 0.405 | 0.399 |
+| Calibration error (lower is better) | 0.050 | 0.038 | 0.036 |
 
-## Things to know
+- **Cost:** $0.346 in Jev usage for the day (420 requests). The run took 13 minutes.
+- **Your research coding:** no coding was changed.
+- **Where to see it:** open Experiments to see the result, and the Codebook now shows each code's "AI suggests at score ≥ …". The Evaluation page shows the real ranges and calibration table. For example, Jev suggestions in the 0.8–0.9 band were right 87% of the time; in the 0.2–0.3 band, 19%.
 
-- **Restart your Qualia server.** Two stale `qualia open --no-browser` servers from 2026-10-03 hold `qualia.exe`, so `uv sync` could not refresh the project entry. All dependencies are installed and everything works. I was not permitted to stop those processes. Close them, then run:
+## Built into the app
+
+- **Tune button.** Experiments → **Tune suggestion thresholds** → pick a classifier → **Tune thresholds**. It runs the same measured experiment as the terminal command. If something blocks it, such as a missing dev benchmark or an unclean project, it says exactly why.
+- **Real-data wording fix.** The review sentence had shown "100% of them" for 99.94%; it now says "more than 99%".
+
+## Lighthouse and accessibility
+
+Lighthouse was low risk. I ran Google's official tool from a temporary folder; nothing was added to Qualia.
+
+- **Accessibility:** scored 96. I fixed the issue it found.
+- **axe-core audit** (the engine Lighthouse uses) found two more problems, both now fixed:
+  - Wide tables on phones couldn't be scrolled by keyboard.
+  - The frequency chart hid its clickable bars from screen readers.
+
+  axe now reports no violations on Experiments, Evaluation, Review and Codebook, at desktop and phone width, light and dark.
+- **Speed:** really fast locally: first paint 0.2 s, main content 1.2 s, no layout shift. Lighthouse's simulated slow-network score is low (59–74) only because opening the demo downloads a 12 MB data file. Compressing it would slow local use, so I left it. A suggested follow-up task to shrink that payload is waiting in the app for you to start or dismiss.
+
+## Changes to your demo workspace (outside the repo)
+
+All were made as commits in the demo's own Git history:
+- Committed your existing Jev-enable setting.
+- Moved my two earlier report files out to the session scratchpad.
+- Raised the daily call limit to 800 for the run, then restored it to 300.
+- The tuned thresholds are kept, as Qualia's policy decided.
+
+## Checks
+
+- Full offline suite: 561 passed, 5 skipped, 6 live tests deselected.
+- Web: 37 tests, typecheck and build pass.
+- Ruff, data guard, dependency audit and secret scan are clean.
+- The CI result for the final push is in the last BUILD-STATE entry.
+- Specs 010–012 have convergence records.
+
+## Still yours
+
+- **Stale servers.** Two old `qualia open --no-browser` servers from 2026-10-03 still hold `qualia.exe`. Close them, then run:
   ```powershell
   uv sync
   uv run qualia open
   ```
-  Two more servers that I started (ports 8790 and 8791) are stopped at handoff.
-- **Demo workspace (outside the repo).** It already had an uncommitted `config/routing.yaml` change from your Jev enable on 2026-10-03. I left that alone. My work there added:
-  - evaluation run #4 (rules) and its two report files in `reports/`;
-  - usage and egress rows from the $0.00136 live check.
-
-  Nothing was committed or deleted there. Experiments on the demo need a clean Git state first.
-- **Push.** Pushed to the private main branch under the standing approval. CI status is in the final BUILD-STATE entry. The repository remains PRIVATE.
-
-## Remaining owner action
-
-The planned Claude Code `/security-review` before making the repository public is unchanged. Resume from docs/BUILD-STATE.md and git log.
+- **Security review.** The planned Claude Code `/security-review` before going public is unchanged.
