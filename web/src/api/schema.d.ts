@@ -1152,8 +1152,10 @@ export interface components {
             coding_events: {
                 [key: string]: unknown;
             }[];
+            /** Current Coding Ids */
+            current_coding_ids?: number[];
             /** Current Codings */
-            current_codings: {
+            current_codings?: {
                 [key: string]: unknown;
             }[];
             /** Suggestions */

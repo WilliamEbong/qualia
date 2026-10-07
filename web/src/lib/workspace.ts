@@ -4,7 +4,7 @@ import type { components } from '../api/schema'
 import { readOnly, request } from './client'
 import type { DemoSnapshot } from './demo'
 import { useMatrix } from './matrix'
-import { codeDepth, eventCodeName, exampleList, frozenCodes, isEditingTarget, orderedCodes, segmentText, shortcut } from './entities'
+import { codeDepth, eventCodeName, exampleList, frozenCodes, hydrateWorkspace, isEditingTarget, orderedCodes, segmentText, shortcut } from './entities'
 import type { Case, Code, Coding, MatrixCell, Memo, MemoKind, Project, Retrieval, Span, View, Workspace } from './entities'
 
 const field = (form: FormData, name: string) => String(form.get(name) ?? '').trim()
@@ -78,7 +78,7 @@ export function useWorkspace() {
   }, [])
 
   const reload = useCallback(async () => {
-    const value = await request<Workspace>(`projects/${encodeURIComponent(slug)}`)
+    const value = hydrateWorkspace(await request<Workspace>(`projects/${encodeURIComponent(slug)}`))
     if (scope.current === slug) setData(value)
     return value
   }, [slug])

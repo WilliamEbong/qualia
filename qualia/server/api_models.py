@@ -33,7 +33,9 @@ class Workspace(Record):
     codes: list[dict]
     codebook_versions: list[dict]
     coding_events: list[dict]
-    current_codings: list[dict]
+    current_coding_ids: list[int] = Field(default_factory=list)
+    # Clients rebuild current_codings from coding_events by ID; static demo snapshots still embed rows.
+    current_codings: list[dict] = Field(default_factory=list)
     suggestions: list[dict]
     memos: list[dict]
     memo_revisions: list[dict] = Field(default_factory=list)  # absent from older demo snapshots

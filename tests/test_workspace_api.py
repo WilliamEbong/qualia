@@ -68,7 +68,7 @@ def test_human_workflow_and_exports(tmp_path):
     bundle = client.get(prefix + '/export?bundle=reproducibility').json()
     assert 'vault' not in json.dumps(json.loads(bundle['content'])).lower()
     assert client.post(prefix + '/coding', json={**coding, 'action': 'remove'}).status_code == 200
-    assert client.get(prefix).json()['current_codings'] == []
+    assert client.get(prefix).json()['current_coding_ids'] == []
 
 
 def test_invalid_input_retains_server_protections(tmp_path):

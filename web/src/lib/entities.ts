@@ -14,7 +14,7 @@ export type Attribute = { id: number; case_id: number | null; source_id: number 
 export type SourceCase = { source_id: number; case_id: number }
 export type Proposal = { id: number; batch_id: string; mode: 'draft' | 'refine' | 'evidence'; kind: 'new_code' | 'revise_code'; target_code_id: number | null; payload_json: string; rationale: string; evidence_json: string; actor_type: 'model' | 'rule'; backend: string | null; model: string | null; cli_version: string | null; prompt_hash: string; codebook_version_id: number | null; created_at: string; decision: 'accept' | 'reject' | null; decided_by: string | null; decision_note: string | null; applied_json: string | null; resulting_code_id: number | null; decided_at: string | null }
 // code_proposals is optional: older public demo snapshots predate codebook proposals.
-export type Workspace = Omit<components['schemas']['Workspace'], 'sources' | 'segments' | 'codes' | 'codebook_versions' | 'coding_events' | 'current_codings' | 'suggestions' | 'memos' | 'cases' | 'attributes' | 'source_cases' | 'code_proposals' | 'memo_revisions'> & {
+export type Workspace = Omit<components['schemas']['Workspace'], 'sources' | 'segments' | 'codes' | 'codebook_versions' | 'coding_events' | 'current_codings' | 'suggestions' | 'memos' | 'cases' | 'attributes' | 'source_cases' | 'code_proposals' | 'memo_revisions' | 'current_coding_ids'> & {
   sources: Source[]; segments: Segment[]; codes: Code[]; codebook_versions: Version[];
   coding_events: Coding[]; current_codings: Coding[]; suggestions: Coding[]; memos: Memo[]; cases: Case[];
   attributes: Attribute[]; source_cases: SourceCase[]; code_proposals?: Proposal[]; memo_revisions?: MemoRevision[];
@@ -29,6 +29,13 @@ export function sourceCodePoints(source: Source): string[] {
   let points = codePoints.get(source)
   if (!points) { points = Array.from(source.text); codePoints.set(source, points) }
   return points
+}
+
+/** The API sends current coding as event IDs; static demo snapshots embed the rows themselves. */
+export function hydrateWorkspace(value: Workspace & { current_coding_ids?: number[] }): Workspace {
+  if (!Array.isArray(value.current_coding_ids) || value.current_codings?.length) return value
+  const events = new Map(value.coding_events.map(event => [event.id, event]))
+  return { ...value, current_codings: value.current_coding_ids.flatMap(id => events.get(id) ?? []) }
 }
 
 export function segmentText(data: Workspace, segment: Segment): string {

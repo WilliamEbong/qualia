@@ -3288,6 +3288,13 @@
             "type": "array",
             "title": "Coding Events"
           },
+          "current_coding_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Current Coding Ids"
+          },
           "current_codings": {
             "items": {
               "additionalProperties": true,
@@ -3366,7 +3373,6 @@
           "codes",
           "codebook_versions",
           "coding_events",
-          "current_codings",
           "suggestions",
           "memos",
           "experiments",

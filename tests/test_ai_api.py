@@ -33,8 +33,9 @@ def test_offline_classification_review_cache_and_egress_api(tmp_path):
     assert client.post(base + '/review', json={**review, 'suggestion_id': suggestions[1]['id'],
                                              'decision': 'reject'}).status_code == 200
     after = client.get(base).json()
-    assert len(after['current_codings']) == 1
-    assert after['current_codings'][0]['backend'] == 'fake'
+    [current] = after['current_coding_ids']
+    assert next(event for event in after['coding_events'] if event['id'] == current)['backend'] == 'fake'
+    assert after['current_codings'] == []
     cached = client.post(base + '/classify', json={'backend': 'fake'}).json()
     assert cached['calls'] == 0
     assert cached['cache_hits'] == 2

@@ -48,3 +48,14 @@ describe('codebook editor helpers', () => {
     expect([...descendantIds(1, codes)].sort()).toEqual([1, 2, 3])
   })
 })
+
+describe('workspace payload', () => {
+  it('rebuilds current coding from event IDs and keeps embedded demo rows', async () => {
+    const { hydrateWorkspace } = await import('./entities')
+    const events = [{ id: 1, segment_id: 1 }, { id: 2, segment_id: 2 }]
+    const api = hydrateWorkspace({ coding_events: events, current_codings: [], current_coding_ids: [2, 9] } as never)
+    expect(api.current_codings).toEqual([events[1]])
+    const demo = hydrateWorkspace({ coding_events: events, current_codings: [events[0]] } as never)
+    expect(demo.current_codings).toEqual([events[0]])
+  })
+})

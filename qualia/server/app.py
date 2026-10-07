@@ -91,8 +91,10 @@ def create_app(home: Path | None = None, token: str | None = None, dist: Path | 
         with Store(path / 'project.db') as db:
             data = {table: db.rows(f'SELECT * FROM {table}') for table in (
                 'sources', 'segments', 'cases', 'attributes', 'source_cases', 'codes',
-                'codebook_versions', 'coding_events', 'current_codings', 'memos',
-                'memo_revisions', 'experiments')}
+                'codebook_versions', 'coding_events', 'memos', 'memo_revisions', 'experiments')}
+            # Current coding is a subset of coding_events; send IDs, not a second copy of each row.
+            data['current_coding_ids'] = [row['id'] for row in db.rows(
+                'SELECT id FROM current_codings ORDER BY id')]
             data['evaluation_runs'] = db.rows(
                 'SELECT id,split,backend,model,codebook_version_id,pipeline_version,metrics_json,created_at '
                 "FROM evaluation_runs WHERE split='validation'")
