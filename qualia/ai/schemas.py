@@ -32,6 +32,8 @@ class Result(Predictions):
     input_tokens: int = Field(ge=0, le=2**63-1)
     output_tokens: int = Field(ge=0, le=2**63-1)
     cli_version: str = Field(min_length=1, max_length=200)
+    # Exact model the provider reported (e.g. the snapshot behind an alias), when it reports one.
+    model_version: str | None = Field(default=None, max_length=400, pattern=r'^[A-Za-z0-9._:@/, -]+$')
 
 
 class OperatorEdit(Record):
@@ -76,6 +78,7 @@ class CodeProposalResult(CodeProposalSet):
     input_tokens: int = Field(ge=0, le=2**63-1)
     output_tokens: int = Field(ge=0, le=2**63-1)
     cli_version: str = Field(min_length=1, max_length=200)
+    model_version: str | None = Field(default=None, max_length=400, pattern=r'^[A-Za-z0-9._:@/, -]+$')
 
 
 class Tier(Record):

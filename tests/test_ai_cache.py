@@ -29,4 +29,4 @@ def test_poisoned_cache_is_ignored_and_replaceable():
         db.cache_put('key', poisoned)
         assert load_cached(db, 'key', segment, codes) is None
         db.cache_put('key', validate_result(result, [segment], codes))
-        assert load_cached(db, 'key', segment, codes) == result
+        assert load_cached(db, 'key', segment, codes) == {**result, 'model_version': None}

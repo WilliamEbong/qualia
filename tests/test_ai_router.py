@@ -462,3 +462,64 @@ def test_safe_failures_name_a_rejected_flag_or_old_version_but_never_provider_te
     leaked = ValueError('RAW_PROVIDER_BODY')
     leaked.code = 'RAW_PROVIDER_BODY'
     assert safe_failure(leaked) == 'provider_error'
+
+
+def test_task_defaults_follow_intelligence_need_and_project_overrides_win():
+    from qualia.ai.router import _select
+
+    config = {**ROUTING, 'tasks': {}}
+    assert _select(config, 'claude', None, 'classification') == ('claude', 'haiku')
+    assert _select(config, 'claude', None, 'proposal') == ('claude', 'opus')
+    assert _select(config, 'codex', None, 'proposal') == ('codex', 'gpt-6.1-sol')
+    assert _select(config, 'codex', None, 'escalation') == ('codex', 'gpt-6-astra')
+    assert _select(config, 'strong', None, 'classification') == ('codex', 'gpt-6-astra')
+    assert _select(config, 'claude', 'fable', 'proposal') == ('claude', 'fable')
+    assert _select(config, 'claude', 'claude-opus-5-5', 'classification') == ('claude', 'claude-opus-5-5')
+    pinned = {**config, 'tasks': {'proposal': {'backend': 'claude', 'model': 'fable'}}}
+    assert _select(pinned, None, None, 'proposal') == ('claude', 'fable')
+    assert _select(pinned, 'claude', None, 'proposal') == ('claude', 'fable')
+    assert _select(pinned, 'codex', None, 'proposal') == ('codex', 'gpt-6.1-sol')
+    project = {**config, 'backend': 'claude', 'model': 'sonnet'}
+    assert _select(project, None, None, 'classification') == ('claude', 'sonnet')
+    assert _select(project, 'claude', None, 'classification') == ('claude', 'sonnet')
+    assert _select(project, None, None, 'proposal') == ('claude', 'opus')
+
+
+def test_availability_lists_models_with_descriptors_and_task_defaults(tmp_path):
+    from qualia.ai.router import availability
+
+    project = init_project('study', tmp_path)
+    result = availability(project, registry={'claude': CountingBackend(external=True),
+                                             'fake': CountingBackend()})
+    claude = next(item for item in result['backends'] if item['name'] == 'claude')
+    assert [model['id'] for model in claude['models']] == ['haiku', 'sonnet', 'opus', 'fable']
+    assert all(model['description'] for model in claude['models'])
+    assert result['defaults']['proposal']['claude'] == 'opus'
+    assert result['defaults']['classification']['claude'] == 'haiku'
+
+
+def test_reported_model_version_is_stored_and_survives_cache_reuse():
+    class Snapshot(CountingBackend):
+        def classify(self, segments, schema, context):
+            self.calls += 1
+            return {**FakeBackend.classify(self, segments, schema, context),
+                    'model_version': 'claude-haiku-4-5-20251001'}
+
+    backend = Snapshot()
+    with Store(':memory:') as db:
+        db.add('sources', {'name': 's', 'text': 'Synthetic.', 'content_hash': 'h'})
+        db.add('segments', {'source_id': 1, 'start': 0, 'end': 10, 'ordinal': 0})
+        db.save_code({'name': 'Synthetic'})
+        db.freeze_codebook()
+
+        def run_once(run_id):
+            return classify_segments(db, [{'id': '1', 'text': 'Synthetic.'}],
+                                     [{'id': 1, 'name': 'Synthetic', 'status': 'active'}], ROUTING,
+                                     prompt='p', codebook_version_id=1, pipeline_version='pipeline',
+                                     backend='fixture', model='haiku', run_id=run_id, persist=True,
+                                     registry={'fixture': backend})
+        run_once('first')
+        run_once('second')
+        assert backend.calls == 1
+        versions = [row['model_version'] for row in db.rows('SELECT model_version FROM coding_events')]
+        assert versions == ['claude-haiku-4-5-20251001'] * 2

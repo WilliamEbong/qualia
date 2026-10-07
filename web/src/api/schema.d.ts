@@ -719,6 +719,12 @@ export interface components {
             allow_external: boolean;
             /** Backends */
             backends: components["schemas"]["BackendAvailability"][];
+            /** Defaults */
+            defaults?: {
+                [key: string]: {
+                    [key: string]: string;
+                };
+            };
         };
         /** BackendAvailability */
         BackendAvailability: {
@@ -730,6 +736,8 @@ export interface components {
             external: boolean;
             /** Reason */
             reason: string;
+            /** Models */
+            models?: components["schemas"]["ModelChoice"][];
         };
         /** CaseInput */
         CaseInput: {
@@ -990,6 +998,15 @@ export interface components {
             case_id?: number | null;
             /** Source Id */
             source_id?: number | null;
+        };
+        /** ModelChoice */
+        ModelChoice: {
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /** Description */
+            description: string;
         };
         /** ProjectInput */
         ProjectInput: {

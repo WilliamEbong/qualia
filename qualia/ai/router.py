@@ -11,6 +11,7 @@ from qualia.ai import ledger
 from qualia.ai.backends.fake import FakeBackend
 from qualia.ai.backends.rules import RulesBackend
 from qualia.ai.cache import cache_key, load_cached
+from qualia.ai.models import CATALOG, TASK_DEFAULTS, default_model
 from qualia.ai.schemas import (
     ResponseValidationError,
     response_schema,
@@ -20,8 +21,6 @@ from qualia.ai.schemas import (
 from qualia.store.db import canonical
 from qualia.workspace import pipeline_hash, read_config
 
-DEFAULT_MODELS = {'rules': 'rules-v1', 'fake': 'fake-v1', 'claude': 'haiku', 'codex': 'gpt-6-luna',
-                  'jev': 'jev-1.13.0'}
 RETRYABLE = {'timeout', 'transient', 'process_failed', 'transport_error', 'rate_limit'}
 SAFE_FAILURES = RETRYABLE | {'invalid_model', 'unavailable', 'input_limit', 'output_limit',
                             'unsupported_version', 'invalid_input', 'tool_call', 'invalid_response',
@@ -81,8 +80,10 @@ def availability(project, registry=None):
         if not available and not reason:
             reason = 'Backend is unavailable.'
         backends.append({'name': name, 'available': available, 'external': backend.external,
-                         'reason': reason})
-    return {'allow_external': config['allow_external'], 'backends': backends}
+                         'reason': reason, 'models': CATALOG.get(name, [])})
+    defaults = {task: {item['name']: _select(config, item['name'], None, task)[1] for item in backends}
+                for task in TASK_DEFAULTS}
+    return {'allow_external': config['allow_external'], 'backends': backends, 'defaults': defaults}
 
 
 def _admits(provider, batch, context):
@@ -97,12 +98,20 @@ def _admits(provider, batch, context):
 
 
 def _select(config, backend, model, task):
-    selected = config['tasks'].get(task, {'backend': config['backend'], 'model': config['model']})
-    if backend in config['tiers']:
+    """Explicit model, then the project's task override, then the built-in task default."""
+    override = config['tasks'].get(task)
+    # A tier is an alias such as 'cheap' or 'strong'; real backend names always mean the backend
+    # (the default routing also has a tier called 'claude', which must not shadow task defaults).
+    if backend in config['tiers'] and backend not in CATALOG:
         selected = config['tiers'][backend]
-    elif backend is not None:
-        selected = {'backend': backend, 'model': selected['model'] if backend == selected['backend']
-                    else DEFAULT_MODELS.get(backend, f'{backend}-v1')}
+    elif override and backend in (None, override['backend']):
+        selected = override
+    else:
+        name = config['backend'] if backend is None else backend
+        # The project's top-level model is its classification choice; other tasks use their own default.
+        chosen = (config['model'] if task == 'classification' and name == config['backend']
+                  else default_model(task, name))
+        selected = {'backend': name, 'model': chosen}
     return selected['backend'], model or selected['model']
 
 
@@ -197,7 +206,7 @@ def classify_segments(db, segments, codebook, config, *, prompt, codebook_versio
                     result['cache_hits'] += 1
                     raw = cached['predictions'][0]
                     collected[segment['id']] = (assign(raw), backend_name, model_name,
-                                                cached['cli_version'], raw)
+                                                cached['cli_version'], raw, cached.get('model_version'))
                 continue
             if provider.external and not config['allow_external']:
                 failures.append(('blocked', 'external AI disabled for this project'))
@@ -254,11 +263,12 @@ def classify_segments(db, segments, codebook, config, *, prompt, codebook_versio
                 for prediction in validated['predictions']:
                     identity = prediction['segment_id']
                     single = {'predictions': [prediction], 'input_tokens': 0, 'output_tokens': 0,
-                              'cli_version': validated['cli_version']}
+                              'cli_version': validated['cli_version'],
+                              'model_version': validated['model_version']}
                     if cache_results:
                         db.cache_put(keys[identity], single)
                     collected[identity] = (assign(prediction), backend_name, model_name,
-                                           validated['cli_version'], prediction)
+                                           validated['cli_version'], prediction, validated['model_version'])
                 break
         return collected
 
@@ -297,7 +307,7 @@ def classify_segments(db, segments, codebook, config, *, prompt, codebook_versio
             identity = segment['id']
             if identity not in outcomes:
                 continue
-            prediction, actual_backend, actual_model, cli_version, _ = outcomes[identity]
+            prediction, actual_backend, actual_model, cli_version, _, model_version = outcomes[identity]
             sampled = int(hashlib.sha256(f'{run_id}:{identity}'.encode()).hexdigest(), 16) / 2**256 < config['qc_sample_rate']
             for code in prediction['codes']:
                 triggers = []
@@ -309,7 +319,8 @@ def classify_segments(db, segments, codebook, config, *, prompt, codebook_versio
                     triggers.append('qc_sample')
                 events.append({**code, 'segment_id': int(identity), 'actor_type': 'model',
                                'actor': actual_backend, 'backend': actual_backend, 'model': actual_model,
-                               'cli_version': cli_version, 'action': 'suggest', 'review_status': 'pending',
+                               'cli_version': cli_version, 'model_version': model_version,
+                               'action': 'suggest', 'review_status': 'pending',
                                'review_trigger': canonical(triggers), 'codebook_version_id': codebook_version_id,
                                'pipeline_version': pipeline_version, 'prompt_hash': prompt_hash})
         result['suggestion_ids'] = db.record_suggestions(events)

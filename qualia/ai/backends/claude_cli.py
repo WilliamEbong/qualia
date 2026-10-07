@@ -316,4 +316,9 @@ class ClaudeCLIBackend:
                 raise ValueError
         except (ValueError, TypeError, UnicodeError, RecursionError):
             raise BackendError('invalid_response', record, **error_args) from None
-        return {key: prediction[key], **error_args}
+        # modelUsage is keyed by the exact model(s) that answered, e.g. the snapshot behind 'haiku'.
+        used = envelope.get('modelUsage')
+        names = sorted(name for name in used if isinstance(name, str)) if isinstance(used, dict) else []
+        version = ','.join(names) if names and all(re.fullmatch(r'[A-Za-z0-9._:@/-]{1,120}', name)
+                                                   for name in names) else None
+        return {key: prediction[key], **error_args, 'model_version': version}

@@ -182,7 +182,8 @@ def propose_with_ai(db, project, mode, backend=None, model=None, segment_ids=Non
                                                  'focus': focus.strip(),
                                                  'removed_examples': item['removed_examples']}),
                      'actor_type': 'model', 'backend': name, 'model': selected,
-                     'cli_version': validated['cli_version'], 'prompt_hash': prompt_hash,
+                     'cli_version': validated['cli_version'], 'model_version': validated['model_version'],
+                     'prompt_hash': prompt_hash,
                      'codebook_version_id': version})
     result['proposal_ids'] = db.record_code_proposals(rows) if rows else []
     return result

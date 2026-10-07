@@ -131,16 +131,25 @@ class ClassifyResult(Record):
     errors: list[str]
 
 
+class ModelChoice(Record):
+    id: str
+    label: str
+    description: str
+
+
 class BackendAvailability(Record):
     name: str
     available: bool
     external: bool
     reason: str
+    models: list[ModelChoice] = Field(default_factory=list)
 
 
 class Availability(Record):
     allow_external: bool
     backends: list[BackendAvailability]
+    # Task -> backend -> model used when none is chosen (project overrides applied).
+    defaults: dict[str, dict[str, str]] = Field(default_factory=dict)
 
 
 class ReviewInput(Record):

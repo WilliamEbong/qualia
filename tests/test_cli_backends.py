@@ -50,6 +50,7 @@ def test_claude_argv_empty_cwd_stdin_subscription_and_usage(monkeypatch, version
         'type': 'result', 'is_error': False, 'structured_output': {'predictions': PREDICTIONS},
         'usage': {'input_tokens': 11, 'output_tokens': 8,
                   'cache_read_input_tokens': 4, 'cache_creation_input_tokens': 2},
+        'modelUsage': {'claude-haiku-4-5-20251001': {'inputTokens': 11}},
     }, version=version))
     result = backend.classify(SEGMENTS, SCHEMA, {'model': 'haiku', 'codebook': []})
     argv, options, contents = calls[0]
@@ -70,7 +71,8 @@ def test_claude_argv_empty_cwd_stdin_subscription_and_usage(monkeypatch, version
     assert 'NODE_OPTIONS' not in options['env']
     assert 'CLAUDE_CODE_RETRY_WATCHDOG' not in options['env']
     assert result == {'predictions': PREDICTIONS, 'input_tokens': 17,
-                      'output_tokens': 8, 'cli_version': version}
+                      'output_tokens': 8, 'cli_version': version,
+                      'model_version': 'claude-haiku-4-5-20251001'}
 
 
 @pytest.mark.parametrize('envelope,status,code', [
@@ -380,7 +382,8 @@ def test_newer_version_proposal_dispatch_retains_version(versioned_dispatch):
             else {'type': 'turn.completed'})
     body['usage'] = {'input_tokens': 2, 'output_tokens': 1}
     result = dispatch('propose', ProcessResult(0, json.dumps(body).encode(), b''))
-    assert result == {'proposals': [], 'input_tokens': 2, 'output_tokens': 1, 'cli_version': version}
+    expected = {'proposals': [], 'input_tokens': 2, 'output_tokens': 1, 'cli_version': version}
+    assert result == ({**expected, 'model_version': None} if vendor is claude_cli else expected)
     assert len(calls) == (3 if vendor is claude_cli else 2)
 
 

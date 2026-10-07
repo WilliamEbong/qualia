@@ -2086,6 +2086,16 @@
             },
             "type": "array",
             "title": "Backends"
+          },
+          "defaults": {
+            "additionalProperties": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "type": "object",
+            "title": "Defaults"
           }
         },
         "additionalProperties": false,
@@ -2113,6 +2123,13 @@
           "reason": {
             "type": "string",
             "title": "Reason"
+          },
+          "models": {
+            "items": {
+              "$ref": "#/components/schemas/ModelChoice"
+            },
+            "type": "array",
+            "title": "Models"
           }
         },
         "additionalProperties": false,
@@ -2821,6 +2838,30 @@
           "text"
         ],
         "title": "MemoInput"
+      },
+      "ModelChoice": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "description"
+        ],
+        "title": "ModelChoice"
       },
       "ProjectInput": {
         "properties": {
