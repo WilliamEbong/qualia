@@ -993,6 +993,104 @@
         }
       }
     },
+    "/api/projects/{slug}/experiments/model": {
+      "post": {
+        "summary": "Model Experiment",
+        "operationId": "model_experiment_api_projects__slug__experiments_model_post",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModelExperimentInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExperimentResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/projects/{slug}/repeatability": {
+      "post": {
+        "summary": "Repeat",
+        "operationId": "repeat_api_projects__slug__repeatability_post",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RepeatabilityInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RepeatabilityResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/projects/{slug}/evaluate": {
       "post": {
         "summary": "Evaluate",
@@ -2863,6 +2961,28 @@
         ],
         "title": "ModelChoice"
       },
+      "ModelExperimentInput": {
+        "properties": {
+          "backend": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Backend"
+          },
+          "model": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,119}$",
+            "title": "Model"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "backend",
+          "model"
+        ],
+        "title": "ModelExperimentInput"
+      },
       "ProjectInput": {
         "properties": {
           "name": {
@@ -3182,6 +3302,111 @@
         "type": "object",
         "title": "ProposalValues",
         "description": "Human edits applied on acceptance; omitted fields keep the proposed value."
+      },
+      "RepeatabilityInput": {
+        "properties": {
+          "backend": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Backend"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "segments": {
+            "type": "integer",
+            "maximum": 200.0,
+            "minimum": 1.0,
+            "title": "Segments",
+            "default": 50
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "RepeatabilityInput"
+      },
+      "RepeatabilityResult": {
+        "properties": {
+          "segments": {
+            "type": "integer",
+            "title": "Segments"
+          },
+          "identical_sets": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Identical Sets"
+          },
+          "per_code": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Per Code"
+          },
+          "definitions": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Definitions"
+          },
+          "backend": {
+            "type": "string",
+            "title": "Backend"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "calls": {
+            "type": "integer",
+            "title": "Calls"
+          },
+          "codebook_version_id": {
+            "type": "integer",
+            "title": "Codebook Version Id"
+          },
+          "run_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Run Ids"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "segments",
+          "identical_sets",
+          "per_code",
+          "definitions",
+          "backend",
+          "model",
+          "calls",
+          "codebook_version_id",
+          "run_ids"
+        ],
+        "title": "RepeatabilityResult"
       },
       "ReviewInput": {
         "properties": {

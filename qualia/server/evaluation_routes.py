@@ -4,7 +4,14 @@ from pathlib import Path
 
 from fastapi import FastAPI
 
-from qualia.server.api_models import EvaluateInput, EvaluationResult, ExperimentResult
+from qualia.server.api_models import (
+    EvaluateInput,
+    EvaluationResult,
+    ExperimentResult,
+    ModelExperimentInput,
+    RepeatabilityInput,
+    RepeatabilityResult,
+)
 from qualia.server.workspace_routes import existing_project
 from qualia.store.db import Store
 
@@ -23,6 +30,22 @@ def register_evaluation_routes(app: FastAPI, home: Path | None):
 
         return improve_project(existing_project(slug, home), agent='thresholds', budget=1,
                                **record.model_dump())[0]
+
+    @app.post('/api/projects/{slug}/experiments/model', response_model=ExperimentResult)
+    def model_experiment(slug: str, record: ModelExperimentInput):
+        # Measured like every experiment: baseline vs. candidate model on validation, then confirmation.
+        from qualia.improve.experiment import improve_project
+
+        return improve_project(existing_project(slug, home), agent='model', budget=1,
+                               candidate_backend=record.backend, candidate_model=record.model)[0]
+
+    @app.post('/api/projects/{slug}/repeatability', response_model=RepeatabilityResult)
+    def repeat(slug: str, record: RepeatabilityInput):
+        from qualia.evaluation import repeatability
+
+        path = existing_project(slug, home)
+        with Store(path / 'project.db') as db:
+            return repeatability(db, path, **record.model_dump())
 
     @app.post('/api/projects/{slug}/evaluate', response_model=EvaluationResult)
     def evaluate(slug: str, record: EvaluateInput):

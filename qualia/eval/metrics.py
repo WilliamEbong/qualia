@@ -178,3 +178,32 @@ def tune_thresholds(records, candidates, code_ids, current):
         if f1_at(best) > 0:
             tuned[str(code_id)] = best
     return tuned
+
+
+def run_agreement(first: list[dict], second: list[dict], code_ids: list[int]) -> dict:
+    """How often two runs of the same classifier on the same segments agree with each other."""
+    one = {row['segment_id']: {code['code_id'] for code in row['codes']} for row in first}
+    two = {row['segment_id']: {code['code_id'] for code in row['codes']} for row in second}
+    shared = sorted(one.keys() & two.keys())
+    per_code = []
+    for code_id in code_ids:
+        left = [int(code_id in one[identity]) for identity in shared]
+        right = [int(code_id in two[identity]) for identity in shared]
+        agreement = sum(a == b for a, b in zip(left, right, strict=True)) / len(shared) if shared else None
+        kappa = None
+        if shared and len(set(left) | set(right)) > 1:
+            value = float(cohen_kappa_score(left, right))
+            kappa = value if math.isfinite(value) else None
+        per_code.append({'code_id': code_id, 'agreement': agreement, 'kappa': kappa,
+                         'first_count': sum(left), 'second_count': sum(right)})
+    return {
+        'segments': len(shared),
+        'identical_sets': sum(one[identity] == two[identity] for identity in shared) / len(shared)
+        if shared else None,
+        'per_code': per_code,
+        'definitions': {
+            'identical_sets': 'Share of segments where both runs suggested exactly the same codes.',
+            'agreement': 'Share of segments where both runs made the same yes/no decision for the code.',
+            'kappa': "Cohen's kappa between the two runs for the code; null when neither run varies.",
+        },
+    }

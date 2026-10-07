@@ -345,6 +345,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/projects/{slug}/experiments/model": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Model Experiment */
+        post: operations["model_experiment_api_projects__slug__experiments_model_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/projects/{slug}/repeatability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Repeat */
+        post: operations["repeat_api_projects__slug__repeatability_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/projects/{slug}/evaluate": {
         parameters: {
             query?: never;
@@ -1008,6 +1042,13 @@ export interface components {
             /** Description */
             description: string;
         };
+        /** ModelExperimentInput */
+        ModelExperimentInput: {
+            /** Backend */
+            backend: string;
+            /** Model */
+            model: string;
+        };
         /** ProjectInput */
         ProjectInput: {
             /** Name */
@@ -1100,6 +1141,43 @@ export interface components {
             examples_neg?: string[] | null;
             /** Status */
             status?: ("active" | "archived") | null;
+        };
+        /** RepeatabilityInput */
+        RepeatabilityInput: {
+            /** Backend */
+            backend?: string | null;
+            /** Model */
+            model?: string | null;
+            /**
+             * Segments
+             * @default 50
+             */
+            segments: number;
+        };
+        /** RepeatabilityResult */
+        RepeatabilityResult: {
+            /** Segments */
+            segments: number;
+            /** Identical Sets */
+            identical_sets: number | null;
+            /** Per Code */
+            per_code: {
+                [key: string]: unknown;
+            }[];
+            /** Definitions */
+            definitions: {
+                [key: string]: unknown;
+            };
+            /** Backend */
+            backend: string;
+            /** Model */
+            model: string;
+            /** Calls */
+            calls: number;
+            /** Codebook Version Id */
+            codebook_version_id: number;
+            /** Run Ids */
+            run_ids: string[];
         };
         /** ReviewInput */
         ReviewInput: {
@@ -1887,6 +1965,76 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ExperimentResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    model_experiment_api_projects__slug__experiments_model_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModelExperimentInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExperimentResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    repeat_api_projects__slug__repeatability_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RepeatabilityInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RepeatabilityResult"];
                 };
             };
             /** @description Validation Error */

@@ -164,6 +164,29 @@ class EvaluateInput(Record):
     model: str | None = None
 
 
+class ModelExperimentInput(Record):
+    backend: str = Field(min_length=1, max_length=40)
+    model: str = Field(pattern=r'^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,119}$')
+
+
+class RepeatabilityInput(Record):
+    backend: str | None = None
+    model: str | None = None
+    segments: int = Field(default=50, ge=1, le=200)
+
+
+class RepeatabilityResult(Record):
+    segments: int
+    identical_sets: float | None
+    per_code: list[dict]
+    definitions: dict
+    backend: str
+    model: str
+    calls: int
+    codebook_version_id: int
+    run_ids: list[str]
+
+
 class EvaluationResult(Record):
     id: int
     split: str

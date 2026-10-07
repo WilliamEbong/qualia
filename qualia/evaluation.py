@@ -117,3 +117,40 @@ def write_reports(result, directory: Path):
     json_path.write_text(canonical(result) + '\n', encoding='utf-8')
     md_path.write_text(report_markdown(result), encoding='utf-8')
     return json_path, md_path
+
+
+REPEAT_SEGMENTS = 50
+
+
+def repeatability(db, project, *, backend=None, model=None, segments=REPEAT_SEGMENTS, registry=None):
+    """Classify the same sample twice without the cache and report how often the runs agree."""
+    from qualia.eval.metrics import run_agreement
+
+    if type(segments) is not int or not 1 <= segments <= 200:
+        raise ValueError('repeatability sample must be 1 to 200 segments')
+    frozen = db.one('SELECT * FROM codebook_versions ORDER BY id DESC LIMIT 1')
+    if frozen is None:
+        raise ValueError('freeze a codebook before checking repeatability')
+    rows = db.rows('SELECT g.id, substr(s.text,g.start+1,g.end-g.start) AS text '
+                   'FROM segments g JOIN sources s ON s.id=g.source_id')
+    if not rows:
+        raise ValueError('import material before checking repeatability')
+    # A stable, spread-out sample: the same project always samples the same segments.
+    sample = sorted(rows, key=lambda row: hashlib.sha256(str(row['id']).encode()).hexdigest())[:segments]
+    codebook = json.loads(frozen['snapshot_json'])
+    code_ids = [code['id'] for code in codebook if code.get('status', 'active') == 'active']
+    prompt = (project / 'config/prompts/classify.txt').read_text(encoding='utf-8')
+    runs = []
+    for _ in range(2):
+        result = classify_segments(db, [{'id': str(row['id']), 'text': row['text']} for row in sample],
+                                   codebook, read_config(project), prompt=prompt,
+                                   codebook_version_id=frozen['id'], pipeline_version=pipeline_hash(project),
+                                   backend=backend, model=model, persist=False, registry=registry,
+                                   use_cache=False, cache_results=False)
+        if result['status'] != 'completed':
+            raise ValueError('repeatability run incomplete: ' + '; '.join(result['errors']))
+        runs.append(result)
+    agreement = run_agreement(runs[0]['predictions'], runs[1]['predictions'], code_ids)
+    return {**agreement, 'backend': runs[0]['backend'], 'model': runs[0]['model'],
+            'calls': runs[0]['calls'] + runs[1]['calls'], 'codebook_version_id': frozen['id'],
+            'run_ids': [run['run_id'] for run in runs]}

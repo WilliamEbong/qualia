@@ -399,15 +399,35 @@ def evaluate_command(project: str = 'demo', split: str = 'validation', protected
 @app.command('improve')
 def improve_command(project: str = 'demo', agent: str = 'claude',
                     budget: int = typer.Option(1, min=0),
-                    backend: str | None = None, model: str | None = None):
-    """Run bounded implementation experiments; trusted measurements decide KEEP or REVERT."""
+                    backend: str | None = None, model: str | None = None,
+                    candidate_backend: str | None = typer.Option(None, help='--agent model: backend to try'),
+                    candidate_model: str | None = typer.Option(None, help='--agent model: model to try')):
+    """Run bounded implementation experiments; trusted measurements decide KEEP or REVERT.
+
+    `--agent model --candidate-backend claude --candidate-model sonnet` measures a model switch."""
     from qualia.improve.experiment import improve_project
 
     try:
         rows = improve_project(resolve_project(project), agent=agent, budget=budget,
-                               backend=backend, model=model)
+                               backend=backend, model=model, candidate_backend=candidate_backend,
+                               candidate_model=candidate_model)
         typer.echo(json.dumps(rows, ensure_ascii=False))
     except (OSError, ValueError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+
+@app.command('repeatability')
+def repeatability_command(project: str = 'demo', backend: str | None = None, model: str | None = None,
+                          segments: int = typer.Option(50, min=1, max=200)):
+    """Classify the same sample twice (no cache) and report how often the runs agree."""
+    from qualia.evaluation import repeatability
+
+    path = resolve_project(project)
+    try:
+        with Store(path / 'project.db') as db:
+            typer.echo(json.dumps(repeatability(db, path, backend=backend, model=model,
+                                                segments=segments)))
+    except ValueError as exc:
         raise typer.BadParameter(str(exc)) from exc
 
 

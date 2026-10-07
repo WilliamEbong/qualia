@@ -4,6 +4,7 @@ import hashlib
 import importlib
 import json
 import os
+import re
 import shutil
 import stat
 import subprocess
@@ -16,6 +17,7 @@ from pathlib import Path
 from qualia.ai import ledger
 from qualia.ai.backends.fake import FakeBackend
 from qualia.ai.backends.process import BackendError
+from qualia.ai.models import CATALOG
 from qualia.ai.router import classify_segments
 from qualia.ai.schemas import routing_config
 from qualia.eval.metrics import tune_thresholds
@@ -211,13 +213,32 @@ def _threshold_operator(db, project, backend, model):
     return invoke
 
 
+def _model_operator(project, backend, model):
+    """No-AI operator: switch the classification model; validation decides KEEP/REVERT."""
+    if backend not in CATALOG or not isinstance(model, str) or not re.fullmatch(
+            r'[A-Za-z0-9][A-Za-z0-9_.:/-]{0,119}', model):
+        raise ValueError('choose a known backend and a valid model ID for the model experiment')
+    current = read_config(project)
+    hypothesis = (f"Classify with {backend} / {model} instead of {current.get('backend')} / "
+                  f"{current.get('model')}; keep the change only if validation improves.")
+
+    def invoke(root, prompt, report_path):
+        config = read_config(root)
+        config.update(backend=backend, model=model)
+        (root/'config/routing.yaml').write_text(canonical(config), encoding='utf-8')
+        return {'hypothesis': hypothesis, 'cli_version': 'model-operator-v1',
+                'input_tokens': 0, 'output_tokens': 0}
+
+    return invoke
+
+
 def _operator(agent, injected):
     if agent == 'fake':
         return injected or _fake_operator, FakeBackend(), 'fake-operator-v1'
-    if agent == 'thresholds':
+    if agent in ('thresholds', 'model'):
         if injected is not None:
             raise ValueError('injected operators are supported only by the fake agent')
-        return None, FakeBackend(), 'thresholds-operator-v1'
+        return None, FakeBackend(), f'{agent}-operator-v1'
     if agent not in ('claude', 'codex'):
         raise ValueError('unknown improvement agent')
     module = importlib.import_module(f'qualia.ai.backends.{agent}_cli')
@@ -263,9 +284,12 @@ def _report(number, decision, reason, hypothesis, changed, baseline, candidate, 
 
 
 def improve_project(project, agent='fake', budget=1, *, operator=None, backend=None, model=None,
-                    test_runner=None):
+                    test_runner=None, candidate_backend=None, candidate_model=None):
     if type(budget) is not int or budget < 0:
         raise ValueError('experiment budget must be a finite nonnegative integer')
+    if agent == 'model' and (backend is not None or model is not None):
+        # Baseline and candidate must both follow the project configuration being compared.
+        raise ValueError('the model experiment compares project settings; give only the candidate model')
     if budget == 0:
         return []
     project = Path(project).resolve()
@@ -274,6 +298,9 @@ def improve_project(project, agent='fake', budget=1, *, operator=None, backend=N
     if journal.exists():
         raise ValueError('pending experiment recovery requires explicit resolution')
     invoke, provider, operator_model = _operator(agent, operator)
+    if agent == 'model':
+        # Validated before any baseline evaluation spends model calls.
+        invoke = _model_operator(project, candidate_backend, candidate_model)
     if _status(project):
         raise ValueError('experiment requires a clean Git baseline')
     if recovery.is_symlink() or recovery.resolve().parent != (project.parent.parent/'recovery').resolve():
