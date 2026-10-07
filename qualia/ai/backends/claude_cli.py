@@ -321,4 +321,6 @@ class ClaudeCLIBackend:
         names = sorted(name for name in used if isinstance(name, str)) if isinstance(used, dict) else []
         version = ','.join(names) if names and all(re.fullmatch(r'[A-Za-z0-9._:@/-]{1,120}', name)
                                                    for name in names) else None
+        if version is not None and len(version) > 400:
+            version = None  # optional metadata must never invalidate an otherwise valid answer
         return {key: prediction[key], **error_args, 'model_version': version}

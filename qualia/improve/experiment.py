@@ -18,7 +18,7 @@ from qualia.ai import ledger
 from qualia.ai.backends.fake import FakeBackend
 from qualia.ai.backends.process import BackendError
 from qualia.ai.models import CATALOG
-from qualia.ai.router import classify_segments
+from qualia.ai.router import _select, classify_segments
 from qualia.ai.schemas import routing_config
 from qualia.eval.metrics import tune_thresholds
 from qualia.evaluation import evaluate_project
@@ -54,8 +54,11 @@ def _git(project, *arguments):
 
 
 def _status(project):
-    return _git(project, 'status', '--porcelain', '--untracked-files=all', '--', '.', f':(exclude){LOCK}',
-                f':(exclude){REPORTS}')
+    changes = _git(project, 'status', '--porcelain', '--untracked-files=all', '--', '.', f':(exclude){LOCK}')
+    # Only untracked generated reports are tolerated; staged or tracked report changes still block,
+    # so nothing outside the measured change can enter an experiment commit.
+    return '\n'.join(line for line in changes.splitlines()
+                     if not (line.startswith('?? ') and line[3:].startswith(REPORTS + '/')))
 
 
 def _digest(path):
@@ -218,13 +221,16 @@ def _model_operator(project, backend, model):
     if backend not in CATALOG or not isinstance(model, str) or not re.fullmatch(
             r'[A-Za-z0-9][A-Za-z0-9_.:/-]{0,119}', model):
         raise ValueError('choose a known backend and a valid model ID for the model experiment')
-    current = read_config(project)
-    hypothesis = (f"Classify with {backend} / {model} instead of {current.get('backend')} / "
-                  f"{current.get('model')}; keep the change only if validation improves.")
+    effective = _select(routing_config(read_config(project)), None, None, 'classification')
+    hypothesis = (f'Classify with {backend} / {model} instead of {effective[0]} / {effective[1]}; '
+                  'keep the change only if validation improves.')
 
     def invoke(root, prompt, report_path):
         config = read_config(root)
         config.update(backend=backend, model=model)
+        # A project-level classification override would otherwise keep the old model in force.
+        if 'classification' in config.get('tasks', {}):
+            config['tasks']['classification'] = {'backend': backend, 'model': model}
         (root/'config/routing.yaml').write_text(canonical(config), encoding='utf-8')
         return {'hypothesis': hypothesis, 'cli_version': 'model-operator-v1',
                 'input_tokens': 0, 'output_tokens': 0}

@@ -161,6 +161,8 @@ def _build(project, csv_path):
                                          code_id=code_ids[row['label']], start=position,
                                          end=end, speaker=row['interlocutor']))
                 event = one('SELECT * FROM coding_events WHERE id=?', (event_id,))
+                # Imported human labels have no model; later columns must be empty, not published.
+                _require(event.pop('model_version', None) is None)
                 _require(isinstance(event['pipeline_version'], str) and
                          re.fullmatch('[0-9a-f]{64}', event['pipeline_version']))
                 expected_event = dict(id=event_id, segment_id=segment_id, code_id=code_ids[row['label']],

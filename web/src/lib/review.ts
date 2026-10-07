@@ -19,14 +19,19 @@ export function useReview(w: WorkspaceController) {
   const [note, setNote] = useState('')
   const [result, setResult] = useState<components['schemas']['ClassifyResult'] | null>(null)
   useEffect(() => {
-    setAvailability(null); setAvailabilityError(''); setBackend('rules'); setSelectedId(null); setNote(''); setResult(null)
+    setAvailability(null); setBackend('rules'); setSelectedId(null); setNote(''); setResult(null)
+  }, [w.slug])
+  // Refetch when routing changes too (e.g. a kept model experiment), so "Task default" stays true.
+  const routingKey = JSON.stringify(w.data?.routing ?? null)
+  useEffect(() => {
+    setAvailabilityError('')
     if (!w.slug) return
     const controller = new AbortController()
     request<components['schemas']['Availability']>(`projects/${encodeURIComponent(w.slug)}/ai/availability`, { signal: controller.signal })
       .then(value => { if (!controller.signal.aborted) setAvailability(value) })
       .catch(reason => { if (!controller.signal.aborted) setAvailabilityError(reason.message) })
     return () => controller.abort()
-  }, [w.slug])
+  }, [w.slug, routingKey])
   const suggestions = w.data?.suggestions ?? []
   const activeSuggestions = suggestions.filter(item => item.segment_id === w.active?.id)
   const groups = useMemo(() => groupSuggestions(suggestions), [suggestions])

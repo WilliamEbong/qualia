@@ -98,3 +98,53 @@ def test_api_routes_for_repeatability_and_model_experiment(project, tmp_path):
     experiment = client.post('/api/projects/study/experiments/model',
                              json={'backend': 'fake', 'model': 'fake-v1'})
     assert experiment.status_code == 200 and experiment.json()['agent'] == 'model'
+
+
+def test_model_experiment_updates_a_project_classification_override(project):
+    from qualia.ai.router import _select
+    from qualia.ai.schemas import routing_config
+    from qualia.improve.experiment import _model_operator
+
+    config = read_config(project)
+    config['tasks'] = {'classification': {'backend': 'rules', 'model': 'rules-v1'}}
+    (project / 'config/routing.yaml').write_text(json.dumps(config), encoding='utf-8')
+    invoke = _model_operator(project, 'fake', 'fake-v1')
+    invoke(project, '', project / 'experiments/x.md')
+    assert _select(routing_config(read_config(project)), None, None, 'classification') == ('fake', 'fake-v1')
+
+
+def test_staged_report_files_still_block_experiments(project):
+    (project / 'reports').mkdir()
+    (project / 'reports' / 'private.md').write_text('private', encoding='utf-8')
+    from qualia.improve.experiment import _status
+
+    assert _status(project) == ''
+    subprocess.run(['git', '-C', str(project), 'add', 'reports/private.md'], check=True, capture_output=True)
+    assert 'reports/private.md' in _status(project)
+    with pytest.raises(ValueError, match='clean Git baseline'):
+        improve_project(project, agent='fake', budget=1)
+
+
+def test_overlong_reported_model_names_are_dropped_not_fatal(monkeypatch):
+    import json as _json
+    from pathlib import Path
+
+    from qualia.ai.backends import claude_cli
+    from qualia.ai.backends.process import ProcessResult
+
+    names = {('m' * 119) + str(index): {} for index in range(4)}
+    envelope = {'is_error': False, 'structured_output': {'predictions': []},
+                'usage': {'input_tokens': 1, 'output_tokens': 1}, 'modelUsage': names}
+
+    def runner(argv, **kwargs):
+        if '--version' in argv:
+            return ProcessResult(0, b'2.1.284 (Claude Code)', b'')
+        if argv[-3:] == ['auth', 'status', '--json']:
+            return ProcessResult(0, _json.dumps({'loggedIn': True, 'authMethod': 'claude.ai',
+                                                 'apiProvider': 'firstParty'}).encode(), b'')
+        assert list(Path(kwargs['cwd']).iterdir()) == []
+        return ProcessResult(0, _json.dumps(envelope).encode(), b'')
+
+    monkeypatch.setattr(claude_cli, 'resolve_command', lambda: ['installed-claude.exe'])
+    result = claude_cli.ClaudeCLIBackend(runner=runner).classify([{'id': '1', 'text': 'x'}], {}, {'model': 'haiku'})
+    assert result['model_version'] is None
