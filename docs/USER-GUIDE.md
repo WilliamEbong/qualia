@@ -17,9 +17,9 @@ Screenshots are cropped from the bundled AnnoMI demonstration project. Review su
 - [Try a small practice study](#3-try-a-small-practice-study)
 - [Import your material](#4-import-your-material)
 - [Organize cases and attributes](#5-organize-cases-and-attributes)
-- [Create and freeze a codebook](#6-create-and-freeze-a-codebook)
-- [Code passages manually](#7-code-passages-manually)
-- [Write memos and retrieve evidence](#8-write-memos-and-retrieve-evidence)
+- [Create and freeze a codebook](#6-create-and-freeze-a-codebook), including [AI and evidence proposals](#draft-and-refine-codes-with-proposals)
+- [Code passages manually](#7-code-passages-manually), including [creating a code while reading](#create-a-code-while-reading)
+- [Write memos and retrieve evidence](#8-write-memos-and-retrieve-evidence), including [themes](#build-themes) and [reflexivity](#keep-a-reflexive-record)
 - [Compare codes in the matrix](#9-compare-codes-in-the-matrix)
 - [Use the Analysis workbench](#10-use-the-analysis-workbench)
 - [Continue in Python or R](#11-continue-in-python-or-r)
@@ -46,6 +46,9 @@ Screenshots are cropped from the bundled AnnoMI demonstration project. Review su
 | Attribute | A named value on a case or source, such as `group=north` or `age=36`. Analysis uses case attributes. |
 | Code | A researcher-defined label, with a definition and optional inclusion/exclusion rules and examples. |
 | Frozen codebook | An immutable version of your code definitions. Coding decisions record which version they used. |
+| Codebook proposal | A suggested new code or revision, from AI or from evidence in your own reviews. It changes nothing until you accept it into the draft codebook. |
+| Memo kind | Analytic, reflexive, theme or method. Memos can link to a segment, code, case and source, and keep their earlier versions. |
+| Theme | An interpreted pattern relevant to your research question. In Qualia it is a parent code with the codes that support it, plus a theme memo; it is more than a topic label or a frequent word. |
 | Current assignment | A manual assignment or accepted suggestion that has not been removed for that exact code/span. |
 | Suggestion | A proposed model code awaiting human review. It does not count as current coding. |
 | Model-reported score | The number a classifier attaches to a suggestion (0–1). It is the model's own signal, not measured accuracy. |
@@ -237,6 +240,36 @@ Archiving a draft code preserves historical references. Freeze a new version to 
 
 Your codebook belongs to you. AI classification and improvement experiments do not edit code definitions or frozen methodology.
 
+### Draft and refine codes with proposals
+
+Proposals help you write or sharpen the codebook. Each one is a suggested new code or a suggested revision, shown with its reasons, its evidence and where it came from. A proposal changes nothing on its own: you accept it into the draft codebook, usually after editing it, or reject it with a note. Freezing stays a separate decision.
+
+There are three ways to ask, under **Codebook → Proposals → Ask for proposals**:
+
+| Type | What it sends | What you get |
+|---|---|---|
+| **Find evidence in my reviews** | Nothing: it runs offline, with no AI and no network. | Revisions from your own decisions: rejected AI suggestions become candidate negative examples (with your review notes), a code with no current coding after 20 coded segments is flagged for archiving, and two codes that appear together on at least 80% of their segments (and at least 5) get a draft boundary line in **Exclude**. |
+| **Draft new codes from passages** (inductive) | Up to 20 passages from one source, your current code names and an optional focus such as “experiences of waiting”. | New codes, each with a definition, include/exclude guidance and examples quoted from the passages. |
+| **Refine codes from review evidence** | One or two codes, each with up to four coded and four rejected passages and your review notes. | A revised definition, guidance and examples for each code. |
+
+Drafting and refining use Claude or Codex with your own subscription (or the offline `fake` backend for practice), under the same privacy and budget settings as classification ([section 12](#12-generate-and-review-ai-suggestions)). The project must allow external AI before anything is sent.
+
+1. Enter your **Reviewer** name. Optionally write a **Decision note**.
+2. Read a proposal: changed fields show **Current** and **Proposed** values, then the reason. Open **Supporting passages** to read the evidence in context, and **Proposal provenance** for the backend, model, CLI version, prompt hash and the frozen version it was based on.
+3. Choose **Review and accept**. The code editor opens with the proposed values; edit anything, then choose **Accept into draft codebook**. Or choose **Reject**.
+4. Freeze the codebook when the draft is ready. Accepted codes show where they came from, for example *created from model-proposed (claude) proposal #4 · accepted by ana*.
+
+![A proposal to add rejected passages as negative examples, with its reason and review notes](../design-review/final/features/codebook-proposals.png)
+
+Safeguards and limits:
+
+- Every example in an AI proposal is checked against the passages that were sent. Qualia matches it ignoring spacing, punctuation and capitalization, then stores the passage's own wording, so examples are always verbatim. An example that matches no passage is removed, and the proposal says how many were removed. Malformed responses, unknown passages or codes, and duplicate names reject the whole response, which stores nothing.
+- New names cannot repeat an existing code. Revisions can only target the codes you sent.
+- Published studies find that AI-drafted codes can split ideas too finely, miss implicit (latent) meaning and blur boundaries between codes, so read each proposal against the data. Proposals are codebook assistance, not themes or findings. Many qualitative researchers consider generative AI incompatible with reflexive thematic analysis; choose a method that fits your study.
+- Proposals and your decisions are kept permanently and included in exports, so you can disclose AI-assisted codebook development in your methods section.
+
+The research behind this design is summarized in `specs/014-codebook-proposals/research.md`.
+
 ![A code card with its definition and, after tuning, the AI suggestion threshold](../design-review/final/features/codebook-threshold.png)
 
 Use this view to inspect definitions before choosing a frozen version for coding.
@@ -260,6 +293,17 @@ Use **Use whole segment** or Escape to clear a text selection. Arrow keys move t
 
 Work from left to right: choose the source, read/select the passage, then inspect its coding and provenance. Wait until code buttons are enabled after saving before pressing the next coding shortcut.
 
+### Create a code while reading
+
+When a new idea emerges from the data, you can name it without leaving the transcript:
+
+1. Select the passage, or the exact words, that prompted the idea.
+2. Open **New code from this passage** in the coding panel.
+3. Type a **Code name**, perhaps in the participant's own words, and optionally a definition. Leave **Keep the selected text as a positive example** checked to store the words as an example.
+4. Choose **Create, freeze and assign**.
+
+**Expected result:** the code is created, a new frozen codebook version is made and selected, and the passage is coded with it. Freezing captures the whole draft codebook, so any other draft edits are included in that version; use the separate **Freeze codebook** button when you want deliberate versions.
+
 ### Correcting a decision
 
 Select the segment, find the assignment under **Current assignments**, and choose **Remove assignment**. The current assignment disappears, but its original event and the removal remain in **Provenance**. You can then assign the appropriate code/span. This is an audit trail, not a destructive undo.
@@ -273,11 +317,34 @@ Offsets are relative to the segment and count Unicode code points. `0:5` include
 ### Memos
 
 1. Open **Memos** and choose **New memo**.
-2. Enter **Title** and **Memo** text.
-3. Optionally choose a **Linked segment** and/or **Linked code**.
+2. Enter **Title**, choose a **Kind** and write the **Memo** text.
+3. Optionally link it to a **segment**, **code**, **case** and **source**.
 4. Select **Save memo**.
 
-Use memos for interpretations, questions, exceptions and methodological decisions. **Edit memo** updates the memo; memo editing is not the same immutable event history used for coding decisions.
+| Kind | Use it for |
+|---|---|
+| Analytic | Interpretations, questions and exceptions. |
+| Reflexive | How your background, position and assumptions affect what you notice and how you interpret it. |
+| Theme | A pattern you are building across codes (see below). |
+| Method | Decisions about sampling, units, coding and analysis. |
+
+Use **Show** to list one kind. **Edit memo** keeps the previous version: each card shows **Earlier versions** with the time each was replaced, and exports include them. Saving without changes adds no version.
+
+![A reflexive memo linked to its source, with its earlier version kept](../design-review/final/features/memo-history.png)
+
+### Build themes
+
+A theme is an interpreted pattern relevant to your research question, not a topic label or the most frequent word. Qualia supports themes as a documented pattern rather than a separate object:
+
+1. Create a parent code for the theme in **Codebook** and place the supporting codes under it.
+2. Write a **Theme** memo linked to that parent code: what the pattern is, why it matters for the question, and where it does not hold.
+3. Use **Retrieval** (by each supporting code), **Analysis → Co-occurrence** and the **Matrix** to check the evidence across cases.
+
+Code hierarchy organizes definitions; counts are not rolled up from child codes to the parent.
+
+### Keep a reflexive record
+
+Write **Reflexive** memos as you go, link them to the source or case they concern, and revise them as your understanding changes; the history shows how your position shaped the analysis. Record study-level decisions (research question, sampling, unit of analysis) in the project's protected `METHODOLOGY.md` and in **Method** memos. If you used codebook proposals or AI suggestions, say so in your methods: the export lists every proposal, suggestion and your decision.
 
 ### Retrieval
 
@@ -719,6 +786,7 @@ An interrupted operation can leave a pending recovery journal. Stop and use the 
 |---|---|
 | Workspace export, default | Retains structured identities, coding history and provenance; excludes source text and free-text content, and redacts attribute values. Names and identifiers can still be sensitive. |
 | Workspace export with text | Includes research text and textual definitions/notes. Treat it as research material. Evaluation prediction payloads and protected benchmark contents remain excluded. |
+| Proposals and memo history | Every export includes codebook proposals, your decisions and earlier memo versions. Without text, their definitions, examples, excerpts, rationales and notes are removed. |
 | Reproducibility bundle | Adds experiment/evaluation/usage/egress records and configuration hashes. It does not package raw prompt files, credentials or vault contents. |
 | Analysis JSON/CSV/starters | Excludes source transcripts, but retains case metadata, selected query criteria and explicit attribute values for analysis. |
 | Static demo export | Contains the approved public snapshot and its attribution, including that snapshot's public excerpts. |
@@ -737,7 +805,7 @@ Use `--include-text` only when you intentionally want the more sensitive export.
 
 The static demonstration is an approved public-data snapshot, separate from your local research workspaces. Its subset contains 24 utterances from two dev transcripts with attribution. It is not a live view of your projects, private experiments or protected vault.
 
-You can navigate sources, inspect saved coding/provenance, retrieve evidence, view the matrix, explore its fixed Analysis report and download its precomputed exports. Analysis filters are disabled because the report scope is fixed. Creating projects, importing, coding, reviewing, classifying and evaluating are unavailable. The adapter serves the snapshot locally in the browser without API requests.
+You can navigate sources, inspect saved coding/provenance, retrieve evidence, view the matrix, explore its fixed Analysis report and download its precomputed exports. Analysis filters are disabled because the report scope is fixed. Creating projects, importing, coding, reviewing, classifying, evaluating and codebook proposals are unavailable. The adapter serves the snapshot locally in the browser without API requests.
 
 Do not confuse the smaller static snapshot with the editable local `demo` project. The static snapshot is published separately through GitHub Pages; building it locally does not publish anything.
 
@@ -847,10 +915,12 @@ Run these from the application folder. Most project commands default to `demo`; 
 | Open local app | Qualia icon, `uv run qualia app` (own window, stops when closed) or `uv run qualia open` (terminal) |
 | Import text | `uv run qualia import "C:\Research\interview.txt" --project my-study` |
 | Add/freeze/list codes | `uv run qualia codebook add "Support" --definition "Help from others" --project my-study`; then `codebook freeze` / `codebook list` with the same project option |
-| Save a full draft code record | `uv run qualia codebook save "C:\Research\code.json" --project my-study --code-id CODE_ID` |
+| Save a draft code record | `uv run qualia codebook save "C:\Research\code.json" --project my-study --code-id CODE_ID` (with `--code-id`, only the fields in the file change) |
+| Codebook proposals | `uv run qualia codebook propose --mode evidence --project my-study`; `--mode draft --backend claude --segments "12,13" --focus "waiting"`; `--mode refine --backend codex --codes "3"` |
+| Review proposals | `uv run qualia codebook proposals --project my-study` (add `--all` for decided ones); `uv run qualia codebook decide PROPOSAL_ID accept --actor researcher --project my-study` (or `reject --note "..."`; `--values edits.json` to edit before accepting) |
 | Code a whole segment | `uv run qualia code SEGMENT_ID CODE_ID --project my-study --actor researcher` |
 | Code/remove a span | Add `--start START --end END`; add `--remove` for a removal of that code/span |
-| Create a memo | `uv run qualia memo "Title" "Memo text" --project my-study --segment SEGMENT_ID` |
+| Create a memo | `uv run qualia memo "Title" "Memo text" --project my-study --kind reflexive --source SOURCE_ID` (also `--segment`, `--code`, `--case`; with `--memo-id` only the options given change) |
 | Create/link a case | `uv run qualia case "Participant 1" --project my-study --source SOURCE_ID` |
 | Retrieve by code/case | `uv run qualia retrieve --project my-study --code CODE_ID --case CASE_ID` |
 | Code-by-case counts | `uv run qualia matrix --project my-study` |

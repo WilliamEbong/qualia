@@ -1,6 +1,7 @@
 """Strict provider adapters; failures identify input records without printing responses."""
 
 import json
+import re
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
@@ -187,9 +188,25 @@ class ProposalValidationError(ValueError):
     """Safe diagnostic naming the proposal position, never echoing provider text."""
 
 
+def quote_in(example: str, texts) -> str | None:
+    """The exact passage text an example quotes, ignoring spacing, punctuation and case; else None."""
+    words = re.findall(r'\w+', example)
+    if not words:
+        return None
+    pattern = re.compile(r'\W+'.join(map(re.escape, words)), re.IGNORECASE)
+    for text in texts:
+        match = pattern.search(text)
+        if match:
+            return match.group()
+    return None
+
+
 def validate_proposals(raw, mode: str, segments: list[dict], codes: list[dict],
                        targets: set[int] = frozenset()) -> dict:
-    """Reject the whole response unless every proposal is grounded in the supplied text."""
+    """Reject structurally invalid responses; keep only examples quoted from the supplied text.
+
+    Each example is replaced by the passage's own wording, so stored examples are verbatim even
+    when a model normalizes quotes or spacing; examples with no match are removed and counted."""
     try:
         value = json.loads(raw, object_pairs_hook=_unique_object) if isinstance(raw, str) else raw
         result = CodeProposalResult.model_validate(value).model_dump()
@@ -221,7 +238,15 @@ def validate_proposals(raw, mode: str, segments: list[dict], codes: list[dict],
         for code in codes:
             if code['id'] == target:
                 kept = {*json.loads(code['examples_pos']), *json.loads(code['examples_neg'])}
-        for example in proposal['examples_pos'] + proposal['examples_neg']:
-            if example not in kept and not any(example in text for text in texts.values()):
-                fail('example is not a verbatim quotation of a supplied segment')
+        removed = 0
+        for field in ('examples_pos', 'examples_neg'):
+            grounded = []
+            for example in proposal[field]:
+                quote = example if example in kept else quote_in(example, texts.values())
+                if quote is None:
+                    removed += 1
+                elif quote not in grounded:
+                    grounded.append(quote)
+            proposal[field] = grounded
+        proposal['removed_examples'] = removed
     return result

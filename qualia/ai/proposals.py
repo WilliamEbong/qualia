@@ -174,10 +174,13 @@ def propose_with_ai(db, project, mode, backend=None, model=None, segment_ids=Non
         rows.append({'batch_id': result['batch_id'], 'mode': mode, 'kind': item['kind'],
                      'target_code_id': target,
                      'payload_json': canonical({**base, **{key: item[key] for key in EDITABLE}}),
-                     'rationale': item['rationale'],
+                     'rationale': item['rationale'] + (
+                         f" ({item['removed_examples']} example(s) removed: not found in the passages.)"
+                         if item['removed_examples'] else ''),
                      'evidence_json': canonical({'segment_ids': [int(value) for value in
                                                                  item['evidence_segment_ids']],
-                                                 'focus': focus.strip()}),
+                                                 'focus': focus.strip(),
+                                                 'removed_examples': item['removed_examples']}),
                      'actor_type': 'model', 'backend': name, 'model': selected,
                      'cli_version': validated['cli_version'], 'prompt_hash': prompt_hash,
                      'codebook_version_id': version})

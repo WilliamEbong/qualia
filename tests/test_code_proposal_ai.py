@@ -60,7 +60,7 @@ def test_draft_stores_model_proposals_with_usage_and_egress_but_no_codes(project
         assert row['actor_type'] == 'model' and row['backend'] == 'fixture' and row['cli_version'] == '1.0'
         assert row['codebook_version_id'] is None and len(row['prompt_hash']) == 64
         assert json.loads(row['payload_json'])['status'] == 'active'
-        assert json.loads(row['evidence_json']) == {'segment_ids': [1], 'focus': 'waiting'}
+        assert json.loads(row['evidence_json']) == {'segment_ids': [1], 'focus': 'waiting', 'removed_examples': 0}
         assert backend.context['focus'] == 'waiting'
         assert db.one("SELECT purpose FROM egress_log")['purpose'] == 'codebook_proposal'
         assert {row['status'] for row in db.rows('SELECT status FROM usage_ledger')} == {'reserved', 'ok'}
@@ -78,8 +78,22 @@ def test_external_off_blocks_before_any_call_or_ledger_row(project):
         assert db.rows('SELECT * FROM usage_ledger') == [] and db.rows('SELECT * FROM egress_log') == []
 
 
-def test_fabricated_quote_stores_nothing_and_finishes_the_attempt_as_error(project):
-    backend = Fixture(response=response(proposal(examples_pos=['Nobody told me anything at all'])))
+def test_unquoted_examples_are_removed_and_normalized_quotes_stored_verbatim(project):
+    examples = ['Nobody told me anything at all', '“i WAITED  three hours”']
+    backend = Fixture(response=response(proposal(examples_pos=examples)))
+    with Store(project / 'project.db') as db:
+        segment = seed(db)
+        result = propose_with_ai(db, project, 'draft', backend='fixture', segment_ids=[segment],
+                                 registry={'fixture': backend})
+        assert result['status'] == 'completed'
+        row = db.one('SELECT * FROM code_proposals')
+        assert json.loads(row['payload_json'])['examples_pos'] == ['I waited three hours']
+        assert json.loads(row['evidence_json'])['removed_examples'] == 1
+        assert '1 example(s) removed' in row['rationale']
+
+
+def test_structural_errors_store_nothing_and_finish_the_attempt_as_error(project):
+    backend = Fixture(response=response(proposal(evidence_segment_ids=['99'])))
     with Store(project / 'project.db') as db:
         segment = seed(db)
         result = propose_with_ai(db, project, 'draft', backend='fixture', segment_ids=[segment],
@@ -131,7 +145,6 @@ def test_refine_sends_review_evidence_and_fake_revision_is_accepted(project):
     (proposal(target_code_id=1), 'cannot name a target'),
     (proposal(evidence_segment_ids=['9']), 'not supplied'),
     (proposal(name='support'), 'collides'),
-    (proposal(examples_neg=['invented']), 'verbatim'),
 ])
 def test_validation_names_the_failing_proposal(item, reason):
     codes = [{'id': 1, 'name': 'Support', 'examples_pos': '[]', 'examples_neg': '[]'}]

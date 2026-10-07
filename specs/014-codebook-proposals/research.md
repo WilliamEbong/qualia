@@ -14,7 +14,7 @@ Gathered 2026-10-06 before specifying, so the design follows published practice 
 ## Design consequences
 
 1. Proposals only; a person accepts into the draft codebook (optionally editing) or rejects with a note. Nothing reaches a frozen version without the person freezing it.
-2. Every example and evidence excerpt must be a verbatim substring of a supplied segment; otherwise the whole response is rejected, naming the record.
+2. Every example is verified against the supplied segments and stored in the segment's exact wording; an example that cannot be found is removed and the removal is reported. Structural errors (unknown segment or code, duplicate name) reject the whole response, naming the record.
 3. Existing codes are sent with draft requests so the model proposes additions, not duplicates; names must not collide.
 4. Refinement evidence comes from the researcher's own review decisions and notes (rejected suggestions), unused codes and overlapping pairs — computed offline without AI. Evaluation metrics are not used (they feed the measured improvement policy; keeping them out avoids tuning the codebook to the judge).
 5. Copy states the limits: proposals can fragment, miss latent meaning and blur boundaries; they are not themes; disclose AI assistance in methods.

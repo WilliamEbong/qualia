@@ -12,7 +12,7 @@ Qualia is a local-first workspace for qualitative research. Code interviews and 
 
 ## Why Qualia
 
-- **Your methodology stays yours.** You write the codes and freeze codebook versions. No AI, agent or automation can edit a definition or a frozen version.
+- **Your methodology stays yours.** You write the codes and freeze codebook versions. AI can propose codes and revisions, but nothing reaches your codebook until you accept it, and no automation can edit a frozen version.
 - **AI has to earn your trust.** Suggestions are never applied silently. Each one says why it is waiting for you, and evaluation shows precision and recall with 95% ranges, plain-language explanations and a calibration table.
 - **Improvements are measured, not claimed.** Changes to prompts, routing or thresholds are tested on held-out validation data and confirmed by a fresh run. Qualia keeps them only when results improve, and reverts them otherwise.
 - **Private by default.** Everything runs on your computer. External AI stays off until you allow it for a project, and every external call is budgeted and logged.
@@ -22,13 +22,21 @@ It works fully offline with manual coding and a keyword baseline. AI is optional
 
 ## A quick tour
 
-All screenshots come from the bundled public demo, the [AnnoMI](DATA-LICENSES.md) motivational-interviewing transcripts.
+Screenshots come from the bundled public demo, the [AnnoMI](DATA-LICENSES.md) motivational-interviewing transcripts, except the codebook-proposal and memo examples, which use a small invented practice study.
 
 ### Code by keyboard
 
 Move between segments with the arrow keys, press 1–9 to apply a code, or select text to code a narrower span. Every mark shows its span and whether it came from a person or an accepted AI suggestion (`m`).
 
 ![Workspace: sources, transcript segments with coded spans, and numbered code shortcuts](design-review/final/features/workspace-coding.png)
+
+When a new idea emerges, name it from the coding panel: **Create, freeze and assign** makes the code, freezes a version and codes the passage in one step, so inductive coding no longer needs three trips to the codebook.
+
+### Build the codebook with help, on your terms
+
+Ask for **proposals**: new codes drafted from passages you choose (inductive), revisions of existing codes based on your review evidence, or an offline check of your own decisions that turns rejected AI suggestions into negative examples, flags unused codes and spots codes that nearly always overlap. Every AI example is checked against the passages and stored in the passage's own words; anything the passages do not contain is removed. You accept a proposal into the draft codebook, usually after editing it, or reject it with a note; both decisions are kept for your methods section.
+
+![A proposal to add rejected passages as negative examples, with its reason and review notes](design-review/final/features/codebook-proposals.png)
 
 ### Review AI suggestions with context
 
@@ -74,7 +82,7 @@ The Analysis workbench gives code frequencies, group comparisons, co-occurrence,
 
 ![Code-by-case matrix](design-review/final/features/matrix.png)
 
-Memos, retrieval and CSV, JSON, Python and R exports complete the workflow. A reproducibility bundle carries coding history, codebook versions, evaluations, experiments, usage and configuration hashes. It excludes transcript text by default.
+Memos have kinds (analytic, reflexive, theme, method), link to segments, codes, cases and sources, and keep every earlier version, so your reflexive record shows how your thinking changed. Retrieval and CSV, JSON, Python and R exports complete the workflow. A reproducibility bundle carries coding history, codebook versions, evaluations, experiments, usage and configuration hashes. It excludes transcript text by default.
 
 ## Get started
 
@@ -185,6 +193,11 @@ The current suite passes 561 Python tests (5 platform skips; live provider tests
 - AI batches shrink to what a provider accepts instead of failing.
 - Native Claude/Codex accounting counts CLI invocations and reports known tokens without claiming exact provider quotas. Jev keeps direct per-request accounting.
 - Configuration uses JSON syntax (valid YAML 1.2) to avoid another parsing dependency.
+- Codebook proposals are records awaiting a person's decision; accepting changes only the draft codebook. Code origin is derived from decisions rather than stored on codes, so freeze hashes stay comparable.
+- Evidence proposals use your review decisions and current coding only, never evaluation metrics, so the codebook is not tuned to the measuring benchmark.
+- Themes are a documented pattern (parent code plus theme memo) rather than a new object; memo history is kept by a database trigger.
+- Claude Code and Codex are accepted at or above a minimum version (2.1.284 and 0.160.0) instead of one pinned version; the version used is recorded on every suggestion and usage row.
+- The workspace response sends current coding as event IDs instead of a second copy of each row (the demo payload fell from 13.5 MB to 7.4 MB).
 - Owner decisions are recorded with their reasoning in [docs/answers/](docs/answers).
 
 Software: [MIT](LICENSE). Dataset provenance and permissions: [DATA-LICENSES.md](DATA-LICENSES.md).
