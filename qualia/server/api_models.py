@@ -38,6 +38,7 @@ class Workspace(Record):
     memos: list[dict]
     experiments: list[dict]
     evaluation_runs: list[dict]
+    code_proposals: list[dict] = Field(default_factory=list)  # absent from older demo snapshots
     routing: dict
     pipeline_version: str
 
@@ -172,3 +173,45 @@ class ExperimentResult(Record):
     commit_hash: str | None
     tag: str | None
     created_at: str
+
+
+class ProposalInput(Record):
+    mode: Literal['draft', 'refine']
+    backend: str | None = None
+    model: str | None = None
+    segment_ids: list[int] = Field(default_factory=list, max_length=20)
+    code_ids: list[int] = Field(default_factory=list, max_length=2)
+    focus: str = Field(default='', max_length=500)
+
+
+class ProposalRun(Record):
+    batch_id: str
+    status: str
+    backend: str
+    model: str
+    proposal_ids: list[int]
+    errors: list[str]
+
+
+class ProposalValues(Record):
+    """Human edits applied on acceptance; omitted fields keep the proposed value."""
+    name: str | None = Field(default=None, min_length=1, max_length=200)
+    parent_id: int | None = None
+    definition: str | None = Field(default=None, max_length=10000)
+    include: str | None = Field(default=None, max_length=10000)
+    exclude: str | None = Field(default=None, max_length=10000)
+    examples_pos: list[str] | None = None
+    examples_neg: list[str] | None = None
+    status: Literal['active', 'archived'] | None = None
+
+
+class ProposalDecisionInput(Record):
+    decision: Literal['accept', 'reject']
+    actor: str = Field(min_length=1, max_length=200)
+    note: str = Field(default='', max_length=10000)
+    values: ProposalValues | None = None
+
+
+class ProposalDecisionResult(Record):
+    id: int
+    code_id: int | None

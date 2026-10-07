@@ -121,7 +121,7 @@ def _build(project, csv_path):
                          sources=[], segments=[], cases=[], attributes=[], source_cases=[],
                          codes=[{**row, 'examples_pos': [], 'examples_neg': []} for row in frozen],
                          codebook_versions=[version], coding_events=[], current_codings=[],
-                         suggestions=[], memos=[], experiments=[], evaluation_runs=[],
+                         suggestions=[], memos=[], experiments=[], evaluation_runs=[], code_proposals=[],
                          routing=json.loads(canonical(ROUTING)), pipeline_version=pipeline)
         for identity in selected:
             utterances = sorted(groups[identity], key=lambda row: int(row['utterance_id']))

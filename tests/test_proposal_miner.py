@@ -19,7 +19,7 @@ def rejection(event, code_id, excerpt, note=''):
 
 def test_rejections_become_new_negative_examples_with_notes():
     rows = [rejection(1, 1, 'already listed'), rejection(2, 1, 'fresh passage', 'about cost'),
-            rejection(3, 1, 'fresh passage'), rejection(4, 2, 'single')]
+            rejection(3, 1, 'fresh passage', 'about cost'), rejection(4, 2, 'single')]
     [proposal] = mine(evidence([code(1, 'Support', negatives=['already listed']), code(2, 'Other')],
                                rejections=rows))
     assert proposal['target_code_id'] == 1

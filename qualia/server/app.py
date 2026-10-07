@@ -13,6 +13,7 @@ from qualia.server.ai_routes import register_ai_routes
 from qualia.server.analysis_routes import register_analysis_routes
 from qualia.server.api_models import Health, ProjectInput, ProjectSummary, Workspace
 from qualia.server.evaluation_routes import register_evaluation_routes
+from qualia.server.proposal_routes import register_proposal_routes
 from qualia.server.workspace_routes import register_workspace_routes
 from qualia.store.db import Store
 from qualia.workspace import (
@@ -96,6 +97,7 @@ def create_app(home: Path | None = None, token: str | None = None, dist: Path | 
                 'SELECT id,split,backend,model,codebook_version_id,pipeline_version,metrics_json,created_at '
                 "FROM evaluation_runs WHERE split='validation'")
             data['suggestions'] = db.rows('SELECT * FROM pending_suggestions')
+            data['code_proposals'] = db.code_proposals()
         return {**data, 'project': {'slug': slug, 'name': slug.replace('-', ' ').title()},
                 'routing': read_config(path), 'pipeline_version': pipeline_hash(path)}
 
@@ -103,6 +105,7 @@ def create_app(home: Path | None = None, token: str | None = None, dist: Path | 
     register_ai_routes(app, home)
     register_evaluation_routes(app, home)
     register_analysis_routes(app, home)
+    register_proposal_routes(app, home)
 
     @app.get('/{asset:path}', include_in_schema=False)
     def spa(asset: str):

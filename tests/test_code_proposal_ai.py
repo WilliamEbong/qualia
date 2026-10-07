@@ -167,3 +167,54 @@ def test_evidence_mode_is_offline_and_not_repeated_while_pending(project):
         assert propose_from_evidence(db)['proposal_ids'] == []
         payload = json.loads(db.one('SELECT payload_json FROM code_proposals')['payload_json'])
         assert payload['examples_neg'] == [TEXT[5:10], TEXT[0:5]]
+
+
+def test_api_cli_and_export_round_trip(tmp_path, monkeypatch):
+    from fastapi.testclient import TestClient
+    from typer.testing import CliRunner
+
+    from qualia.cli import app
+    from qualia.server.app import create_app
+
+    home = tmp_path / 'home'
+    monkeypatch.setenv('QUALIA_HOME', str(home))
+    client = TestClient(create_app(home, token='t'), base_url='http://127.0.0.1',
+                        headers={'X-Qualia-Token': 't'})
+    assert client.post('/api/projects', json={'name': 'study'}).status_code == 201
+    assert client.post('/api/projects/study/import', json={
+        'name': 'a.txt', 'content': TEXT, 'format': 'txt'}).status_code == 200
+    base = '/api/projects/study/codebook/proposals'
+    run = client.post(f'{base}/ai', json={'mode': 'draft', 'backend': 'fake', 'segment_ids': [1],
+                                          'focus': 'waiting'}).json()
+    assert run['status'] == 'completed' and run['backend'] == 'fake'
+    [first] = run['proposal_ids']
+    accepted = client.post(f'{base}/{first}/decision', json={
+        'decision': 'accept', 'actor': 'researcher', 'values': {'name': 'Waiting', 'definition': None}})
+    assert accepted.status_code == 200, accepted.text
+    workspace = client.get('/api/projects/study').json()
+    [listed] = workspace['code_proposals']
+    assert listed['decision'] == 'accept' and listed['resulting_code_id'] == accepted.json()['code_id']
+    assert workspace['codes'][0]['name'] == 'Waiting'
+    assert workspace['codes'][0]['definition'] == 'Synthetic draft code for offline demonstration.'
+    again = client.post(f'{base}/{first}/decision', json={'decision': 'reject', 'actor': 'researcher'})
+    assert again.status_code == 400 and 'already decided' in again.text
+    assert client.post(f'{base}/ai', json={'mode': 'draft', 'segment_ids': [1], 'extra': 1}).status_code == 422
+    assert client.post(f'{base}/evidence').json()['proposal_ids'] == []
+
+    runner = CliRunner()
+    result = runner.invoke(app, ['codebook', 'propose', '--mode', 'draft', '--backend', 'fake',
+                                 '--segments', '1', '--project', 'study'])
+    assert result.exit_code == 0, result.output
+    pending = json.loads(runner.invoke(app, ['codebook', 'proposals', '--project', 'study']).output)
+    assert len(pending) == 1 and pending[0]['decision'] is None
+    result = runner.invoke(app, ['codebook', 'decide', str(pending[0]['id']), 'reject', '--actor',
+                                 'researcher', '--note', 'duplicate', '--project', 'study'])
+    assert result.exit_code == 0, result.output
+    assert len(json.loads(runner.invoke(app, ['codebook', 'proposals', '--all', '--project', 'study']).output)) == 2
+    result = runner.invoke(app, ['codebook', 'propose', '--mode', 'draft', '--backend', 'rules',
+                                 '--segments', '1', '--project', 'study'])
+    assert result.exit_code == 1 and 'cannot propose' in result.output
+    exported = json.loads(runner.invoke(app, ['export', '--project', 'study']).output)
+    assert len(exported['code_proposals']) == 2 and len(exported['code_proposal_decisions']) == 2
+    assert 'definition' not in json.loads(exported['code_proposals'][0]['payload_json'])
+    assert 'note' not in exported['code_proposal_decisions'][1]

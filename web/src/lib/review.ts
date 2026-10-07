@@ -27,11 +27,12 @@ export function useReview(w: WorkspaceController) {
   }, [w.slug])
   const suggestions = w.data?.suggestions ?? []
   const activeSuggestions = suggestions.filter(item => item.segment_id === w.active?.id)
-  const candidates = w.view === 'workspace' ? activeSuggestions : suggestions
+  const groups = useMemo(() => groupSuggestions(suggestions), [suggestions])
+  // Without a selection, a/r act on the first card shown (least certain first), not on raw order.
+  const candidates = w.view === 'workspace' ? activeSuggestions : groups.flatMap(group => group.items)
   const selected = candidates.find(item => item.id === selectedId) ?? candidates[0]
   const selectedBackend = availability?.backends.find(item => item.name === backend)
   const blockedReason = w.readOnly ? 'AI is unavailable in this read-only public snapshot.' : !selectedBackend ? 'Checking backend availability…' : !selectedBackend.available ? selectedBackend.reason || 'Backend unavailable.' : selectedBackend.external && !availability?.allow_external ? 'External AI is disabled in this project’s routing configuration.' : ''
-  const groups = useMemo(() => groupSuggestions(suggestions), [suggestions])
   const evaluations = useMemo(() => parseEvaluations((w.data?.evaluation_runs ?? []) as EvaluationRecord[]), [w.data])
   const review = (suggestion: Coding, decision: 'accept' | 'reject') => w.run(async () => {
     const input: components['schemas']['ReviewInput'] = { suggestion_id: suggestion.id, decision, actor: w.actor, note: selected?.id === suggestion.id ? note : '' }

@@ -53,7 +53,7 @@ def mine(evidence: dict) -> list[dict]:
                 new.append(text)
         if not new:
             continue
-        notes = [row['note'].strip() for row in rows if row['note'].strip()][:3]
+        notes = list(dict.fromkeys(row['note'].strip() for row in rows if row['note'].strip()))[:3]
         rationale = (f'Reviewers rejected {len(rows)} AI suggestions of “{codes[code_id]["name"]}”. '
                      'Adding the rejected passages as negative examples shows where the code does not '
                      'apply; remove any that were rejected for another reason, such as a wrong span.')

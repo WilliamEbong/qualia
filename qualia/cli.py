@@ -131,6 +131,51 @@ def list_codes(project: str = 'demo'):
         typer.echo(json.dumps(db.rows('SELECT * FROM codes ORDER BY id'), ensure_ascii=False))
 
 
+@codebook_app.command('propose')
+def propose_codes(mode: str = typer.Option(..., help='evidence, draft or refine'), project: str = 'demo',
+                  backend: str | None = None, model: str | None = None, segments: str = '',
+                  codes: str = '', focus: str = ''):
+    """Create codebook proposals for human review; nothing changes the codebook until decided."""
+    from qualia.ai.proposals import propose_from_evidence, propose_with_ai
+
+    path = resolve_project(project)
+    try:
+        with Store(path / 'project.db') as db:
+            if mode == 'evidence':
+                result = propose_from_evidence(db)
+            else:
+                ids = {name: [int(item) for item in value.split(',') if item.strip()]
+                       for name, value in (('segment_ids', segments), ('code_ids', codes))}
+                result = propose_with_ai(db, path, mode, backend=backend, model=model, focus=focus, **ids)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+    typer.echo(json.dumps(result))
+    if result['status'] != 'completed':
+        raise typer.Exit(1)
+
+
+@codebook_app.command('proposals')
+def list_proposals(project: str = 'demo',
+                   show_all: bool = typer.Option(False, '--all', help='Include decided proposals')):
+    """List codebook proposals awaiting a decision (or all with --all)."""
+    with Store(resolve_project(project) / 'project.db') as db:
+        rows = [row for row in db.code_proposals() if show_all or row['decision'] is None]
+    typer.echo(json.dumps(rows, ensure_ascii=False))
+
+
+@codebook_app.command('decide')
+def decide_proposal(proposal: int, decision: str, actor: str = typer.Option(...), note: str = '',
+                    values: Path | None = typer.Option(None, help='JSON file of edited code fields'),
+                    project: str = 'demo'):
+    """Accept a proposal into the draft codebook (optionally edited) or reject it."""
+    try:
+        edits = json.loads(values.read_text(encoding='utf-8')) if values else None
+        with Store(resolve_project(project) / 'project.db') as db:
+            typer.echo(json.dumps(db.decide_code_proposal(proposal, decision, actor, note, edits)))
+    except (OSError, ValueError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+
 @app.command('code')
 def code_command(segment: int, code: int, project: str = 'demo', start: int = 0,
                  end: int | None = None, version: int | None = None,

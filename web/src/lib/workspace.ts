@@ -4,13 +4,15 @@ import type { components } from '../api/schema'
 import { readOnly, request } from './client'
 import type { DemoSnapshot } from './demo'
 import { useMatrix } from './matrix'
-import { codeDepth, eventCodeName, frozenCodes, isEditingTarget, orderedCodes, segmentText, shortcut } from './entities'
+import { codeDepth, eventCodeName, exampleList, frozenCodes, isEditingTarget, orderedCodes, segmentText, shortcut } from './entities'
 import type { Case, Code, Coding, MatrixCell, Memo, Project, Retrieval, Span, View, Workspace } from './entities'
 
 const field = (form: FormData, name: string) => String(form.get(name) ?? '').trim()
 const idField = (form: FormData, name: string) => Number(form.get(name)) || null
 const lines = (value: string) => value.split(/\r?\n/).map(item => item.trim()).filter(Boolean)
-export const exampleLines = (value: string) => { try { return (JSON.parse(value) as string[]).join('\n') } catch { return value } }
+export const exampleLines = (value: unknown) => exampleList(value).join('\n')
+export const focusCodeEditor = () => requestAnimationFrame(() => document.querySelector<HTMLInputElement>('#code-editor input[name="name"]')?.focus())
+export const codeFormValues = (form: FormData): components['schemas']['CodeInput'] => ({ name: field(form, 'name'), parent_id: idField(form, 'parent_id'), definition: field(form, 'definition'), include: field(form, 'include'), exclude: field(form, 'exclude'), examples_pos: lines(field(form, 'examples_pos')), examples_neg: lines(field(form, 'examples_neg')), status: field(form, 'status') as 'active' | 'archived' })
 
 export function useWorkspace() {
   const [projects, setProjects] = useState<Project[]>([])
@@ -30,6 +32,8 @@ export function useWorkspace() {
   const [actor, setActor] = useState('researcher')
   const [panel, setPanel] = useState<'import' | 'case' | 'export' | null>(null)
   const [editCode, setEditCode] = useState<Code | null>(null)
+  // Bumped after each save so uncontrolled "new" forms clear instead of resubmitting old text.
+  const [formNonce, setFormNonce] = useState(0)
   const [editMemo, setEditMemo] = useState<Memo | null>(null)
   const [editCase, setEditCase] = useState<Case | null>(null)
   const [retrievalCode, setRetrievalCode] = useState<number | null>(null)
@@ -185,9 +189,8 @@ export function useWorkspace() {
   const saveCode = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault(); const form = new FormData(event.currentTarget)
     void run(async () => {
-      const input: components['schemas']['CodeInput'] = { name: field(form, 'name'), parent_id: idField(form, 'parent_id'), definition: field(form, 'definition'), include: field(form, 'include'), exclude: field(form, 'exclude'), examples_pos: lines(field(form, 'examples_pos')), examples_neg: lines(field(form, 'examples_neg')), status: field(form, 'status') as 'active' | 'archived' }
-      await mutate(editCode ? `codes/${editCode.id}` : 'codes', input, editCode ? 'PUT' : 'POST')
-      await reload(); setEditCode(null); setNotice('Draft code saved. Freeze a new version to use this definition for coding.')
+      await mutate(editCode ? `codes/${editCode.id}` : 'codes', codeFormValues(form), editCode ? 'PUT' : 'POST')
+      await reload(); setEditCode(null); setFormNonce(value => value + 1); setNotice('Draft code saved. Freeze a new version to use this definition for coding.')
     })
   }
   const freeze = () => run(async () => { const result = await mutate('codebook/freeze'); await reload(); setVersionId(result.id); setNotice(`Codebook version ${result.id} frozen.`) })
@@ -196,7 +199,7 @@ export function useWorkspace() {
     event.preventDefault(); const form = new FormData(event.currentTarget)
     void run(async () => {
       const input: components['schemas']['MemoInput'] = { title: field(form, 'title'), text: String(form.get('text') ?? ''), segment_id: idField(form, 'segment_id'), code_id: idField(form, 'code_id') }
-      await mutate(editMemo ? `memos/${editMemo.id}` : 'memos', input, editMemo ? 'PUT' : 'POST'); await reload(); setEditMemo(null); setNotice('Memo saved.')
+      await mutate(editMemo ? `memos/${editMemo.id}` : 'memos', input, editMemo ? 'PUT' : 'POST'); await reload(); setEditMemo(null); setFormNonce(value => value + 1); setNotice('Memo saved.')
     })
   }
 
@@ -236,7 +239,8 @@ export function useWorkspace() {
   return { projects, slug, data, loading, busy, error, notice, view, setView, chooseProject, createProject, run, reload, readOnly, attribution,
     sources, source, segments: segmentViews, active, activeText, currentSpan, activate, receiveSpan, selectSource, caseId, setCaseId,
     codes: codeViews, codingCodes, version, setVersionId, activeCodings, activeEvents, actor, setActor, assign, remove,
-    clearSpan: () => setSpan(null), panel, setPanel, editCode, setEditCode, editMemo, setEditMemo, editCase, setEditCase,
+    clearSpan: () => setSpan(null), panel, setPanel, editCode, setEditCode, editMemo, setEditMemo, editCase, setEditCase, formNonce, setNotice,
+    startEditCode: (code: Code | null) => { setEditCode(code); focusCodeEditor() },
     importSource, saveCode, freeze, saveMemo, saveCase, exportData, retrieval, retrievalCode, setRetrievalCode, retrievalCase, setRetrievalCase,
     queryLoading, matrix, matrixView, drillDown, openSegment,
     retrievalSegmentCount: new Set(retrieval.map(item => item.segment_id)).size,

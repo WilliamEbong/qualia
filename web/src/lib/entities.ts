@@ -10,19 +10,44 @@ export type Memo = { id: number; title: string; text: string; segment_id: number
 export type Case = { id: number; name: string }
 export type Attribute = { id: number; case_id: number | null; source_id: number | null; key: string; value: string }
 export type SourceCase = { source_id: number; case_id: number }
-export type Workspace = Omit<components['schemas']['Workspace'], 'sources' | 'segments' | 'codes' | 'codebook_versions' | 'coding_events' | 'current_codings' | 'suggestions' | 'memos' | 'cases' | 'attributes' | 'source_cases'> & {
+export type Proposal = { id: number; batch_id: string; mode: 'draft' | 'refine' | 'evidence'; kind: 'new_code' | 'revise_code'; target_code_id: number | null; payload_json: string; rationale: string; evidence_json: string; actor_type: 'model' | 'rule'; backend: string | null; model: string | null; cli_version: string | null; prompt_hash: string; codebook_version_id: number | null; created_at: string; decision: 'accept' | 'reject' | null; decided_by: string | null; decision_note: string | null; applied_json: string | null; resulting_code_id: number | null; decided_at: string | null }
+// code_proposals is optional: older public demo snapshots predate codebook proposals.
+export type Workspace = Omit<components['schemas']['Workspace'], 'sources' | 'segments' | 'codes' | 'codebook_versions' | 'coding_events' | 'current_codings' | 'suggestions' | 'memos' | 'cases' | 'attributes' | 'source_cases' | 'code_proposals'> & {
   sources: Source[]; segments: Segment[]; codes: Code[]; codebook_versions: Version[];
   coding_events: Coding[]; current_codings: Coding[]; suggestions: Coding[]; memos: Memo[]; cases: Case[];
-  attributes: Attribute[]; source_cases: SourceCase[];
+  attributes: Attribute[]; source_cases: SourceCase[]; code_proposals?: Proposal[];
 }
 export type Span = { segmentId: number; start: number; end: number }
 export type MatrixCell = { code_id: number; case_id: number; count: number }
 export type Retrieval = Coding & { source_id: number; segment_text: string; excerpt: string; source_name: string }
 export type View = 'home' | 'workspace' | 'codebook' | 'memos' | 'retrieval' | 'matrix' | 'review' | 'evaluation' | 'experiments' | 'analysis'
 
+const codePoints = new WeakMap<Source, string[]>()
+export function sourceCodePoints(source: Source): string[] {
+  let points = codePoints.get(source)
+  if (!points) { points = Array.from(source.text); codePoints.set(source, points) }
+  return points
+}
+
 export function segmentText(data: Workspace, segment: Segment): string {
   const source = data.sources.find(item => item.id === segment.source_id)
-  return Array.from(source?.text ?? '').slice(segment.start, segment.end).join('')
+  return source ? sourceCodePoints(source).slice(segment.start, segment.end).join('') : ''
+}
+
+// Examples arrive as JSON text from the API and as arrays in the public demo snapshot.
+export function exampleList(value: unknown): string[] {
+  if (Array.isArray(value)) return value.map(String)
+  if (typeof value !== 'string') return []
+  try { const parsed: unknown = JSON.parse(value); return Array.isArray(parsed) ? parsed.map(String) : [] } catch { return [] }
+}
+
+export function descendantIds(codeId: number, codes: Code[]): Set<number> {
+  const found = new Set<number>([codeId])
+  for (let grew = true; grew;) {
+    grew = false
+    for (const code of codes) if (code.parent_id !== null && found.has(code.parent_id) && !found.has(code.id)) { found.add(code.id); grew = true }
+  }
+  return found
 }
 
 export function codeDepth(code: Code, codes: Code[]): number {

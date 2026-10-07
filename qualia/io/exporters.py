@@ -54,7 +54,8 @@ def export_data(db, project, format='json', no_text=True, bundle=None) -> str:
     if bundle not in (None, 'reproducibility'):
         raise ValueError('unsupported export bundle')
     tables = ['sources', 'segments', 'cases', 'source_cases', 'attributes', 'codes',
-              'codebook_versions', 'coding_events', 'current_codings', 'memos', 'feedback_events']
+              'codebook_versions', 'coding_events', 'current_codings', 'memos', 'feedback_events',
+              'code_proposals', 'code_proposal_decisions']
     if bundle:
         tables += ['experiments', 'evaluation_runs', 'usage_ledger', 'egress_log']
     data = {'format_version': 1, 'text_excluded': no_text,

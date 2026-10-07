@@ -417,3 +417,11 @@ input[type=checkbox]:disabled { cursor: not-allowed; }
 
 /* Reserve the arriving workspace during the initial local snapshot request. */
 .workspace-loading { min-height: 100vh; }
+
+/* Codebook proposals: an unreviewed proposal uses the dashed suggestion stripe. */
+.proposals { margin-bottom: 32px; }
+.proposal { --code-color: var(--accent); }
+.proposal h4 { margin: 0; font-family: var(--font-display); font-size: var(--type-small-heading); font-weight: 400; }
+.proposal-request { margin: 16px 0 24px; }
+.proposal-request > button { margin-top: 16px; }
+.proposal-request .editor { margin-top: 16px; }

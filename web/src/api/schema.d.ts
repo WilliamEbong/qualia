@@ -396,6 +396,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/projects/{slug}/codebook/proposals/evidence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Evidence */
+        post: operations["evidence_api_projects__slug__codebook_proposals_evidence_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/projects/{slug}/codebook/proposals/ai": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ai */
+        post: operations["ai_api_projects__slug__codebook_proposals_ai_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/projects/{slug}/codebook/proposals/{proposal_id}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decide */
+        post: operations["decide_api_projects__slug__codebook_proposals__proposal_id__decision_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -942,6 +993,87 @@ export interface components {
             /** Name */
             name: string;
         };
+        /** ProposalDecisionInput */
+        ProposalDecisionInput: {
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "accept" | "reject";
+            /** Actor */
+            actor: string;
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+            values?: components["schemas"]["ProposalValues"] | null;
+        };
+        /** ProposalDecisionResult */
+        ProposalDecisionResult: {
+            /** Id */
+            id: number;
+            /** Code Id */
+            code_id: number | null;
+        };
+        /** ProposalInput */
+        ProposalInput: {
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "draft" | "refine";
+            /** Backend */
+            backend?: string | null;
+            /** Model */
+            model?: string | null;
+            /** Segment Ids */
+            segment_ids?: number[];
+            /** Code Ids */
+            code_ids?: number[];
+            /**
+             * Focus
+             * @default
+             */
+            focus: string;
+        };
+        /** ProposalRun */
+        ProposalRun: {
+            /** Batch Id */
+            batch_id: string;
+            /** Status */
+            status: string;
+            /** Backend */
+            backend: string;
+            /** Model */
+            model: string;
+            /** Proposal Ids */
+            proposal_ids: number[];
+            /** Errors */
+            errors: string[];
+        };
+        /**
+         * ProposalValues
+         * @description Human edits applied on acceptance; omitted fields keep the proposed value.
+         */
+        ProposalValues: {
+            /** Name */
+            name?: string | null;
+            /** Parent Id */
+            parent_id?: number | null;
+            /** Definition */
+            definition?: string | null;
+            /** Include */
+            include?: string | null;
+            /** Exclude */
+            exclude?: string | null;
+            /** Examples Pos */
+            examples_pos?: string[] | null;
+            /** Examples Neg */
+            examples_neg?: string[] | null;
+            /** Status */
+            status?: ("active" | "archived") | null;
+        };
         /** ReviewInput */
         ReviewInput: {
             /** Suggestion Id */
@@ -1028,6 +1160,10 @@ export interface components {
             }[];
             /** Evaluation Runs */
             evaluation_runs: {
+                [key: string]: unknown;
+            }[];
+            /** Code Proposals */
+            code_proposals?: {
                 [key: string]: unknown;
             }[];
             /** Routing */
@@ -1823,6 +1959,108 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ExportResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    evidence_api_projects__slug__codebook_proposals_evidence_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalRun"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ai_api_projects__slug__codebook_proposals_ai_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProposalInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalRun"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decide_api_projects__slug__codebook_proposals__proposal_id__decision_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+                proposal_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProposalDecisionInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProposalDecisionResult"];
                 };
             };
             /** @description Validation Error */
