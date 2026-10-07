@@ -551,7 +551,7 @@ Jev is TypeSafe AI's "System One" decision model. Instead of writing text, it an
 2. Check your available credits and the purchase amount before paying. An account alone does not prove you have usable credit.
 3. Leave automatic credit refills off unless you deliberately want recurring charges.
 
-The published rate for Jev 1.13 is $0.042 per million input tokens, with free output tokens. As a guide, one full evaluation of the demo's 1,258 validation segments used about 2.5 million input tokens (roughly $0.10), and the complete threshold-tuning experiment cost about $0.35. Check TypeSafe's current terms before paying.
+The published rate for Jev 1.13 is $0.042 per million input tokens, with free output tokens. As a guide, one full evaluation of the demo's 1,258 validation segments used about 2.5 million input tokens (roughly $0.10), and the complete threshold-tuning experiment cost about $0.35: 4,194 passages against 7 codes. In other words, **$1 covers roughly 12,000 short passages with a 7-code codebook**, or about 85,000 yes/no code decisions; divide 85,000 by your number of codes for a quick estimate, and expect fewer for long passages. Qualia's default daily Jev limit is $1 per project. Check TypeSafe's current terms before paying.
 
 ### Step 2 · Create a key
 

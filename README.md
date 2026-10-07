@@ -18,7 +18,7 @@ Qualia is a local-first workspace for qualitative research. Code interviews and 
 - **Private by default.** Everything runs on your computer. External AI stays off until you allow it for a project, and every external call is budgeted and logged.
 - **Reproducible.** Coding, review, evaluation and experiment history is append-only and exports as a reproducibility bundle.
 
-It works fully offline with manual coding and a keyword baseline. AI is optional: your own Claude Code or Codex subscription, or TypeSafe's Jev decision model.
+It works fully offline with manual coding and a keyword baseline. AI is optional: your own Claude Code or Codex subscription, or TypeSafe's Jev decision model, which codes roughly 12,000 short passages for about $1.
 
 ## A quick tour
 
@@ -117,7 +117,9 @@ The [illustrated user guide](docs/USER-GUIDE.md) walks through every workflow st
 | `rules` | Inclusion terms on your codes | Free, offline | A transparent keyword baseline |
 | `fake` | Nothing | Free, offline | Practising the review and experiment workflow |
 | Claude Code / Codex | Your own subscription sign-in on the official CLI | Your plan's usage | Rich suggestions with rationales; AI-proposed prompt improvements |
-| Jev (TypeSafe) | A TypeSafe account and API key | Per input token (about $0.10 per demo validation pass) | Fast, cheap per-code probabilities; threshold tuning |
+| Jev (TypeSafe) | A TypeSafe account and API key | About **$1 per ~12,000 passages** with a 7-code codebook ($0.042 per million input tokens, output free) | Fast, very cheap per-code probabilities; threshold tuning |
+
+**What $1 buys with Jev.** On the AnnoMI demo, Jev classified 4,194 passages against a 7-code codebook (about 29,000 yes/no code decisions) for $0.35. That is roughly **12,000 short passages, or about 85,000 code decisions, per dollar**. Cost grows with codebook size and passage length: as a rule of thumb, divide 85,000 by your number of codes for utterance-length passages, so a 20-code codebook still covers about 4,000 passages per dollar. Evaluating the demo's full 1,258-passage validation set costs about $0.10, and the complete kept tuning experiment above cost $0.35. New projects get a $1 daily spending limit you can change. Prices are TypeSafe's published rate as of October 2026; check their current terms. Jev classifies against your codebook; drafting codebook proposals uses Claude or Codex.
 
 External processing is off for every new project until you allow it. Qualia never reads or stores subscription login tokens, keeps a Jev key only in an ignored local `.env`, and records every external call with its cost reservation. See [AI setup](docs/USER-GUIDE.md#12-generate-and-review-ai-suggestions) and [Jev setup](docs/USER-GUIDE.md#13-set-up-optional-jev-processing).
 
