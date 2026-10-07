@@ -762,3 +762,10 @@ def test_both_native_backends_propose_through_the_same_isolated_transport(monkey
 
     result = codex_cli.CodexCLIBackend(runner=runner).propose(SEGMENTS, SCHEMA, {**context, 'model': 'gpt-6-luna'})
     assert result == {'proposals': proposals, 'input_tokens': 4, 'output_tokens': 5, 'cli_version': '0.160.0'}
+
+
+def test_classification_prompt_states_each_segment_length():
+    prompt = classification_prompt([{'id': '7', 'text': 'I feel hopeful 😀.'}], {}, {'codebook': []})
+    body = json.loads(prompt[prompt.index('{'):])
+    assert body['segments'] == [{'id': '7', 'text': 'I feel hopeful 😀.', 'length': 17}]
+    assert 'span_end must not exceed the segment length' in prompt
