@@ -8,11 +8,13 @@ import type { WorkspaceController } from './workspace'
 import { groupSuggestions, isAcceptedModel, modelScore, reasonCaption, reviewReasons, reviewShortcut } from './review-state'
 import { calibrationCaption, parseEvaluations } from './evaluation-state'
 import type { EvaluationRecord } from './evaluation-state'
+import { useModelChoice } from './models'
 
 export function useReview(w: WorkspaceController) {
   const [availability, setAvailability] = useState<components['schemas']['Availability'] | null>(null)
   const [availabilityError, setAvailabilityError] = useState('')
   const [backend, setBackend] = useState('rules')
+  const model = useModelChoice(availability, 'classification', backend)
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [note, setNote] = useState('')
   const [result, setResult] = useState<components['schemas']['ClassifyResult'] | null>(null)
@@ -54,8 +56,7 @@ export function useReview(w: WorkspaceController) {
     void w.run(async () => {
       if (blockedReason) throw new Error(blockedReason)
       const input: components['schemas']['ClassifyInput'] = { backend, task: 'classification' }
-      const model = String(form.get('model') ?? '').trim()
-      if (model) input.model = model
+      input.model = model.model()
       if (form.get('scope') === 'source') input.segment_ids = w.segments.map(item => item.id)
       const value = await request<components['schemas']['ClassifyResult']>(`projects/${encodeURIComponent(w.slug)}/classify`, { method: 'POST', body: JSON.stringify(input) })
       setResult(value); await w.reload()
@@ -66,6 +67,7 @@ export function useReview(w: WorkspaceController) {
     return segment && w.data ? Array.from(segmentText(w.data, segment)).slice(item.span_start, item.span_end).join('') : ''
   }
   return { availability, availabilityError, backend, setBackend, blockedReason, selected, select: (id: number) => { if (selected?.id !== id) setNote(''); setSelectedId(id) },
+    model,
     suggestions, activeSuggestions, groups, note, setNote, result, review, classify, excerpt, modelScore, reviewReasons,
     reasonCaption: (value: string | null) => reasonCaption(value, w.data?.routing?.human_review_below), eceCaption: (item: Coding) => calibrationCaption(item, evaluations), isAcceptedModel,
     codeName: (item: Coding) => eventCodeName(item, w.data?.codebook_versions ?? []),

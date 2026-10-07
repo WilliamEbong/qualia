@@ -8,6 +8,7 @@ import { acceptedProposals, draftSegmentIds, originCaption, proposalView } from 
 import type { ProposalView } from './proposals-state'
 import { codeFormValues, focusCodeEditor } from './workspace'
 import type { WorkspaceController } from './workspace'
+import { useModelChoice } from './models'
 
 type Availability = components['schemas']['Availability']
 type ProposalRun = components['schemas']['ProposalRun']
@@ -16,6 +17,7 @@ const proposers = ['claude', 'codex', 'fake']
 export function useProposals(w: WorkspaceController, availability: Availability | null) {
   const [mode, setMode] = useState<'draft' | 'refine'>('draft')
   const [backend, setBackend] = useState('')
+  const model = useModelChoice(availability, 'proposal', backend)
   const [sourceId, setSourceId] = useState<number | null>(null)
   const [count, setCount] = useState(10)
   const [codeIds, setCodeIds] = useState<number[]>([])
@@ -52,7 +54,7 @@ export function useProposals(w: WorkspaceController, availability: Availability 
       if (blockedReason) throw new Error(blockedReason)
       if (mode === 'draft' && !draftIds.length) throw new Error('Choose a source with segments to draft from.')
       if (mode === 'refine' && !codeIds.length) throw new Error('Choose one or two codes to refine.')
-      const input: components['schemas']['ProposalInput'] = { mode, backend, focus, segment_ids: mode === 'draft' ? draftIds : [], code_ids: mode === 'refine' ? codeIds : [] }
+      const input: components['schemas']['ProposalInput'] = { mode, backend, model: model.model(), focus, segment_ids: mode === 'draft' ? draftIds : [], code_ids: mode === 'refine' ? codeIds : [] }
       await finish(await post<ProposalRun>('ai', input))
     })
   }
@@ -75,6 +77,7 @@ export function useProposals(w: WorkspaceController, availability: Availability 
   const editorCode: Code | null = accepting ? { id: accepting.target_code_id ?? 0, ...accepting.values, examples_pos: JSON.stringify(accepting.values.examples_pos), examples_neg: JSON.stringify(accepting.values.examples_neg) } : null
 
   return { mode, setMode, backend, setBackend, backends, blockedReason, sourceId: draftSource, setSourceId, count, setCount, draftIds, codeIds, toggleCode, focus, setFocus, note, setNote,
+    model,
     pending, decided, result, findEvidence, ask, reject, accepting, startAccept, cancelAccept: () => setAccepting(null), saveAccepted, editorCode,
     originCaption: (codeId: number) => originCaption(origins.get(codeId)),
     excerpt: (segmentId: number) => { const segment = w.data?.segments.find(item => item.id === segmentId); return segment && w.data ? segmentText(w.data, segment) : '' },

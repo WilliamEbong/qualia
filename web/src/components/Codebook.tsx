@@ -6,6 +6,7 @@ import { descendantIds } from '../lib/entities'
 import { thresholdCaption } from '../lib/review-state'
 import type { ProposalsController } from '../lib/proposals'
 import type { ProposalView } from '../lib/proposals-state'
+import { ModelPicker } from './ModelPicker'
 import { Button } from './ui/button'
 
 function ProposalCard({ w, p, item }: { w: WorkspaceController; p: ProposalsController; item: ProposalView }) {
@@ -16,7 +17,7 @@ function ProposalCard({ w, p, item }: { w: WorkspaceController; p: ProposalsCont
     {!item.changes.length && <p className="caption">No field differs from the current draft.</p>}
     <p>{item.rationale}</p>{item.evidence.focus && <p className="caption">Focus: {item.evidence.focus}</p>}
     {passages.length > 0 && <details><summary>Supporting passages ({item.evidence.segment_ids?.length})</summary>{passages.map(id => <div key={id}><blockquote>{p.excerpt(id)}</blockquote><Button onClick={() => w.openSegment(id)}>Open segment {id}</Button></div>)}</details>}
-    <details className="provenance"><summary>Proposal provenance</summary><dl><dt>Mode</dt><dd>{item.mode}</dd><dt>Actor</dt><dd>{item.actor_type}</dd>{item.actor_type === 'model' && <><dt>Backend / model</dt><dd>{item.backend} / {item.model}</dd><dt>CLI version</dt><dd>{item.cli_version}</dd><dt>Prompt hash</dt><dd>{item.prompt_hash}</dd></>}<dt>Based on codebook</dt><dd>{item.codebook_version_id ? `cb_v${item.codebook_version_id}` : 'No frozen version yet'}</dd><dt>Batch</dt><dd>{item.batch_id}</dd><dt>Created</dt><dd>{item.created_at}</dd></dl></details>
+    <details className="provenance"><summary>Proposal provenance</summary><dl><dt>Mode</dt><dd>{item.mode}</dd><dt>Actor</dt><dd>{item.actor_type}</dd>{item.actor_type === 'model' && <><dt>Backend / model</dt><dd>{item.backend} / {item.model}{item.model_version && <> · answered by {item.model_version}</>}</dd><dt>CLI version</dt><dd>{item.cli_version}</dd><dt>Prompt hash</dt><dd>{item.prompt_hash}</dd></>}<dt>Based on codebook</dt><dd>{item.codebook_version_id ? `cb_v${item.codebook_version_id}` : 'No frozen version yet'}</dd><dt>Batch</dt><dd>{item.batch_id}</dd><dt>Created</dt><dd>{item.created_at}</dd></dl></details>
     <div className="actions"><Button disabled={w.busy || !w.actor.trim()} onClick={() => p.startAccept(item)}>Review and accept</Button><Button disabled={w.busy || !w.actor.trim()} onClick={() => void p.reject(item)}>Reject</Button></div>
   </article>
 }
@@ -32,6 +33,7 @@ function Proposals({ w, p }: { w: WorkspaceController; p: ProposalsController })
         <form className="editor" onSubmit={p.ask}><fieldset disabled={w.busy}>
           <label>Proposal type<select value={p.mode} onChange={event => p.setMode(event.target.value as 'draft' | 'refine')}><option value="draft">Draft new codes from passages</option><option value="refine">Refine codes from review evidence</option></select></label>
           <label>Backend<select value={p.backend} onChange={event => p.setBackend(event.target.value)}>{p.backends.length ? p.backends.map(item => <option key={item.name} value={item.name}>{item.name} · {item.external ? 'external' : 'offline demonstration'}{item.available ? '' : ' · unavailable'}</option>) : <option value="">Checking availability…</option>}</select></label>
+          <ModelPicker id="proposal-model" m={p.model} disabled={w.readOnly || w.busy} />
           {p.mode === 'draft' ? <>
             <label>Source<select value={p.sourceId ?? ''} onChange={event => p.setSourceId(Number(event.target.value) || null)}>{w.data?.sources.map(source => <option key={source.id} value={source.id}>{source.name}</option>)}</select></label>
             <label>Passages to send (1–20)<input type="number" min={1} max={20} value={p.count} onChange={event => p.setCount(Number(event.target.value))} /></label>

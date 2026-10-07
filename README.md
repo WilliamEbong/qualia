@@ -119,6 +119,8 @@ The [illustrated user guide](docs/USER-GUIDE.md) walks through every workflow st
 | Claude Code / Codex | Your own subscription sign-in on the official CLI | Your plan's usage | Rich suggestions with rationales; AI-proposed prompt improvements |
 | Jev (TypeSafe) | A TypeSafe account and API key | About **$1 per ~12,000 passages** with a 7-code codebook ($0.042 per million input tokens, output free) | Fast, very cheap per-code probabilities; threshold tuning |
 
+**Sensible model defaults, easy to change.** Each task gets a model matched to the judgment it needs and how often it runs: economical models (Claude Haiku, GPT-6-Luna) for high-volume classification, stronger ones (Claude Opus, GPT-6.1-Sol or GPT-6-Astra) for codebook proposals and uncertain passages. Pick another model for any run from a list with one-line descriptions, set a project default, or pin an exact version. Every suggestion records the exact model that answered, a repeatability check shows how much a model varies between runs, and a model switch can be measured as an experiment before you adopt it.
+
 **What $1 buys with Jev.** On the AnnoMI demo, Jev classified 4,194 passages against a 7-code codebook (about 29,000 yes/no code decisions) for $0.35. That is roughly **12,000 short passages, or about 85,000 code decisions, per dollar**. Cost grows with codebook size and passage length: as a rule of thumb, divide 85,000 by your number of codes for utterance-length passages, so a 20-code codebook still covers about 4,000 passages per dollar. Evaluating the demo's full 1,258-passage validation set costs about $0.10, and the complete kept tuning experiment above cost $0.35. New projects get a $1 daily spending limit you can change. Prices are TypeSafe's published rate as of October 2026; check their current terms. Jev classifies against your codebook; drafting codebook proposals uses Claude or Codex.
 
 External processing is off for every new project until you allow it. Qualia never reads or stores subscription login tokens, keeps a Jev key only in an ignored local `.env`, and records every external call with its cost reservation. See [AI setup](docs/USER-GUIDE.md#12-generate-and-review-ai-suggestions) and [Jev setup](docs/USER-GUIDE.md#13-set-up-optional-jev-processing).
@@ -199,6 +201,8 @@ The current suite passes 674 Python tests (5 platform skips; live provider tests
 - Evidence proposals use your review decisions and current coding only, never evaluation metrics, so the codebook is not tuned to the measuring benchmark.
 - Themes are a documented pattern (parent code plus theme memo) rather than a new object; memo history is kept by a database trigger.
 - Claude Code and Codex are accepted at or above a minimum version (2.1.284 and 0.160.0) instead of one pinned version; the version used is recorded on every suggestion and usage row.
+- Default models follow the task: economical for high-volume classification, stronger for rare interpretive work. Model names that follow the provider's latest model are recorded with the exact model that answered; exact IDs pin a version.
+- Sampling cannot be fixed through the subscription CLIs, so consistency comes from stored answers, recorded provenance, a repeatability check and measured model experiments.
 - The workspace response sends current coding as event IDs instead of a second copy of each row (the demo payload fell from 13.5 MB to 7.4 MB).
 - Owner decisions are recorded with their reasoning in [docs/answers/](docs/answers).
 

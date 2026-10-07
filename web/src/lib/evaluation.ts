@@ -7,27 +7,39 @@ import { request } from './client'
 import { eventCodeName } from './entities'
 import { backendBlockedReason, calibrationRows, formatInterval, formatMetric, metricRows, parseEvaluations, reviewSentence } from './evaluation-state'
 import type { EvaluationRecord } from './evaluation-state'
+import { useModelChoice } from './models'
+
+const formatPercent = (value: number | null | undefined) => typeof value === 'number' && Number.isFinite(value) ? `${Math.round(value * 1000) / 10}%` : 'n/a'
 
 export function useEvaluation(w: WorkspaceController, review: ReviewController) {
   const [backend, setBackend] = useState('rules')
   const [selectedId, setSelectedId] = useState<number | null>(null)
-  useEffect(() => { setBackend('rules'); setSelectedId(null) }, [w.slug])
+  const [sample, setSample] = useState(50)
+  const [repeat, setRepeat] = useState<components['schemas']['RepeatabilityResult'] | null>(null)
+  const model = useModelChoice(review.availability, 'classification', backend)
+  useEffect(() => { setBackend('rules'); setSelectedId(null); setRepeat(null) }, [w.slug])
   const runs = useMemo(() => parseEvaluations((w.data?.evaluation_runs ?? []) as EvaluationRecord[]), [w.data])
   const selected = runs.find(run => run.id === selectedId) ?? runs[0]
   const provider = review.availability?.backends.find(item => item.name === backend)
   const blockedReason = backendBlockedReason(w.readOnly, provider, review.availability?.allow_external, 'Evaluation is unavailable in this read-only public snapshot.')
   const evaluate = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    const form = new FormData(event.currentTarget)
     void w.run(async () => {
       if (blockedReason) throw new Error(blockedReason)
-      const input: components['schemas']['EvaluateInput'] = { backend, model: String(form.get('model') ?? '').trim() || null }
+      const input: components['schemas']['EvaluateInput'] = { backend, model: model.model() ?? null }
       const result = await request<components['schemas']['EvaluationResult']>(`projects/${encodeURIComponent(w.slug)}/evaluate`, { method: 'POST', body: JSON.stringify(input) })
       await w.reload(); setSelectedId(result.id)
     })
   }
+  // Same sample twice without stored answers: how often does this model agree with itself?
+  const checkRepeatability = () => w.run(async () => {
+    if (blockedReason) throw new Error(blockedReason)
+    const input: components['schemas']['RepeatabilityInput'] = { backend, model: model.model() ?? null, segments: sample }
+    setRepeat(await request<components['schemas']['RepeatabilityResult']>(`projects/${encodeURIComponent(w.slug)}/repeatability`, { method: 'POST', body: JSON.stringify(input) }))
+  })
   const metrics = selected?.metrics
-  return { runs, selected, select: setSelectedId, backend, setBackend, blockedReason, evaluate, formatMetric,
+  return { runs, selected, select: setSelectedId, backend, setBackend, blockedReason, evaluate, formatMetric, model, sample, setSample, checkRepeatability,
+    repeat: repeat && { ...repeat, identicalText: formatPercent(repeat.identical_sets), rows: repeat.per_code.map(row => ({ code: eventCodeName({ code_id: Number(row.code_id), codebook_version_id: repeat.codebook_version_id }, w.data?.codebook_versions ?? []), agreement: formatPercent(row.agreement as number | null), kappa: formatMetric(row.kappa as number | null) })) },
     metricRows: metrics ? metricRows(metrics) : [],
     reviewSentence: metrics ? reviewSentence(metrics, w.data?.routing?.human_review_below) : '',
     calibrationRows: metrics ? calibrationRows(metrics) : [],

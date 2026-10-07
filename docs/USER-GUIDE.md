@@ -512,10 +512,40 @@ For Claude/Codex, each recorded **call** and native egress record means one CLI 
 2. Open **Review**.
 3. Choose **Backend**. Use `rules` for a local keyword baseline, `fake` only to practice, or your configured native/Jev classifier after completing its setup.
 4. Choose **Current source** under **Scope**. The large AnnoMI demo exceeds the default 2,000-segment run limit when all project segments are selected.
-5. Leave **Model override (optional)** empty unless you have a verified reason to set it.
+5. Leave **Model** at **Task default** unless you want a different model ([choose a model](#choose-a-model)).
 6. Select **Run classification**, then inspect the result and pending suggestions.
 
 Classification uses the project's **latest frozen codebook** and budget/privacy policy; the Workspace selector for manual coding does not select an older classification codebook. An empty result can mean no matching rules, not a failure. Cache reuse may reduce new calls; it does not make a suggestion a human decision. Large or unsupported segments can be rejected explicitly rather than silently shortened.
+
+### Choose a model
+
+Each task has a sensible default, chosen for how much judgment it needs and how often it runs. You can change the model for one run in the **Model** list (on Review and in Codebook → Proposals), or for every run in the project's settings.
+
+| Task | Claude default | Codex default | Why |
+|---|---|---|---|
+| Classification (many passages) | Haiku 4.5 | GPT-6-Luna | Applying clear definitions at volume; economical |
+| Uncertain passages (escalation) | Opus 5.5 | GPT-6-Astra | Few passages, harder calls |
+| Codebook proposals | Opus 5.5 | GPT-6.1-Sol | Rare, interpretive work |
+| Improvement experiments | Opus 5.5 | GPT-6-Astra | Fixed; editing the pipeline needs strong models |
+
+| Model | In brief |
+|---|---|
+| Claude Haiku 4.5 | Fastest and lightest on your plan. Good for high-volume classification with clear codes. |
+| Claude Sonnet 5.5 | Balanced speed and judgment, about twice Haiku's usage. Try it when Haiku misses nuance. |
+| Claude Opus 5.5 | Strong reasoning at about four times Haiku's usage. |
+| Claude Fable 5.1 | Anthropic's most capable and most expensive model, about ten times Haiku. For the hardest interpretive work in small batches. |
+| GPT-6-Luna | Fast and affordable model for easier tasks. |
+| GPT-6.1-Sol | Latest workhorse model with balanced cost. |
+| GPT-6-Astra | Frontier intelligence for the most demanding work; uses the most quota. |
+| Jev 1.13 | Yes/no decision model with probabilities; very cheap (about $1 per 12,000 short passages with 7 codes). |
+
+Usage comparisons for Claude follow Anthropic's published API prices (October 2026); your subscription's limits scale similarly. Codex descriptions are the Codex CLI's own.
+
+**Change a default for the whole project.** In the project's `config/routing.yaml`, add a `tasks` entry, for example `"tasks": {"proposal": {"backend": "claude", "model": "fable"}}` (the file uses JSON syntax). The keys are `classification`, `escalation` and `proposal`. A choice made in the app for one run still wins.
+
+**Follow the latest model or pin a version.** Names such as `opus` or `haiku` always mean the provider's newest model of that kind, so results can shift when the provider updates it. To keep results stable, choose **Other exact model ID** and enter a full ID such as `claude-opus-5-5`. Either way, each suggestion's provenance shows the exact model that answered when the CLI reports it (Claude does; Codex model names already identify the model).
+
+Before switching the project's classification model, consider measuring the switch with a [model experiment](#try-another-classification-model).
 
 ### Review carefully
 
@@ -666,6 +696,15 @@ Open **Evaluation provenance and metric definitions** for the exact definitions 
 
 ![Calibration by score band](../design-review/final/features/evaluation-calibration.png)
 
+### Check repeatability
+
+AI models can answer differently when asked the same thing twice. **Evaluation → Check repeatability** (or `qualia repeatability`) classifies the same sample of your project's passages twice with the stored answers switched off, and reports:
+
+- **Identical code sets:** the share of passages where both runs suggested exactly the same codes.
+- **Per code:** how often the two runs made the same yes/no decision, and Cohen's kappa between the runs.
+
+The sample is the same each time for a project (default 50 passages, up to 200), so you can compare models fairly. It uses two runs' worth of calls and records nothing in your coding. Low repeatability means you should rely on human review and the stored-answer cache more, or try a different model. Re-running classification normally reuses stored answers, so your recorded suggestions do not change between runs.
+
 ### Import your own benchmark
 
 This is an advanced workflow. Prepare UTF-8 JSONL, one record per line, bound to a frozen codebook. For example:
@@ -740,6 +779,14 @@ The supplied context is limited to 64 files, 64 KiB per file and 128 KiB for the
 If Codex reports `subscription_auth_required`, run `codex login` and choose ChatGPT, then check `codex login status`. If it reports `unsupported_version`, the installed CLI is older than the minimum (Codex 0.160.0): update it. If it reports `unsupported_flag`, a newer CLI no longer accepts the named option; update Qualia or report the flag. `proposal_rejected` means the proposal failed validation; the existing configuration is restored by the experiment. A pending recovery journal requires the recovery workflow below. The older direct file-editing Codex route remains disabled; no broader Windows permissions or repeat elevated setup are needed for proposals.
 
 The fake operator makes a scripted change to fake classification behavior. A gain verifies the measured experiment workflow; it is not model training or proof of better qualitative judgment. Repeating it after the change is already present may correctly produce REVERT.
+
+### Try another classification model
+
+Switching the classification model changes results, so Qualia treats it like any other experiment. **Experiments → Try another classification model** (or `qualia improve --agent model --candidate-backend claude --candidate-model sonnet`) measures the current model and the candidate on your validation benchmark, confirms a gain with a fresh run, and keeps the switch only if the unchanged policy says KEEP. Otherwise the project keeps its current model and the evidence is recorded either way.
+
+It costs three validation evaluations with external models. The policy's call limit also applies: a candidate that needs many more calls than the current model is reverted.
+
+![The model experiment form with a candidate model and its description](../design-review/final/features/experiments-model-form.png)
 
 ### Tune per-code suggestion thresholds without AI
 
@@ -930,6 +977,8 @@ Run these from the application folder. Most project commands default to `demo`; 
 | Small offline classification | `uv run qualia classify --project my-study --backend rules --segments "12,13"` |
 | Human review | `uv run qualia review SUGGESTION_ID accept --project my-study --actor researcher`; use `reject` to reject |
 | Validation evaluation | `uv run qualia evaluate --project my-study --backend rules --output "C:\Research\reports"` |
+| Check repeatability | `uv run qualia repeatability --project my-study --backend claude --model sonnet --segments 50` |
+| Measure a model switch | `uv run qualia improve --project my-study --agent model --candidate-backend claude --candidate-model sonnet` |
 | Fake experiment/history | `uv run qualia improve --project demo --agent fake --budget 1` / `uv run qualia history --project demo` |
 | Tune suggestion thresholds (no AI) | `uv run qualia improve --project my-study --agent thresholds --budget 1` (or **Experiments → Tune thresholds**) |
 | AI-proposed improvement | `uv run qualia improve --project my-study --agent claude --budget 1` (or `--agent codex`) |

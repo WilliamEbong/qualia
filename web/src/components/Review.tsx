@@ -3,6 +3,7 @@ import type { Coding } from '../lib/entities'
 import { codeStyle } from '../lib/entities'
 import type { WorkspaceController } from '../lib/workspace'
 import type { ReviewController } from '../lib/review'
+import { ModelPicker } from './ModelPicker'
 import { Button } from './ui/button'
 
 export function Suggestion({ item, w, review }: { item: Coding; w: WorkspaceController; review: ReviewController }) {
@@ -11,7 +12,7 @@ export function Suggestion({ item, w, review }: { item: Coding; w: WorkspaceCont
     <p className="caption">suggested · {review.modelScore(item.score)}</p><p className="caption">{review.eceCaption(item)}</p>
     <p className="caption">{review.reasonCaption(item.review_trigger)} · segment {item.segment_id}</p>
     <blockquote>{review.excerpt(item)}</blockquote><p>{item.rationale || 'No rationale supplied.'}</p>
-    <details className="provenance"><summary>Suggestion provenance</summary><dl><dt>Backend / model</dt><dd>{item.backend} / {item.model}</dd><dt>CLI version</dt><dd>{item.cli_version}</dd><dt>Actor</dt><dd>{item.actor_type} · {item.actor}</dd><dt>Frozen codebook</dt><dd>{item.codebook_version_id}</dd><dt>Span</dt><dd>{item.span_start}:{item.span_end}</dd><dt>Pipeline hash</dt><dd>{item.pipeline_version}</dd><dt>Prompt hash</dt><dd>{item.prompt_hash}</dd><dt>Created</dt><dd>{item.created_at}</dd></dl></details>
+    <details className="provenance"><summary>Suggestion provenance</summary><dl><dt>Backend / model</dt><dd>{item.backend} / {item.model}{item.model_version && <> · answered by {item.model_version}</>}</dd><dt>CLI version</dt><dd>{item.cli_version}</dd><dt>Actor</dt><dd>{item.actor_type} · {item.actor}</dd><dt>Frozen codebook</dt><dd>{item.codebook_version_id}</dd><dt>Span</dt><dd>{item.span_start}:{item.span_end}</dd><dt>Pipeline hash</dt><dd>{item.pipeline_version}</dd><dt>Prompt hash</dt><dd>{item.prompt_hash}</dd><dt>Created</dt><dd>{item.created_at}</dd></dl></details>
     <div className="actions"><Button disabled={w.readOnly || w.busy || !w.actor.trim()} onClick={() => void review.review(item, 'accept')}>Accept <span className="caption">a</span></Button><Button disabled={w.readOnly || w.busy || !w.actor.trim()} onClick={() => void review.review(item, 'reject')}>Reject <span className="caption">r</span></Button><Button onClick={() => w.openSegment(item.segment_id)}>Open segment</Button></div>
   </article>
 }
@@ -20,7 +21,7 @@ export function ReviewQueue({ w, review }: { w: WorkspaceController; review: Rev
   return <section className="content-page review-page" aria-label="Suggestion review queue"><header className="section-heading"><div><p className="caption">Human decisions, retained evidence</p><h2>Review suggestions</h2></div><span className="caption">{review.suggestions.length} pending suggestions</span></header>
     <div className="two-column"><div className="review-controls"><form className="editor" onSubmit={review.classify}><fieldset disabled={w.readOnly}><h3>Run classification</h3><p>Classification proposes codes from the latest frozen codebook. Review each suggestion before it becomes an assignment.</p>
       <label>Backend<select value={review.backend} onChange={event => review.setBackend(event.target.value)} disabled={w.readOnly || w.busy}>{review.availability?.backends.map(item => <option key={item.name} value={item.name}>{item.name} · {item.external ? 'external' : 'offline'}{!item.available ? ' · unavailable' : ''}</option>) ?? <option value="rules">Checking availability…</option>}</select></label>
-      <label>Model override (optional)<input name="model" placeholder="Use configured model" disabled={w.readOnly || w.busy} /></label><label>Scope<select name="scope" defaultValue="project"><option value="project">All project segments</option><option value="source" disabled={!w.segments.length}>Current source</option></select></label>
+      <ModelPicker id="classification-model" m={review.model} disabled={w.readOnly || w.busy} /><label>Scope<select name="scope" defaultValue="project"><option value="project">All project segments</option><option value="source" disabled={!w.segments.length}>Current source</option></select></label>
       <p className="caption">Claude and Codex use your own local CLI subscription sign-in. Native calls count CLI invocations, which may include multiple provider requests. Batches contain at most five segments; subscription limits still apply. Jev uses your separately configured API key and billing.</p>
       {review.blockedReason && <p className="caption">{review.blockedReason}</p>}{review.availabilityError && <p role="alert">Availability unavailable: {review.availabilityError}</p>}
       <Button type="submit" disabled={w.readOnly || w.busy || !!review.blockedReason || !w.data?.codebook_versions.length || !w.data.segments.length}>Run classification</Button>
