@@ -11,11 +11,15 @@ from pathlib import Path
 
 from qualia.core.codebook import validate_code
 
-APPEND_ONLY = (
+# Migration 1 generates these triggers; later append-only tables declare theirs in their own SQL.
+APPEND_ONLY_V1 = (
     'coding_events', 'feedback_events', 'experiments', 'evaluation_runs',
     'usage_ledger', 'egress_log', 'codebook_versions', 'sources', 'segments',
 )
+APPEND_ONLY = (*APPEND_ONLY_V1, 'code_proposals', 'code_proposal_decisions')
 TABLES = (*APPEND_ONLY, 'cases', 'source_cases', 'attributes', 'codes', 'memos', 'result_cache')
+CODE_FIELDS = ('parent_id', 'name', 'status', 'definition', 'include', 'exclude',
+               'examples_pos', 'examples_neg')
 
 
 def canonical(value) -> str:
@@ -127,7 +131,7 @@ class Store:
                     backup.close()
             sql = file.read_text(encoding='utf-8')
             if number == 1:
-                for table in APPEND_ONLY:
+                for table in APPEND_ONLY_V1:
                     for action in ('UPDATE', 'DELETE'):
                         sql += (
                             f'\nCREATE TRIGGER {table}_{action.lower()} BEFORE {action} ON {table}'
@@ -278,13 +282,81 @@ class Store:
             raise ValueError(f'invalid {table} fields')
 
     def freeze_codebook(self) -> dict:
-        snapshot = canonical(self.rows('SELECT * FROM codes ORDER BY id'))
-        digest = hashlib.sha256(snapshot.encode()).hexdigest()
-        existing = self.one('SELECT * FROM codebook_versions WHERE hash=?', (digest,))
-        if existing:
-            return existing
-        row_id = self.add('codebook_versions', {'snapshot_json': snapshot, 'hash': digest})
-        return self.one('SELECT * FROM codebook_versions WHERE id=?', (row_id,))
+        # One transaction: a concurrent identical freeze returns the same version instead of failing.
+        with self.transaction():
+            snapshot = canonical(self.rows('SELECT * FROM codes ORDER BY id'))
+            digest = hashlib.sha256(snapshot.encode()).hexdigest()
+            existing = self.one('SELECT * FROM codebook_versions WHERE hash=?', (digest,))
+            if existing:
+                return existing
+            row_id = self.add('codebook_versions', {'snapshot_json': snapshot, 'hash': digest})
+            return self.one('SELECT * FROM codebook_versions WHERE id=?', (row_id,))
+
+    def record_code_proposals(self, proposals: list[dict]) -> list[int]:
+        """Store proposals awaiting a human decision; nothing here touches the codebook."""
+        with self.transaction():
+            return [self.add('code_proposals', proposal) for proposal in proposals]
+
+    def code_proposals(self) -> list[dict]:
+        return self.rows('SELECT p.*, d.decision, d.actor AS decided_by, d.note AS decision_note, '
+                         'd.applied_json, d.code_id AS resulting_code_id, d.created_at AS decided_at '
+                         'FROM code_proposals p LEFT JOIN code_proposal_decisions d ON d.proposal_id=p.id '
+                         'ORDER BY p.id')
+
+    def code_proposal_evidence(self) -> dict:
+        """Review decisions and current coding that the offline evidence miner reads."""
+        return {
+            'codes': self.rows('SELECT * FROM codes ORDER BY id'),
+            'presence': self.rows('SELECT DISTINCT code_id, segment_id FROM current_codings'),
+            'rejections': self.rows(
+                'SELECT e.id AS coding_event_id, e.code_id, e.segment_id, f.note, '
+                'substr(s.text,g.start+e.span_start+1,e.span_end-e.span_start) AS excerpt '
+                'FROM feedback_events f JOIN coding_events e ON e.id=f.coding_event_id '
+                'JOIN segments g ON g.id=e.segment_id JOIN sources s ON s.id=g.source_id '
+                "WHERE f.decision='reject' ORDER BY f.id DESC"),
+            'pending': [row['evidence_json'] for row in self.rows(
+                "SELECT evidence_json FROM code_proposals p WHERE mode='evidence' AND NOT EXISTS("
+                'SELECT 1 FROM code_proposal_decisions d WHERE d.proposal_id=p.id)')],
+        }
+
+    def decide_code_proposal(self, proposal_id: int, decision: str, actor: str, note: str = '',
+                             values: dict | None = None) -> dict:
+        """Record a person's decision; acceptance changes only the draft codebook."""
+        if decision not in ('accept', 'reject'):
+            raise ValueError('decision must accept or reject')
+        if not isinstance(actor, str) or not actor.strip():
+            raise ValueError('reviewer identity required')
+        if not isinstance(note, str):
+            raise ValueError('decision note must be text')
+        if values is not None and (not isinstance(values, dict) or set(values) - set(CODE_FIELDS)):
+            raise ValueError('invalid proposal values')
+        with self.immediate():
+            proposal = self.one('SELECT * FROM code_proposals WHERE id=?', (proposal_id,))
+            if proposal is None:
+                raise ValueError(f'proposal {proposal_id} not found')
+            if self.one('SELECT id FROM code_proposal_decisions WHERE proposal_id=?', (proposal_id,)):
+                raise ValueError(f'proposal {proposal_id} is already decided')
+            applied, code_id = {}, None
+            if decision == 'accept':
+                merged = {key: value for key, value in
+                          {**json.loads(proposal['payload_json']), **(values or {})}.items()
+                          if key in CODE_FIELDS}
+                if proposal['kind'] == 'new_code':
+                    applied = merged
+                    code_id = self.save_code(applied)
+                else:
+                    code_id = proposal['target_code_id']
+                    current = self.one('SELECT * FROM codes WHERE id=?', (code_id,))
+                    for field in ('examples_pos', 'examples_neg'):
+                        current[field] = json.loads(current[field])
+                    # Revisions apply only the fields that differ from the current draft.
+                    applied = {key: value for key, value in merged.items() if current[key] != value}
+                    if applied:
+                        self.save_code(applied, code_id)
+            decision_id = self.add('code_proposal_decisions', {
+                'proposal_id': proposal_id, 'decision': decision, 'actor': actor, 'note': note,
+                'applied_json': canonical(applied), 'code_id': code_id})
+        return {'id': decision_id, 'code_id': code_id}
 
     def cache_put(self, key: str, result: dict):
         with self.transaction():
