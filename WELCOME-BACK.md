@@ -6,7 +6,7 @@
 |---|---|
 | Repository | https://github.com/WilliamEbong/qualia |
 | Online demo (read-only) | https://williamebong.github.io/qualia/ |
-| Windows download | https://github.com/WilliamEbong/qualia/releases/latest (still v0.1.1; this round is not released yet) |
+| Windows download | https://github.com/WilliamEbong/qualia/releases/latest (v0.2.0, includes this round) |
 | User guide | docs/USER-GUIDE.md |
 
 ## What is new
@@ -35,11 +35,14 @@
 - Live synthetic runs: Claude drafted 6 codes in 29 s and Codex drafted 2 in 9 s. No codes were written without a decision.
 - Codex (gpt-6-astra) built the CLI-version change and then reviewed the whole round. It found 1 high and 2 medium issues, all fixed.
 
-## Optional next steps
+## Decided for you (2026-10-07)
 
-- **Release:** tag v0.1.2 (or v0.2.0) so the Windows download includes this round. I didn't tag it, because publishing a release is your call.
-- **Security review:** run `/security-review` in Claude Code. It is still recommended.
-- **Dependabot:** PR #8 is green; PRs #1–#6 need `@dependabot rebase` first.
+- **Security review:** a checklist review plus the earlier Codex review found nothing open. The built-in `/security-review` command is still yours to run if you want a third pass.
+- **Dependabot:** merged six of the seven updates after reviewing each one. #4 (the uv_build version range) is still open: Dependabot hasn't refreshed it since the old check failure, so its CI has never run on current code. Comment `@dependabot rebase` on it again later and merge it if it turns green.
+- **Release:** v0.2.0 is published with the Windows download and "what's new" notes.
+
+## Still yours
+
 - **Email privacy:** in GitHub → Settings → Emails, turn on "Keep my email addresses private".
 - **Leftover:** the folder `%USERPROFILE%\Qualia\.app-browser` is safe to delete.
 - **Your demo project:** it upgrades its database to version 4 the next time you open it. A backup file is written first.
