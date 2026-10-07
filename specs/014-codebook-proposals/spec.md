@@ -1,0 +1,32 @@
+# Codebook proposals
+
+The owner asked for codebook generation and improvement (2026-10-06, delegated: "come up with an improvement plan including the code book stuff ... build autonomously"). Doc 01 §3 lists "open coding → draft codebook" first on the V1.5 shortlist. Today the AI only applies a codebook (deductive); this feature lets it help *write* one, inductively and from review evidence, while methodology stays human (constitution II): every change is a proposal a person accepts into the draft codebook or rejects. Research and its design consequences: `research.md`.
+
+## Requirements
+
+- FR001: Proposals are stored as append-only records: mode (`draft`, `refine`, `evidence`), kind (`new_code` or `revise_code`), target code for revisions, proposed values (name, definition, include, exclude, positive/negative examples, status, parent), rationale, evidence (segment ids and, for evidence mode, the coding events and signal), actor type (`model` or `rule`), backend, model, CLI version, prompt hash, the latest frozen codebook version it was based on, a batch id and a timestamp. UPDATE and DELETE are rejected by triggers.
+- FR002: Decisions are append-only, one per proposal: accept or reject, a non-empty actor, an optional note, the values actually applied and the resulting code id. Accepting writes only to the draft codebook (`codes`) in the same transaction as the decision; it never changes a frozen version, coding events or methodology files. A person may edit the proposed values before accepting; for revisions only changed fields are applied.
+- FR003: Evidence mode runs offline with no AI and no egress row. Signals: (a) a code with at least two rejected suggestions → revision adding up to five rejected excerpts as negative examples, citing review notes; (b) an active code with no current coding while at least 20 segments are coded → revision setting status archived; (c) two active codes with Jaccard ≥ 0.8 over at least 5 coded segments → revision of the less frequent code adding a boundary line to its exclusion text naming the other code. A signal (same signal and codes) that is still pending is not proposed again; rejected excerpts already among a code's negative examples are skipped.
+- FR004: Draft mode sends selected segments (bounded by the project's run budget and per-segment limits), the existing active codes and an optional focus text (≤ 500 characters) to a chosen backend and receives at most 12 `new_code` proposals. Refine mode sends chosen active codes with their accepted excerpts, rejected excerpts and review notes, and receives `revise_code` proposals for those codes only.
+- FR005: AI output is schema-validated before storage. The whole response is rejected, naming the record, if any example or evidence excerpt is not a verbatim substring of a supplied segment, any evidence id was not supplied, a revision targets an unknown or unsent code, a new name collides with an existing code (case-insensitive), or bounds are exceeded. Nothing is stored for a rejected response.
+- FR006: AI proposal calls use the same router gates as classification: `allow_external`, availability, daily call/segment/USD budgets, usage ledger and egress log (purpose `codebook_proposal`). Supported backends: `claude`, `codex` (tools disabled, empty temporary directory) and `fake` (offline, deterministic). `rules` and `jev` report the mode as unavailable. No retries, no cache.
+- FR007: Code origin is derived from decisions (proposal → resulting code) and shown on code cards; the `codes` table is unchanged so freeze hashes stay comparable.
+- FR008: Surfaces: API routes to create evidence/AI proposals and decide one; the workspace payload includes proposals with their decision; CLI `qualia codebook propose`, `qualia codebook proposals`, `qualia codebook decide`; a Proposals section on the Codebook page (generate, review evidence, accept with edits, reject with note); exports include both tables (excerpts omitted from no-text exports). The read-only demo shows an explanatory empty state and no generate controls.
+- FR009: User guide and README explain the workflow, the verbatim-evidence check, the limits from research (fragmentation, missed latent meaning, not themes, incongruent with reflexive TA) and how to disclose AI-assisted codebook work.
+
+Constraints: constitution I–VII; `qualia/store/db.py` is the only writer; pure logic in `qualia/core`; vendor launches stay in `claude_cli.py` / `codex_cli.py`; the proposal prompt is an in-code constant (not under `config/`, so the pipeline hash and the improvement loop's mutable scope are unchanged); no new dependency; OpenAPI regenerated.
+
+Assumptions: thresholds in FR003 are fixed defaults (documented, not configurable) until real use shows a need; proposals are not withdrawn or edited after creation (a new batch supersedes); the AI is given only supplied text, never whole projects.
+
+## User scenarios
+
+1. Inductive start: a researcher imports interviews, selects six passages, adds the focus "experiences of waiting", and asks Claude for draft codes. Five proposals arrive with definitions and quoted examples. They edit one name, accept three, reject two with notes, then freeze.
+2. Evidence refinement: after reviewing 200 AI suggestions, the researcher runs "Find evidence". Qualia proposes negative examples for a code with many rejections and flags two codes that nearly always co-occur. They accept the first and reword the boundary before accepting the second.
+3. Disclosure: the reproducibility export lists every proposal, its backend/model and each human decision.
+
+## Success criteria
+
+- SC001: Offline tests: migration and triggers; miner signals and de-duplication; schema validation including a fabricated quote; router gates (blocked when external is off, usage and egress rows written, zero coding events); accept writes only the draft; frozen versions unchanged; second decision rejected; API, CLI and export.
+- SC002: Web unit tests for proposal state; Playwright verification of generate → accept with edit → freeze and reject flows with the fake backend at 1280 and 375 px.
+- SC003: Full offline suite, Ruff, data guard, dependency audit and web checks pass; demo build makes zero `/api/` calls.
+- SC004: A live check with a signed-in CLI on synthetic text (≤ 2 invocations) if available; otherwise recorded as not run.
