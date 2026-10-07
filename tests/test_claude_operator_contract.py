@@ -87,12 +87,21 @@ def test_operator_refuses_non_subscription_auth_before_inference(operator, monke
     assert len(calls) == 2
 
 
-@pytest.mark.parametrize('version', [b'2.1.283', b'2.1.284+custom', b'2.1.284-rc.1'])
-def test_operator_refuses_unaudited_version_before_auth(operator, monkeypatch, version):
+@pytest.mark.parametrize('version', [b'2.1.0', b'2.1.283', b'invalid'])
+def test_operator_refuses_below_floor_or_unparseable_version_before_auth(operator, monkeypatch, version):
     calls = install_runner(monkeypatch, version=version)
-    with pytest.raises(BackendError, match='unsupported_version'):
+    with pytest.raises(BackendError, match='unsupported_version.*update your CLI') as caught:
         claude_cli.run_operator(operator, 'Synthetic task.')
     assert len(calls) == 1
+    assert caught.value.cli_version == ('unknown' if version == b'invalid' else version.decode())
+
+
+@pytest.mark.parametrize('version', [b'2.2.0', b'2.1.284+custom', b'2.1.284-rc.1'])
+def test_operator_accepts_newer_versions_and_suffixes(operator, monkeypatch, version):
+    calls = install_runner(monkeypatch, version=version)
+    result = claude_cli.run_operator(operator, 'Synthetic task.')
+    assert len(calls) == 3
+    assert result['cli_version'] == version.decode()
 
 
 @pytest.mark.parametrize(('envelope', 'failure', 'wanted'), [

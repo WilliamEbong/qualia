@@ -27,10 +27,10 @@ SCHEMA = {'type': 'object', 'properties': {'predictions': {'type': 'array'}},
 SUBSCRIPTION_AUTH = {'loggedIn': True, 'authMethod': 'claude.ai', 'apiProvider': 'firstParty'}
 
 
-def fixture_runner(calls, envelope, returncode=0):
+def fixture_runner(calls, envelope, returncode=0, version='2.1.284'):
     def run(argv, **kwargs):
         if '--version' in argv:
-            return ProcessResult(0, b'2.1.284 (Claude Code)', b'')
+            return ProcessResult(0, (version + ' (Claude Code)').encode(), b'')
         if argv[-3:] == ['auth', 'status', '--json']:
             return ProcessResult(0, json.dumps(SUBSCRIPTION_AUTH).encode(), b'')
         calls.append((argv, kwargs, list(Path(kwargs['cwd']).iterdir())))
@@ -38,7 +38,9 @@ def fixture_runner(calls, envelope, returncode=0):
     return run
 
 
-def test_claude_argv_empty_cwd_stdin_subscription_and_usage(monkeypatch):
+@pytest.mark.parametrize('version', ['2.1.284', '2.2.0', '2.10.0', '3.0.0',
+                                    '2.1.284-rc.1+custom', '2.2.0+build'])
+def test_claude_argv_empty_cwd_stdin_subscription_and_usage(monkeypatch, version):
     monkeypatch.setenv('ANTHROPIC_API_KEY', 'never-forward-this-key')
     monkeypatch.setenv('NODE_OPTIONS', '--require hostile.js')
     monkeypatch.setenv('CLAUDE_CODE_RETRY_WATCHDOG', '1')
@@ -48,7 +50,7 @@ def test_claude_argv_empty_cwd_stdin_subscription_and_usage(monkeypatch):
         'type': 'result', 'is_error': False, 'structured_output': {'predictions': PREDICTIONS},
         'usage': {'input_tokens': 11, 'output_tokens': 8,
                   'cache_read_input_tokens': 4, 'cache_creation_input_tokens': 2},
-    }))
+    }, version=version))
     result = backend.classify(SEGMENTS, SCHEMA, {'model': 'haiku', 'codebook': []})
     argv, options, contents = calls[0]
     assert contents == []
@@ -68,7 +70,7 @@ def test_claude_argv_empty_cwd_stdin_subscription_and_usage(monkeypatch):
     assert 'NODE_OPTIONS' not in options['env']
     assert 'CLAUDE_CODE_RETRY_WATCHDOG' not in options['env']
     assert result == {'predictions': PREDICTIONS, 'input_tokens': 17,
-                      'output_tokens': 8, 'cli_version': '2.1.284'}
+                      'output_tokens': 8, 'cli_version': version}
 
 
 @pytest.mark.parametrize('envelope,status,code', [
@@ -253,14 +255,16 @@ def test_process_file_output_limit(tmp_path):
 
 
 @pytest.mark.parametrize('model', ['gpt-6-luna', 'gpt-6-astra'])
-def test_codex_complete_dispatch_with_synthetic_runner(monkeypatch, model):
+@pytest.mark.parametrize('version', ['0.160.0', '0.161.3', '0.1000.0', '1.0.0',
+                                    '0.160.0-beta.1+custom', '0.161.3+build'])
+def test_codex_complete_dispatch_with_synthetic_runner(monkeypatch, model, version):
     monkeypatch.setattr(codex_cli, 'resolve_command', lambda: ['installed-codex.exe'])
     monkeypatch.setattr(codex_cli, 'load_catalog', lambda model: {'models': [{'slug': model}]})
     seen = []
 
     def runner(argv, **kwargs):
         if '--version' in argv:
-            return ProcessResult(0, b'codex-cli 0.160.0', b'')
+            return ProcessResult(0, ('codex-cli ' + version).encode(), b'')
         cwd = Path(kwargs['cwd'])
         assert list(cwd.iterdir()) == []
         assert Path(argv[argv.index('--output-schema') + 1]).parent != cwd
@@ -273,7 +277,7 @@ def test_codex_complete_dispatch_with_synthetic_runner(monkeypatch, model):
     assert backend.available()
     result = backend.classify(SEGMENTS, SCHEMA, {'model': model})
     assert result == {'predictions': PREDICTIONS, 'input_tokens': 10,
-                      'output_tokens': 4, 'cli_version': '0.160.0'}
+                      'output_tokens': 4, 'cli_version': version}
     assert seen and not seen[0].exists()
 
 
@@ -303,8 +307,8 @@ def test_codex_failure_preserves_completed_usage(monkeypatch, violation):
     assert caught.value.code == ('tool_call' if violation == 'tool' else 'invalid_response')
 
 
-@pytest.mark.parametrize('version', ['2.1.283', '2.1.285', 'bad output'])
-def test_claude_unknown_version_never_dispatches(monkeypatch, version):
+@pytest.mark.parametrize('version', ['2.1.0', '2.1.283', '2.0.9999', 'bad output'])
+def test_claude_below_floor_or_unparseable_version_never_dispatches(monkeypatch, version):
     monkeypatch.setattr(claude_cli, 'resolve_command', lambda: ['installed-claude.exe'])
     calls = []
 
@@ -314,14 +318,14 @@ def test_claude_unknown_version_never_dispatches(monkeypatch, version):
 
     backend = claude_cli.ClaudeCLIBackend(runner=runner)
     assert backend.available()
-    with pytest.raises(BackendError):
+    with pytest.raises(BackendError, match='unsupported_version.*update your CLI') as caught:
         backend.classify(SEGMENTS, SCHEMA, {})
-    assert all('--version' in argv for argv in calls)
+    assert len(calls) == 1 and '--version' in calls[0]
+    assert caught.value.cli_version == ('unknown' if version == 'bad output' else version)
 
 
-@pytest.mark.parametrize('version', ['0.159.0', '0.161.0', '0.160.0-beta.1',
-                                    '0.160.0+build', 'bad output'])
-def test_codex_unknown_version_never_dispatches(monkeypatch, version):
+@pytest.mark.parametrize('version', ['0.150.0', '0.159.0', '0.9.9999', 'bad output'])
+def test_codex_below_floor_or_unparseable_version_never_dispatches(monkeypatch, version):
     monkeypatch.setattr(codex_cli, 'resolve_command', lambda: ['installed-codex.exe'])
     monkeypatch.setattr(codex_cli, 'load_catalog', lambda model: {'models': [{'slug': model}]})
     calls = []
@@ -331,9 +335,95 @@ def test_codex_unknown_version_never_dispatches(monkeypatch, version):
         assert '--version' in argv
         return ProcessResult(0, version.encode(), b'')
 
-    with pytest.raises(BackendError):
+    with pytest.raises(BackendError, match='unsupported_version.*update your CLI') as caught:
         codex_cli.CodexCLIBackend(runner=runner).classify(SEGMENTS, SCHEMA, {})
     assert len(calls) == 1
+    assert caught.value.cli_version == ('unknown' if version == 'bad output' else version)
+
+
+@pytest.fixture(params=[claude_cli, codex_cli], ids=['claude', 'codex'])
+def versioned_dispatch(request, monkeypatch, tmp_path):
+    vendor = request.param
+    version = '2.2.0' if vendor is claude_cli else '0.161.3'
+    monkeypatch.setattr(vendor, 'resolve_command', lambda: ['installed-cli.exe'])
+    if vendor is codex_cli:
+        monkeypatch.setattr(vendor, 'load_catalog', lambda model: {'models': [{'slug': model}]})
+    (tmp_path / 'config').mkdir()
+    (tmp_path / 'experiments').mkdir()
+    calls = []
+
+    def dispatch(mode, result):
+        def runner(argv, **options):
+            calls.append(argv)
+            if '--version' in argv:
+                return ProcessResult(0, version.encode(), b'')
+            if argv[-3:] == ['auth', 'status', '--json']:
+                return ProcessResult(0, json.dumps(SUBSCRIPTION_AUTH).encode(), b'')
+            if argv[-2:] == ['login', 'status']:
+                return ProcessResult(0, b'', b'Logged in using ChatGPT\n')
+            if 'output_path' in options:
+                options['output_path'].write_text('{"proposals":[]}', encoding='utf-8')
+            return result
+
+        monkeypatch.setattr(vendor, 'run_process', runner)
+        if mode == 'operator':
+            return vendor.run_operator(tmp_path, 'Synthetic task.')
+        backend = (vendor.ClaudeCLIBackend() if vendor is claude_cli else vendor.CodexCLIBackend())
+        return getattr(backend, mode)(SEGMENTS, SCHEMA, {'prompt': 'Propose codes.'})
+
+    return vendor, version, calls, dispatch
+
+
+def test_newer_version_proposal_dispatch_retains_version(versioned_dispatch):
+    vendor, version, calls, dispatch = versioned_dispatch
+    body = ({'structured_output': {'proposals': []}} if vendor is claude_cli
+            else {'type': 'turn.completed'})
+    body['usage'] = {'input_tokens': 2, 'output_tokens': 1}
+    result = dispatch('propose', ProcessResult(0, json.dumps(body).encode(), b''))
+    assert result == {'proposals': [], 'input_tokens': 2, 'output_tokens': 1, 'cli_version': version}
+    assert len(calls) == (3 if vendor is claude_cli else 2)
+
+
+@pytest.mark.parametrize('mode', ['classify', 'propose', 'operator'])
+@pytest.mark.parametrize('stream', ['stdout', 'stderr'])
+@pytest.mark.parametrize('message', ['unknown option', 'unexpected argument', 'unrecognized arguments'])
+def test_dispatch_unsupported_flag_is_safe(versioned_dispatch, mode, stream, message):
+    vendor, version, calls, dispatch = versioned_dispatch
+    flag = ('--permission-mode' if mode == 'operator' else '--json-schema') if vendor is claude_cli else '--output-schema'
+    data = f"error: {message} '{flag}' PRIVATE_PROVIDER_TEXT".encode()
+    result = ProcessResult(1, data if stream == 'stdout' else b'', data if stream == 'stderr' else b'')
+    with pytest.raises(BackendError, match='unsupported_flag') as caught:
+        dispatch(mode, result)
+    error = caught.value
+    assert error.flag == flag and flag in calls[-1] and flag in str(error)
+    assert error.cli_version == version
+    assert error.segment_id == (None if mode == 'operator' else '7')
+    assert 'PRIVATE_PROVIDER_TEXT' not in str(error) and 'PRIVATE_PROVIDER_TEXT' not in repr(vars(error))
+
+
+@pytest.mark.parametrize('case', ['unpassed', 'flag_prefix', 'no_diagnostic', 'success', 'timeout', 'tool'])
+def test_flag_mapping_preserves_other_failures(versioned_dispatch, case):
+    vendor, version, _, dispatch = versioned_dispatch
+    flag = '--json-schema' if vendor is claude_cli else '--output-schema'
+    mentioned = {'unpassed': '--private-flag', 'flag_prefix': flag + '-private'}.get(case, flag)
+    message = f"unknown option '{mentioned}'" if case != 'no_diagnostic' else f"failed to use '{flag}'"
+    if vendor is claude_cli:
+        body = {'usage': {'input_tokens': 2, 'output_tokens': 1}}
+        if case == 'tool':
+            body['permission_denials'] = [{'tool_name': 'Read'}]
+        stdout = json.dumps(body).encode()
+    else:
+        stdout = b'{"type":"turn.completed","usage":{"input_tokens":2,"output_tokens":1}}'
+        if case == 'tool':
+            stdout += b'\n{"type":"tool_call"}'
+    result = ProcessResult(0 if case == 'success' else 1, stdout, message.encode(),
+                           'timeout' if case == 'timeout' else None)
+    with pytest.raises(BackendError) as caught:
+        dispatch('classify', result)
+    assert caught.value.code == {'tool': 'tool_call', 'timeout': 'timeout',
+                                 'success': 'invalid_response'}.get(case, 'provider_error')
+    assert caught.value.cli_version == version
+    assert not hasattr(caught.value, 'flag')
 
 
 @pytest.mark.parametrize('payload', [b'not json private key', b'[]', b'{"usage":NaN}'])

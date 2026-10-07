@@ -11,7 +11,9 @@ from pathlib import Path
 from qualia.ai.backends.process import (
     MAX_OUTPUT_BYTES,
     BackendError,
+    check_unsupported_flag,
     classification_prompt,
+    cli_version,
     first_segment,
     json_object,
     proposal_prompt,
@@ -21,11 +23,11 @@ from qualia.ai.backends.process import (
 )
 from qualia.ai.schemas import OperatorProposal, OperatorResult
 
-VERIFIED_VERSION = '0.160.0'
+MIN_VERSION = '0.160.0'
 PROVIDER_ID = 'qualia-subscription'
 OPERATOR_UNAVAILABLE_REASON = (
     'Codex proposals require an installed official Codex CLI. Dispatch verifies '
-    'the audited version and native ChatGPT sign-in, with no action tools. '
+    'CLI version ' + MIN_VERSION + ' or newer and native ChatGPT sign-in, with no action tools. '
     'Qualia validates and applies permitted changes.'
 )
 DIRECT_FILE_OPERATOR_UNAVAILABLE_REASON = (
@@ -176,7 +178,7 @@ class CodexCLIBackend:
     external = True
     unavailable_reason = (
         'Codex classification requires an installed official Codex CLI. '
-        'Dispatch verifies the audited version and requires native ChatGPT sign-in.'
+        'Dispatch requires CLI version ' + MIN_VERSION + ' or newer and native ChatGPT sign-in.'
     )
 
     def __init__(self, model='gpt-6-luna', *, runner=None, timeout_seconds=90,
@@ -213,7 +215,7 @@ class CodexCLIBackend:
 
 def _run_json(prompt, schema, *, model, record=None, runner=None, timeout_seconds=90,
               max_output_bytes=MAX_OUTPUT_BYTES, require_subscription=False):
-    """Shared exact-version no-tools transport; preserve usage on every failure."""
+    """Shared minimum-version no-tools transport; preserve usage on every failure."""
     runner = runner or run_process
     command = resolve_command()
     if command is None:
@@ -227,12 +229,7 @@ def _run_json(prompt, schema, *, model, record=None, runner=None, timeout_second
         version_cwd.mkdir()
         probe = runner([*command, '--version'], prompt='', cwd=version_cwd,
                        env=environment, timeout_seconds=10, max_output_bytes=8192)
-        match = re.search(rb'\b(\d+\.\d+\.\d+(?:[-+.][a-zA-Z0-9]+)*)\b', probe.stdout)
-        if probe.failure or probe.returncode or not match:
-            raise BackendError('unavailable', record)
-        version = match.group(1).decode('ascii')
-        if version != VERIFIED_VERSION:
-            raise BackendError('unsupported_version', record, cli_version=version)
+        version = cli_version(probe, MIN_VERSION, record)
         if require_subscription:
             status = runner([*command, 'login', 'status'], prompt='', cwd=version_cwd,
                             env=environment, timeout_seconds=10, max_output_bytes=8192)
@@ -254,6 +251,9 @@ def _run_json(prompt, schema, *, model, record=None, runner=None, timeout_second
         inputs, outputs, seen, violation = _usage(result.stdout)
         error_args = {'input_tokens': inputs, 'output_tokens': outputs,
                       'cli_version': version}
+        if violation == 'tool_call':
+            raise BackendError(violation, record, **error_args)
+        check_unsupported_flag(result, argv, record, **error_args)
         if violation:
             raise BackendError(violation, record, **error_args)
         if result.failure or result.returncode:

@@ -4,6 +4,7 @@ import ctypes
 import json
 import math
 import os
+import re
 import signal
 import subprocess
 import threading
@@ -208,6 +209,34 @@ def subscription_environment():
                'LANG', 'LC_ALL', 'LC_CTYPE', 'CODEX_HOME', 'CLAUDE_CONFIG_DIR',
                'SSL_CERT_FILE', 'SSL_CERT_DIR', 'HTTP_PROXY', 'HTTPS_PROXY', 'NO_PROXY'}
     return {key: value for key, value in os.environ.items() if key.upper() in allowed}
+
+
+def cli_version(probe, minimum, record=None):
+    """Return the installed CLI version; only versions below the supported minimum are refused."""
+    match = re.search(rb'\b(\d+\.\d+\.\d+)(?:[-+][a-zA-Z0-9.-]+)*', probe.stdout)
+    version = match.group().decode('ascii') if match else 'unknown'
+    if probe.failure or probe.returncode:
+        raise BackendError('unavailable', record, cli_version=version)
+    if not match or tuple(map(int, match.group(1).split(b'.'))) < tuple(map(int, minimum.split('.'))):
+        error = BackendError('unsupported_version', record, cli_version=version)
+        error.args = (f'{error}; update your CLI to {minimum} or newer',)
+        raise error
+    return version
+
+
+def check_unsupported_flag(result, argv, record=None, **metadata):
+    """Name a flag Qualia passed that a newer CLI no longer accepts; never echo CLI output."""
+    if result.failure or not result.returncode:
+        return
+    for line in (result.stderr + b'\n' + result.stdout).decode('utf-8', errors='replace').splitlines():
+        if not re.search(r'unknown\s+(?:option|argument)|unexpected\s+argument|unrecogni[sz]ed', line, re.I):
+            continue
+        for flag in re.findall(r'(?<![\w-])--?[A-Za-z][A-Za-z0-9-]*(?![\w-])', line):
+            if flag in argv:
+                error = BackendError('unsupported_flag', record, **metadata)
+                error.flag = flag
+                error.args = (f'{error}; flag {flag}',)
+                raise error from None
 
 
 def first_segment(segments):

@@ -5,7 +5,7 @@ import time
 import uuid
 
 from qualia.ai import ledger
-from qualia.ai.router import SAFE_FAILURES, _select, default_registry
+from qualia.ai.router import _select, default_registry, safe_failure
 from qualia.ai.schemas import (
     CodeProposalSet,
     ProposalValidationError,
@@ -163,10 +163,7 @@ def propose_with_ai(db, project, mode, backend=None, model=None, segment_ids=Non
                       latency_ms=(time.monotonic() - started) * 1000)
         if isinstance(exc, ProposalValidationError):
             return stop('error', f'proposals rejected: {exc}')
-        # Never display arbitrary provider exception text.
-        code = getattr(exc, 'code', None)
-        return stop('error', 'codebook proposal failed ('
-                    f"{code if isinstance(code, str) and code in SAFE_FAILURES else 'provider_error'})")
+        return stop('error', f'codebook proposal failed ({safe_failure(exc)})')
     ledger.finish(db, reservation, result=validated, latency_ms=(time.monotonic() - started) * 1000)
     version = _latest_version(db)
     prompt_hash = hashlib.sha256(PROMPTS[mode].encode('utf-8')).hexdigest()

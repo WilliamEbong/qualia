@@ -11,7 +11,9 @@ from pathlib import Path
 from qualia.ai.backends.process import (
     MAX_OUTPUT_BYTES,
     BackendError,
+    check_unsupported_flag,
     classification_prompt,
+    cli_version,
     first_segment,
     json_object,
     proposal_prompt,
@@ -20,19 +22,18 @@ from qualia.ai.backends.process import (
     token_count,
 )
 
-VERIFIED_VERSION = '2.1.284'
+MIN_VERSION = '2.1.284'
 CLASSIFICATION_UNAVAILABLE_REASON = (
     'Claude classification requires an installed official Claude CLI. '
-    'Dispatch verifies the audited version and an eligible Claude subscription sign-in.'
+    'Dispatch requires CLI version ' + MIN_VERSION + ' or newer and an eligible Claude subscription sign-in.'
 )
 OPERATOR_UNAVAILABLE_REASON = (
-    'Claude operator requires the audited official Claude CLI and subscription sign-in. '
+    'Claude operator requires official Claude CLI ' + MIN_VERSION + ' or newer and subscription sign-in. '
     'It uses restricted Read/Edit/Write tools with explicit protected-path denials.'
 )
 
 
 def operator_available():
-    # Actual native sentinel probes certify this pinned release; dispatch checks it.
     return resolve_command() is not None
 
 
@@ -111,9 +112,7 @@ def _run_operator(project, prompt, *, model=None, max_output_tokens=8192,
         temporary = Path(directory)
         probe = runner([*command, '--version'], prompt='', cwd=temporary, env=environment,
                        timeout_seconds=10, max_output_bytes=8192)
-        match = re.search(rb'\b(\d+\.\d+\.\d+(?:[-+.][a-zA-Z0-9]+)*)\b', probe.stdout)
-        if probe.failure or probe.returncode or not match or match.group(1).decode() != VERIFIED_VERSION:
-            raise BackendError('unsupported_version')
+        version = cli_version(probe, MIN_VERSION)
         auth = runner([*command, 'auth', 'status', '--json'], prompt='', cwd=temporary,
                       env=environment, timeout_seconds=10, max_output_bytes=8192)
         try:
@@ -123,7 +122,7 @@ def _run_operator(project, prompt, *, model=None, max_output_tokens=8192,
                     or status.get('apiProvider') != 'firstParty'):
                 raise ValueError
         except (ValueError, TypeError, UnicodeError, RecursionError):
-            raise BackendError('subscription_auth_required', cli_version=VERIFIED_VERSION) from None
+            raise BackendError('subscription_auth_required', cli_version=version) from None
         settings_path = temporary / 'settings.json'
         settings_path.write_text(json.dumps(settings), encoding='utf-8')
         argv = build_operator_argv(command, model or 'opus', settings_path)
@@ -151,12 +150,14 @@ def _run_operator(project, prompt, *, model=None, max_output_tokens=8192,
         envelope = json_object(result.stdout)
         inputs, outputs = _usage(envelope)
     except (ValueError, TypeError, UnicodeError, RecursionError):
-        raise BackendError(result.failure or 'invalid_response', cli_version=VERIFIED_VERSION) from None
-    metadata = {'input_tokens': inputs, 'output_tokens': outputs, 'cli_version': VERIFIED_VERSION}
+        check_unsupported_flag(result, argv, cli_version=version)
+        raise BackendError(result.failure or 'invalid_response', cli_version=version) from None
+    metadata = {'input_tokens': inputs, 'output_tokens': outputs, 'cli_version': version}
     if result.failure:
         raise BackendError(result.failure, **metadata)
     if envelope.get('permission_denials'):
         raise BackendError('scope', **metadata)
+    check_unsupported_flag(result, argv, **metadata)
     if result.returncode or envelope.get('is_error'):
         text = str(envelope.get('result', '')).lower()
         code = 'quota' if any(word in text for word in ('quota', 'limit', 'rate')) else 'provider_error'
@@ -258,13 +259,7 @@ class ClaudeCLIBackend:
             version_cwd.mkdir()
             probe = self.runner([*command, '--version'], prompt='', cwd=version_cwd,
                                 env=environment, timeout_seconds=10, max_output_bytes=8192)
-            match = re.search(rb'\b(\d+\.\d+\.\d+(?:[-+.][a-zA-Z0-9]+)*)\b', probe.stdout)
-            if probe.failure or probe.returncode or not match:
-                raise BackendError('unavailable', record)
-            version = match.group(1).decode('ascii')
-            # These additive isolation switches were verified on this release.
-            if version != VERIFIED_VERSION:
-                raise BackendError('unsupported_version', record, cli_version=version)
+            version = cli_version(probe, MIN_VERSION, record)
             auth_cwd = root / 'auth'
             auth_cwd.mkdir()
             auth = self.runner([*command, 'auth', 'status', '--json'], prompt='', cwd=auth_cwd,
@@ -294,6 +289,7 @@ class ClaudeCLIBackend:
             envelope = json_object(result.stdout)
             inputs, outputs = _usage(envelope)
         except (ValueError, UnicodeError, TypeError, RecursionError):
+            check_unsupported_flag(result, argv, record, cli_version=version)
             raise BackendError(result.failure or 'invalid_response', record,
                                cli_version=version) from None
         error_args = {'input_tokens': inputs, 'output_tokens': outputs, 'cli_version': version}
@@ -301,6 +297,7 @@ class ClaudeCLIBackend:
             raise BackendError(result.failure, record, **error_args)
         if envelope.get('permission_denials'):
             raise BackendError('tool_call', record, **error_args)
+        check_unsupported_flag(result, argv, record, **error_args)
         if result.returncode or envelope.get('is_error') is True:
             # Inspect only to categorize; never echo provider errors, bodies or stderr.
             text = str(envelope.get('result', '')).lower()

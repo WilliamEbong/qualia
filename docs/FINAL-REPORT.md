@@ -23,7 +23,7 @@ Use [the illustrated user guide](USER-GUIDE.md) for the complete step-by-step wo
 | Data science handoff | Case CSV, JSON metadata/provenance, SVG charts, and matching standard-library Python/base-R starters; no arbitrary script execution inside Qualia |
 | Offline AI workflow | Rules and deterministic fake suggestions; accept/reject review; honest model-reported scores and matching-validation calibration evidence |
 | Evaluation / experiments | Fixed benchmark metrics, protected split separation, validation-driven KEEP/REVERT, confirming evaluation, restricted fake operator and recovery records |
-| Optional providers | Native subscription classification with audited CLI versions and explicit project permission; Claude operator verified; Codex no-tools proposal operator live-verified; Jev adapter and setup controls installed |
+| Optional providers | Native subscription classification with current CLI versions (minimum-version floor, version recorded per run) and explicit project permission; Claude operator verified; Codex no-tools proposal operator live-verified; Jev adapter and setup controls installed |
 | Presentation | Archive of Looking tokens/type/artwork, dark theme, accessible focus, responsive views, final screenshots, GIF and social image |
 
 This is not complete NVivo parity. Audio/video coding, live multi-user collaboration, proprietary NVivo project import and advanced inference/model fitting remain outside this implementation. Descriptive statistics and reproducible exports support continued work in Python or R.

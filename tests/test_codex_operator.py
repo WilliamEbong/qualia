@@ -45,12 +45,13 @@ def install_runner(monkeypatch, *, payload=None, events=None, failure=None,
 
 
 @pytest.mark.parametrize('model', [None, 'gpt-6-astra', 'gpt-6-luna'])
-def test_proposal_dispatch_never_touches_project_or_report(monkeypatch, model):
+@pytest.mark.parametrize('version', ['0.160.0', '0.161.3', '0.160.0-beta.1+custom'])
+def test_proposal_dispatch_never_touches_project_or_report(monkeypatch, model, version):
     class ForbiddenPath:
         def __fspath__(self):
             pytest.fail('proposal transport tried to access project/report')
 
-    calls = install_runner(monkeypatch)
+    calls = install_runner(monkeypatch, version=version)
     monkeypatch.setenv('OPENAI_API_KEY', 'never-forward')
     monkeypatch.setenv('NODE_OPTIONS', '--require hostile.js')
     prompt = 'Exact admitted prompt with literal 😀 and $HOME.'
@@ -58,7 +59,7 @@ def test_proposal_dispatch_never_touches_project_or_report(monkeypatch, model):
     result = codex_cli.run_operator(ForbiddenPath(), prompt, model=model,
                                     report_path=ForbiddenPath())
     assert result == {**PROPOSAL, 'input_tokens': 12, 'output_tokens': 6,
-                      'cli_version': '0.160.0'}
+                      'cli_version': version}
     assert len(calls) == 3
     argv, options = calls[2]
     assert options['prompt'] == prompt
@@ -134,12 +135,13 @@ def test_proposal_output_token_threshold_rejects_after_dispatch_with_usage(monke
     assert list(tmp_path.iterdir()) == []
 
 
-@pytest.mark.parametrize('version', ['0.159.0', '0.161.0', '0.160.0-beta.1', 'invalid'])
-def test_proposal_unknown_version_never_dispatches(monkeypatch, tmp_path, version):
+@pytest.mark.parametrize('version', ['0.150.0', '0.159.0', 'invalid'])
+def test_proposal_below_floor_or_unparseable_version_never_dispatches(monkeypatch, tmp_path, version):
     calls = install_runner(monkeypatch, version=version)
-    with pytest.raises(BackendError):
+    with pytest.raises(BackendError, match='unsupported_version.*update your CLI') as caught:
         codex_cli.run_operator(tmp_path, 'Synthetic request.')
     assert len(calls) == 1 and '--version' in calls[0][0]
+    assert caught.value.cli_version == ('unknown' if version == 'invalid' else version)
 
 
 @pytest.mark.parametrize('auth,failure,status', [
@@ -161,7 +163,7 @@ def test_proposal_requires_verified_subscription_before_dispatch(monkeypatch, tm
 
 def test_direct_file_gate_preserves_recorded_runtime_failure():
     evidence = json.loads((Path(__file__).parent / 'fixtures/codex-operator-isolation.json').read_text())
-    assert evidence['verified_cli_version'] == codex_cli.VERIFIED_VERSION
+    assert evidence['verified_cli_version'] == '0.160.0'
     assert evidence['status'] == 'blocked'
     assert evidence['model_service_requests'] == 0
     assert evidence['authorization_header_present'] is False

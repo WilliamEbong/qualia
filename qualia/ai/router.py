@@ -3,6 +3,7 @@
 import hashlib
 import importlib
 import json
+import re
 import time
 import uuid
 
@@ -24,7 +25,21 @@ DEFAULT_MODELS = {'rules': 'rules-v1', 'fake': 'fake-v1', 'claude': 'haiku', 'co
 RETRYABLE = {'timeout', 'transient', 'process_failed', 'transport_error', 'rate_limit'}
 SAFE_FAILURES = RETRYABLE | {'invalid_model', 'unavailable', 'input_limit', 'output_limit',
                             'unsupported_version', 'invalid_input', 'tool_call', 'invalid_response',
-                            'subscription_auth_required', 'quota'}
+                            'subscription_auth_required', 'quota', 'unsupported_flag'}
+
+
+def safe_failure(exc) -> str:
+    """A displayable failure: a known code plus a vetted flag or version, never provider text."""
+    code = getattr(exc, 'code', None)
+    if not isinstance(code, str) or code not in SAFE_FAILURES:
+        return 'provider_error'
+    flag = getattr(exc, 'flag', None)
+    if code == 'unsupported_flag' and isinstance(flag, str) and re.fullmatch(r'--?[A-Za-z][A-Za-z0-9-]*', flag):
+        return f'{code}: the installed CLI no longer accepts {flag}'
+    version = getattr(exc, 'cli_version', None)
+    if code == 'unsupported_version' and isinstance(version, str) and re.fullmatch(r'[0-9A-Za-z.+-]{1,40}', version):
+        return f'{code}: CLI {version} is older than the minimum Qualia supports; update the CLI'
+    return code
 
 
 class UnavailableBackend:
@@ -229,8 +244,7 @@ def classify_segments(db, segments, codebook, config, *, prompt, codebook_versio
                     identity = (exc.segment_id if isinstance(exc, ResponseValidationError) and
                                 exc.segment_id in {segment['id'] for segment in batch} else batch[0]['id'])
                     # Never display arbitrary provider exception text, even for a typed adapter failure.
-                    code = 'invalid_response' if isinstance(exc, ResponseValidationError) else getattr(exc, 'code', None)
-                    failure = code if isinstance(code, str) and code in SAFE_FAILURES else 'provider_error'
+                    failure = 'invalid_response' if isinstance(exc, ResponseValidationError) else safe_failure(exc)
                     failures.append(('error', f"segment {identity}: classification failed ({failure})"))
                     break
                 ledger.finish(db, reservation, result=validated, cost_usd=cost,

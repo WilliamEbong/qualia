@@ -426,3 +426,39 @@ def test_thresholds_filter_persisted_suggestions(tmp_path):
             {**ROUTING, 'fake_mode': 'all', 'code_thresholds': {str(second): .7}}))
         classify_project(db, project, backend='fake')
         assert [row['code_id'] for row in db.rows('SELECT code_id FROM pending_suggestions')] == [first]
+
+
+def test_detected_cli_version_is_recorded_on_suggestions_and_usage():
+    class NewerCli(CountingBackend):
+        def classify(self, segments, schema, context):
+            return {**super().classify(segments, schema, context), 'cli_version': '9.4.1'}
+
+    with Store(':memory:') as db:
+        db.add('sources', {'name': 's', 'text': 'Synthetic.', 'content_hash': 'h'})
+        db.add('segments', {'source_id': 1, 'start': 0, 'end': 10, 'ordinal': 0})
+        db.save_code({'name': 'Synthetic'})
+        db.freeze_codebook()
+        result = classify_segments(db, [{'id': '1', 'text': 'Synthetic.'}],
+                                   [{'id': 1, 'name': 'Synthetic', 'status': 'active'}], ROUTING,
+                                   prompt='p', codebook_version_id=1, pipeline_version='pipeline',
+                                   backend='fixture', model='m', run_id='run', persist=True,
+                                   registry={'fixture': NewerCli()})
+        assert result['status'] == 'completed'
+        assert db.one('SELECT cli_version FROM coding_events')['cli_version'] == '9.4.1'
+        assert db.one("SELECT cli_version FROM usage_ledger WHERE status='ok'")['cli_version'] == '9.4.1'
+
+
+def test_safe_failures_name_a_rejected_flag_or_old_version_but_never_provider_text():
+    from qualia.ai.backends.process import BackendError
+    from qualia.ai.router import safe_failure
+
+    flag = BackendError('unsupported_flag')
+    flag.flag = '--json-schema'
+    assert safe_failure(flag) == 'unsupported_flag: the installed CLI no longer accepts --json-schema'
+    flag.flag = 'provider text; secret'
+    assert safe_failure(flag) == 'unsupported_flag'
+    old = BackendError('unsupported_version', cli_version='2.0.1')
+    assert '2.0.1 is older than the minimum' in safe_failure(old)
+    leaked = ValueError('RAW_PROVIDER_BODY')
+    leaked.code = 'RAW_PROVIDER_BODY'
+    assert safe_failure(leaked) == 'provider_error'
