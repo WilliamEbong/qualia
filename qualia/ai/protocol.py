@@ -12,3 +12,7 @@ class ClassificationBackend(Protocol):
     def classify(self, segments: list[dict], schema: dict, context: dict) -> dict:
         """Return {predictions, input_tokens, output_tokens, cli_version}; no store writes."""
         ...
+
+    def propose(self, segments: list[dict], schema: dict, context: dict) -> dict:
+        """Optional: return {proposals, input_tokens, output_tokens, cli_version}; no store writes."""
+        ...

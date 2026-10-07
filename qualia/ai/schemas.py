@@ -50,6 +50,33 @@ class OperatorResult(OperatorProposal):
     cli_version: str = Field(min_length=1, max_length=200)
 
 
+Excerpt = Annotated[str, Field(min_length=1, max_length=1000)]
+
+
+class ProposedCode(Record):
+    # Every field is required: strict structured-output providers reject optional properties.
+    kind: Literal['new_code', 'revise_code']
+    target_code_id: int | None
+    name: str = Field(min_length=1, max_length=200)
+    definition: str = Field(max_length=2000)
+    include: str = Field(max_length=2000)
+    exclude: str = Field(max_length=2000)
+    examples_pos: list[Excerpt] = Field(max_length=5)
+    examples_neg: list[Excerpt] = Field(max_length=5)
+    rationale: str = Field(min_length=1, max_length=2000)
+    evidence_segment_ids: list[str] = Field(min_length=1, max_length=20)
+
+
+class CodeProposalSet(Record):
+    proposals: list[ProposedCode] = Field(max_length=12)
+
+
+class CodeProposalResult(CodeProposalSet):
+    input_tokens: int = Field(ge=0, le=2**63-1)
+    output_tokens: int = Field(ge=0, le=2**63-1)
+    cli_version: str = Field(min_length=1, max_length=200)
+
+
 class Tier(Record):
     backend: str = Field(min_length=1)
     model: str = Field(min_length=1)
@@ -153,4 +180,48 @@ def validate_result(raw, segments: list[dict], codebook: list[dict]) -> dict:
     missing = expected.keys() - seen
     if missing:
         raise ResponseValidationError(next(key for key in expected if key in missing), 'missing prediction')
+    return result
+
+
+class ProposalValidationError(ValueError):
+    """Safe diagnostic naming the proposal position, never echoing provider text."""
+
+
+def validate_proposals(raw, mode: str, segments: list[dict], codes: list[dict],
+                       targets: set[int] = frozenset()) -> dict:
+    """Reject the whole response unless every proposal is grounded in the supplied text."""
+    try:
+        value = json.loads(raw, object_pairs_hook=_unique_object) if isinstance(raw, str) else raw
+        result = CodeProposalResult.model_validate(value).model_dump()
+    except (ValidationError, ValueError, TypeError):
+        raise ProposalValidationError('invalid provider response') from None
+    texts = {str(segment['id']): segment['text'] for segment in segments}
+    names = {code['name'].strip().casefold(): code['id'] for code in codes}
+    kind = 'new_code' if mode == 'draft' else 'revise_code'
+    for index, proposal in enumerate(result['proposals'], start=1):
+        def fail(reason):
+            raise ProposalValidationError(f'proposal {index}: {reason}')
+        if proposal['kind'] != kind:
+            fail(f'{mode} mode accepts only {kind} proposals')
+        target = proposal['target_code_id']
+        if kind == 'new_code' and target is not None:
+            fail('a new code cannot name a target')
+        if kind == 'revise_code' and target not in targets:
+            fail('revision targets a code that was not supplied')
+        if not proposal['name'].strip():
+            fail('empty code name')
+        owner = names.get(proposal['name'].strip().casefold())
+        if owner is not None and owner != target:
+            fail('name collides with another code')
+        names[proposal['name'].strip().casefold()] = target if target is not None else -index
+        if any(identity not in texts for identity in proposal['evidence_segment_ids']):
+            fail('evidence names a segment that was not supplied')
+        # A revision may keep the researcher's existing examples; anything new must be quoted.
+        kept = set()
+        for code in codes:
+            if code['id'] == target:
+                kept = {*json.loads(code['examples_pos']), *json.loads(code['examples_neg'])}
+        for example in proposal['examples_pos'] + proposal['examples_neg']:
+            if example not in kept and not any(example in text for text in texts.values()):
+                fail('example is not a verbatim quotation of a supplied segment')
     return result

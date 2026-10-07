@@ -14,6 +14,7 @@ from qualia.ai.backends.process import (
     classification_prompt,
     first_segment,
     json_object,
+    proposal_prompt,
     run_process,
     subscription_environment,
     token_count,
@@ -189,20 +190,25 @@ class CodexCLIBackend:
         return resolve_command() is not None
 
     def classify(self, segments, schema, context):
+        return self._invoke(segments, schema, context, classification_prompt, 'predictions')
+
+    def propose(self, segments, schema, context):
+        return self._invoke(segments, schema, context, proposal_prompt, 'proposals')
+
+    def _invoke(self, segments, schema, context, build_prompt, key):
         # Native invocation admission is handled by the router; local bounds do
         # not imply a provider generation-token cap or one internal HTTP request.
         record = first_segment(segments)
         if not self.available():
             raise BackendError('unavailable', record)
-        prompt = classification_prompt(segments, schema, context)
+        prompt = build_prompt(segments, schema, context)
         prediction, metadata = _run_json(
             prompt, schema, model=context.get('model', self.model), record=record,
             runner=self.runner, timeout_seconds=self.timeout_seconds,
             max_output_bytes=self.max_output_bytes)
-        if (set(prediction) != {'predictions'}
-                or not isinstance(prediction['predictions'], list)):
+        if set(prediction) != {key} or not isinstance(prediction[key], list):
             raise BackendError('invalid_response', record, **metadata)
-        return {'predictions': prediction['predictions'], **metadata}
+        return {key: prediction[key], **metadata}
 
 
 def _run_json(prompt, schema, *, model, record=None, runner=None, timeout_seconds=90,

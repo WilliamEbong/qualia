@@ -14,6 +14,7 @@ from qualia.ai.backends.process import (
     classification_prompt,
     first_segment,
     json_object,
+    proposal_prompt,
     run_process,
     subscription_environment,
     token_count,
@@ -230,13 +231,19 @@ class ClaudeCLIBackend:
             raise BackendError('unavailable', first_segment(segments))
         return self._classify(segments, schema, context)
 
-    def _classify(self, segments, schema, context):
+    def propose(self, segments, schema, context):
+        if not self.available():
+            raise BackendError('unavailable', first_segment(segments))
+        return self._classify(segments, schema, context, proposal_prompt, 'proposals')
+
+    def _classify(self, segments, schema, context, build_prompt=classification_prompt,
+                  key='predictions'):
         """Dispatch one owner-approved bounded native invocation after login validation."""
         record = first_segment(segments)
         command = resolve_command()
         if command is None:
             raise BackendError('unavailable', record)
-        prompt = classification_prompt(segments, schema, context)
+        prompt = build_prompt(segments, schema, context)
         max_tokens = context.get('max_output_tokens', 8192)
         if type(max_tokens) is not int or not 0 < max_tokens <= 8192:
             raise BackendError('input_limit', record)
@@ -307,9 +314,9 @@ class ClaudeCLIBackend:
             prediction = envelope.get('structured_output')
             if prediction is None:
                 prediction = json_object(envelope.get('result', ''))
-            if (not isinstance(prediction, dict) or set(prediction) != {'predictions'}
-                    or not isinstance(prediction['predictions'], list)):
+            if (not isinstance(prediction, dict) or set(prediction) != {key}
+                    or not isinstance(prediction[key], list)):
                 raise ValueError
         except (ValueError, TypeError, UnicodeError, RecursionError):
             raise BackendError('invalid_response', record, **error_args) from None
-        return {'predictions': prediction['predictions'], **error_args}
+        return {key: prediction[key], **error_args}

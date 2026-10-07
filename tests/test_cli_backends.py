@@ -636,3 +636,36 @@ def test_installed_claude_project_guard_loads_at_fresh_session(tmp_path, local_r
     messages = [body for path, body in requests if path.startswith('/v1/messages')]
     assert len(messages) >= 2
     assert 'Shell mutation references a protected path' in json.dumps(messages[-1]['messages'])
+
+
+def test_both_native_backends_propose_through_the_same_isolated_transport(monkeypatch):
+    proposals = [{'kind': 'new_code', 'name': 'Hope'}]
+    context = {'model': 'haiku', 'prompt': 'Propose codes.', 'codebook': [], 'refine': []}
+    monkeypatch.setattr(claude_cli, 'resolve_command', lambda: ['installed-claude.exe'])
+    calls = []
+    claude = claude_cli.ClaudeCLIBackend(runner=fixture_runner(calls, {
+        'is_error': False, 'structured_output': {'proposals': proposals},
+        'usage': {'input_tokens': 2, 'output_tokens': 3}}))
+    assert claude.propose(SEGMENTS, SCHEMA, context)['proposals'] == proposals
+    argv, options, contents = calls[0]
+    assert contents == [] and argv[argv.index('--tools') + 1] == ''
+    assert 'Propose qualitative codebook entries' in options['prompt']
+    with pytest.raises(BackendError, match='invalid_response'):
+        claude_cli.ClaudeCLIBackend(runner=fixture_runner([], {
+            'is_error': False, 'structured_output': {'predictions': []},
+            'usage': {'input_tokens': 1, 'output_tokens': 1}})).propose(SEGMENTS, SCHEMA, context)
+
+    monkeypatch.setattr(codex_cli, 'resolve_command', lambda: ['installed-codex.exe'])
+    monkeypatch.setattr(codex_cli, 'load_catalog', lambda model: {'models': [{'slug': model}]})
+
+    def runner(argv, **kwargs):
+        if '--version' in argv:
+            return ProcessResult(0, b'codex-cli 0.160.0', b'')
+        assert list(Path(kwargs['cwd']).iterdir()) == []
+        assert 'Propose qualitative codebook entries' in kwargs['prompt']
+        kwargs['output_path'].write_text(json.dumps({'proposals': proposals}))
+        return ProcessResult(0, json.dumps({'type': 'turn.completed',
+                             'usage': {'input_tokens': 4, 'output_tokens': 5}}).encode(), b'')
+
+    result = codex_cli.CodexCLIBackend(runner=runner).propose(SEGMENTS, SCHEMA, {**context, 'model': 'gpt-6-luna'})
+    assert result == {'proposals': proposals, 'input_tokens': 4, 'output_tokens': 5, 'cli_version': '0.160.0'}
