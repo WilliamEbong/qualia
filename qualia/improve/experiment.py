@@ -34,6 +34,8 @@ from qualia.workspace import (
 )
 
 LOCK = '.qualia-operation.lock'
+# Generated evaluation reports (written by the app's Evaluate action) are outputs, not baseline state.
+REPORTS = 'reports'
 # ponytail: a fixed deterministic dev sample keeps tuning inside default call budgets; raise if noisy.
 TUNING_SEGMENTS = 400
 DB_FILES = {'project.db', 'project.db-wal', 'project.db-shm'}
@@ -50,7 +52,8 @@ def _git(project, *arguments):
 
 
 def _status(project):
-    return _git(project, 'status', '--porcelain', '--untracked-files=all', '--', '.', f':(exclude){LOCK}')
+    return _git(project, 'status', '--porcelain', '--untracked-files=all', '--', '.', f':(exclude){LOCK}',
+                f':(exclude){REPORTS}')
 
 
 def _digest(path):
@@ -419,7 +422,7 @@ def improve_project(project, agent='fake', budget=1, *, operator=None, backend=N
                     'changed_files_json': canonical(changed), 'commit_hash': None, 'tag': tag}
                 state.update(stage='git', decision=decision, tag=tag, record=record)
                 _journal(journal, state)
-                _git(project, 'add', '--', '.', f':(exclude){LOCK}')
+                _git(project, 'add', '--', '.', f':(exclude){LOCK}', f':(exclude){REPORTS}')
                 _git(project, '-c', 'user.name=Qualia', '-c', 'user.email=qualia@localhost',
                      'commit', '-m', f'experiment: {decision} {number:04d} {slug}')
                 commit = _git(project, 'rev-parse', 'HEAD')
