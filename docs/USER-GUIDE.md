@@ -80,7 +80,7 @@ To stop Qualia, close its window. Qualia notices that no window is open and shut
 
 ### Update or remove Qualia
 
-- **Update:** download the newer zip, extract it to the same folder (replace the files) or a new one, and double-click **Install Qualia** again. Your research projects are stored separately and are kept.
+- **Update:** download the newer zip, extract it to the same folder (replace the files) or a new one, and double-click **Install Qualia** again. Your research projects are stored separately and are kept. The first time a newer version opens an older project, it upgrades the project database automatically and first saves a copy beside it (for example `project.db.v2.bak`).
 - **Remove:** delete the Qualia folder and the two Qualia shortcuts. Your projects stay in your Qualia home folder (see below) until you delete them yourself.
 
 ### For developers: install from source
@@ -248,7 +248,7 @@ There are three ways to ask, under **Codebook → Proposals → Ask for proposal
 
 | Type | What it sends | What you get |
 |---|---|---|
-| **Find evidence in my reviews** | Nothing: it runs offline, with no AI and no network. | Revisions from your own decisions: rejected AI suggestions become candidate negative examples (with your review notes), a code with no current coding after 20 coded segments is flagged for archiving, and two codes that appear together on at least 80% of their segments (and at least 5) get a draft boundary line in **Exclude**. |
+| **Find evidence in my reviews** | Nothing: it runs offline, with no AI and no network. | Revisions from your own decisions: rejected AI suggestions become candidate negative examples (with your review notes), an active code with no current coding, once at least 20 segments are coded, is flagged for archiving, and when two codes appear together on at least 80% of the segments that carry either of them (and on at least 5 segments), the less frequent one gets a draft boundary line in **Exclude** for you to reword. |
 | **Draft new codes from passages** (inductive) | Up to 20 passages from one source, your current code names and an optional focus such as “experiences of waiting”. | New codes, each with a definition, include/exclude guidance and examples quoted from the passages. |
 | **Refine codes from review evidence** | One or two codes, each with up to four coded and four rejected passages and your review notes. | A revised definition, guidance and examples for each code. |
 

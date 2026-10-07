@@ -22,7 +22,7 @@ It works fully offline with manual coding and a keyword baseline. AI is optional
 
 ## A quick tour
 
-Screenshots come from the bundled public demo, the [AnnoMI](DATA-LICENSES.md) motivational-interviewing transcripts, except the codebook-proposal and memo examples, which use a small invented practice study.
+Screenshots come from the bundled public demo, the [AnnoMI](DATA-LICENSES.md) motivational-interviewing transcripts, except the codebook-proposal example, which uses a small invented practice study.
 
 ### Code by keyboard
 
