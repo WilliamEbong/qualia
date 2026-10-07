@@ -35,6 +35,13 @@ export function CodingPanel({ w, review }: { w: WorkspaceController; review: Rev
     {!w.version && <p className="empty-note">Create codes and freeze your codebook before assigning a code.</p>}
     <div className="selection-note"><p className="caption">{w.currentSpan ? `Selected span ${w.currentSpan.start}:${w.currentSpan.end}` : 'Whole segment selected'}</p>{w.currentSpan && <><blockquote>{w.selectionText}</blockquote><Button onClick={w.clearSpan}>Use whole segment</Button></>}</div>
     <div className="code-shortcuts">{w.codingCodes.map((code, index) => <Button key={code.id} style={codeStyle(index) as CSSProperties} className="code-shortcut" disabled={w.readOnly || w.busy || !w.active || !w.actor.trim()} onClick={() => void w.assign(code.id)}><span className="caption">{index < 9 ? index + 1 : '·'}</span>{code.name}</Button>)}</div>
+    {!w.readOnly && <details className="quick-code"><summary>New code from this passage</summary><form onSubmit={w.codeInVivo}><fieldset disabled={w.busy || !w.active || !w.actor.trim()}>
+      <label>Code name<input name="name" required maxLength={200} placeholder={w.selectionText ? 'Name it, perhaps in the speaker’s words' : 'Name the idea in this passage'} /></label>
+      <label>Definition (optional)<textarea name="definition" rows={2} /></label>
+      <label className="checkbox"><input type="checkbox" name="example" defaultChecked />Keep the selected text as a positive example</label>
+      <p className="caption">Creates a draft code, freezes a new codebook version that includes all current draft edits, and assigns the code to this {w.currentSpan ? 'selection' : 'segment'}.</p>
+      <Button type="submit">Create, freeze and assign</Button>
+    </fieldset></form></details>}
     <h3>Current assignments</h3>
     {!w.activeCodings.length && <p className="caption">No codes on this segment.</p>}
     {w.activeCodings.map(item => <div key={item.id} className="assignment"><strong>{w.eventCodeName(item)}</strong><p className="caption">{item.span_start}:{item.span_end} · {item.actor}</p><blockquote>{w.spanText(item)}</blockquote><Button disabled={w.readOnly || w.busy} onClick={() => void w.remove(item)}>Remove assignment</Button></div>)}

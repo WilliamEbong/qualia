@@ -27,7 +27,7 @@ def test_migration_is_idempotent_and_settings(project):
     with Store(project / 'project.db') as db:
         db.migrate()
         db.migrate()
-        assert db.connection.execute('PRAGMA user_version').fetchone()[0] == 3
+        assert db.connection.execute('PRAGMA user_version').fetchone()[0] == 4
         assert db.connection.execute('PRAGMA journal_mode').fetchone()[0] == 'wal'
         assert db.connection.execute('PRAGMA busy_timeout').fetchone()[0] == 5000
         event = seed(db)
@@ -51,6 +51,8 @@ def test_every_append_only_table_rejects_update_delete(project):
             'code_proposals': {'batch_id': 'b', 'mode': 'evidence', 'kind': 'new_code', 'actor_type': 'rule',
                                'payload_json': '{"name":"Proposed"}'},
             'code_proposal_decisions': {'proposal_id': 1, 'decision': 'reject', 'actor': 'human'},
+            'memo_revisions': {'memo_id': db.add('memos', {'title': 'm', 'text': 't'}), 'title': 'm',
+                               'text': 'old', 'kind': 'analytic'},
         }.items():
             db.add(table, values)
         for table in APPEND_ONLY:

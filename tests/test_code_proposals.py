@@ -12,9 +12,9 @@ def proposal(**values):
             **values}
 
 
-def test_migration_three_rejects_edits_and_requires_model_provenance():
+def test_proposal_tables_reject_edits_and_requires_model_provenance():
     with Store(':memory:') as db:
-        assert db.connection.execute('PRAGMA user_version').fetchone()[0] == 3
+        assert db.connection.execute('PRAGMA user_version').fetchone()[0] >= 3
         [row] = db.record_code_proposals([proposal()])
         for sql in ('UPDATE code_proposals SET rationale=1', 'DELETE FROM code_proposals'):
             with pytest.raises(sqlite3.IntegrityError, match='append-only'):

@@ -976,10 +976,20 @@ export interface components {
             title: string;
             /** Text */
             text: string;
+            /**
+             * Kind
+             * @default analytic
+             * @enum {string}
+             */
+            kind: "analytic" | "reflexive" | "theme" | "method";
             /** Segment Id */
             segment_id?: number | null;
             /** Code Id */
             code_id?: number | null;
+            /** Case Id */
+            case_id?: number | null;
+            /** Source Id */
+            source_id?: number | null;
         };
         /** ProjectInput */
         ProjectInput: {
@@ -1152,6 +1162,10 @@ export interface components {
             }[];
             /** Memos */
             memos: {
+                [key: string]: unknown;
+            }[];
+            /** Memo Revisions */
+            memo_revisions?: {
                 [key: string]: unknown;
             }[];
             /** Experiments */

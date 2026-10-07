@@ -2758,6 +2758,17 @@
             "maxLength": 100000,
             "title": "Text"
           },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "analytic",
+              "reflexive",
+              "theme",
+              "method"
+            ],
+            "title": "Kind",
+            "default": "analytic"
+          },
           "segment_id": {
             "anyOf": [
               {
@@ -2779,6 +2790,28 @@
               }
             ],
             "title": "Code Id"
+          },
+          "case_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Case Id"
+          },
+          "source_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Id"
           }
         },
         "additionalProperties": false,
@@ -3278,6 +3311,14 @@
             },
             "type": "array",
             "title": "Memos"
+          },
+          "memo_revisions": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Memo Revisions"
           },
           "experiments": {
             "items": {

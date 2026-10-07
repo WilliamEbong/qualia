@@ -200,13 +200,19 @@ def code_command(segment: int, code: int, project: str = 'demo', start: int = 0,
 
 @app.command('memo')
 def memo_command(title: str, text: str, project: str = 'demo', memo_id: int | None = None,
-                 segment: int | None = None, code: int | None = None):
-    """Create or edit a research memo linked to a segment or code."""
-    from qualia.server.api_models import MemoInput
+                 kind: str | None = None, segment: int | None = None, code: int | None = None,
+                 case: int | None = None, source: int | None = None):
+    """Create or edit a memo (analytic, reflexive, theme or method) linked to evidence.
 
-    record = MemoInput(title=title, text=text, segment_id=segment, code_id=code)
-    with Store(resolve_project(project) / 'project.db') as db:
-        typer.echo(db.save_memo(record.model_dump(), memo_id=memo_id))
+    Editing changes only the options given; the previous version is kept in memo history."""
+    values = {'title': title, 'text': text, 'kind': kind, 'segment_id': segment, 'code_id': code,
+              'case_id': case, 'source_id': source}
+    values = {key: value for key, value in values.items() if value is not None}
+    try:
+        with Store(resolve_project(project) / 'project.db') as db:
+            typer.echo(db.save_memo(values, memo_id=memo_id))
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
 
 
 @app.command('case')

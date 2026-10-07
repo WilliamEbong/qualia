@@ -5,7 +5,7 @@ import { readOnly, request } from './client'
 import type { DemoSnapshot } from './demo'
 import { useMatrix } from './matrix'
 import { codeDepth, eventCodeName, exampleList, frozenCodes, isEditingTarget, orderedCodes, segmentText, shortcut } from './entities'
-import type { Case, Code, Coding, MatrixCell, Memo, Project, Retrieval, Span, View, Workspace } from './entities'
+import type { Case, Code, Coding, MatrixCell, Memo, MemoKind, Project, Retrieval, Span, View, Workspace } from './entities'
 
 const field = (form: FormData, name: string) => String(form.get(name) ?? '').trim()
 const idField = (form: FormData, name: string) => Number(form.get(name)) || null
@@ -35,6 +35,7 @@ export function useWorkspace() {
   // Bumped after each save so uncontrolled "new" forms clear instead of resubmitting old text.
   const [formNonce, setFormNonce] = useState(0)
   const [editMemo, setEditMemo] = useState<Memo | null>(null)
+  const [memoKind, setMemoKind] = useState<MemoKind | ''>('')
   const [editCase, setEditCase] = useState<Case | null>(null)
   const [retrievalCode, setRetrievalCode] = useState<number | null>(null)
   const [retrievalCase, setRetrievalCase] = useState<number | null>(null)
@@ -129,6 +130,22 @@ export function useWorkspace() {
     await mutate('coding', input); await reload(); setNotice('Code assigned. The decision is saved in provenance.')
   }), [active, version, currentSpan, activeText, actor, mutate, reload, run])
 
+  // Inductive coding: name a new code from the passage, freeze it and assign it in one step.
+  const codeInVivo = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault(); const target = event.currentTarget; const form = new FormData(target)
+    void run(async () => {
+      if (!active) throw new Error('Choose a segment before creating a code from it.')
+      const points = Array.from(activeText)
+      const quote = (currentSpan ? points.slice(currentSpan.start, currentSpan.end).join('') : activeText).trim()
+      const input: components['schemas']['CodeInput'] = { name: field(form, 'name'), parent_id: null, definition: field(form, 'definition'), include: '', exclude: '', examples_pos: form.get('example') === 'on' && quote && quote.length <= 500 ? [quote] : [], examples_neg: [], status: 'active' }
+      const code = await mutate('codes', input)
+      const frozen = await mutate('codebook/freeze')
+      const coding: components['schemas']['CodingInput'] = { segment_id: active.id, code_id: code.id, span_start: currentSpan?.start ?? 0, span_end: currentSpan?.end ?? points.length, codebook_version_id: frozen.id, action: 'assign', actor }
+      await mutate('coding', coding); await reload(); setVersionId(frozen.id); target.reset()
+      setNotice(`Created “${input.name}”, froze codebook version ${frozen.id} and assigned the code.`)
+    })
+  }
+
   const remove = (item: Coding) => run(async () => {
     const input: components['schemas']['CodingInput'] = { segment_id: item.segment_id, code_id: item.code_id, span_start: item.span_start, span_end: item.span_end, codebook_version_id: item.codebook_version_id, action: 'remove', actor }
     await mutate('coding', input); await reload(); setNotice('Assignment removed; its history remains.')
@@ -198,7 +215,7 @@ export function useWorkspace() {
   const saveMemo = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault(); const form = new FormData(event.currentTarget)
     void run(async () => {
-      const input: components['schemas']['MemoInput'] = { title: field(form, 'title'), text: String(form.get('text') ?? ''), segment_id: idField(form, 'segment_id'), code_id: idField(form, 'code_id') }
+      const input: components['schemas']['MemoInput'] = { title: field(form, 'title'), text: String(form.get('text') ?? ''), kind: (field(form, 'kind') || 'analytic') as MemoKind, segment_id: idField(form, 'segment_id'), code_id: idField(form, 'code_id'), case_id: idField(form, 'case_id'), source_id: idField(form, 'source_id') }
       await mutate(editMemo ? `memos/${editMemo.id}` : 'memos', input, editMemo ? 'PUT' : 'POST'); await reload(); setEditMemo(null); setFormNonce(value => value + 1); setNotice('Memo saved.')
     })
   }
@@ -241,7 +258,11 @@ export function useWorkspace() {
     codes: codeViews, codingCodes, version, setVersionId, activeCodings, activeEvents, actor, setActor, assign, remove,
     clearSpan: () => setSpan(null), panel, setPanel, editCode, setEditCode, editMemo, setEditMemo, editCase, setEditCase, formNonce, setNotice,
     startEditCode: (code: Code | null) => { setEditCode(code); focusCodeEditor() },
-    importSource, saveCode, freeze, saveMemo, saveCase, exportData, retrieval, retrievalCode, setRetrievalCode, retrievalCase, setRetrievalCase,
+    importSource, saveCode, freeze, saveMemo, codeInVivo, memoKind, setMemoKind,
+    memos: (data?.memos ?? []).filter(memo => !memoKind || (memo.kind ?? 'analytic') === memoKind),
+    memoRevisions: (id: number) => (data?.memo_revisions ?? []).filter(item => item.memo_id === id).reverse(),
+    sourceName: (id: number) => data?.sources.find(item => item.id === id)?.name ?? `Source ${id}`,
+    caseName: (id: number) => data?.cases.find(item => item.id === id)?.name ?? `Case ${id}`, saveCase, exportData, retrieval, retrievalCode, setRetrievalCode, retrievalCase, setRetrievalCase,
     queryLoading, matrix, matrixView, drillDown, openSegment,
     retrievalSegmentCount: new Set(retrieval.map(item => item.segment_id)).size,
     caseAttributes: data?.attributes.filter(item => item.case_id === editCase?.id).map(item => `${item.key}=${item.value}`).join('\n') ?? '',

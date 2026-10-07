@@ -36,6 +36,7 @@ class Workspace(Record):
     current_codings: list[dict]
     suggestions: list[dict]
     memos: list[dict]
+    memo_revisions: list[dict] = Field(default_factory=list)  # absent from older demo snapshots
     experiments: list[dict]
     evaluation_runs: list[dict]
     code_proposals: list[dict] = Field(default_factory=list)  # absent from older demo snapshots
@@ -84,8 +85,11 @@ class CodingInput(Record):
 class MemoInput(Record):
     title: str = Field(min_length=1, max_length=200)
     text: str = Field(max_length=100000)
+    kind: Literal['analytic', 'reflexive', 'theme', 'method'] = 'analytic'
     segment_id: int | None = None
     code_id: int | None = None
+    case_id: int | None = None
+    source_id: int | None = None
 
 
 class CaseInput(Record):

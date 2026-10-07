@@ -16,8 +16,9 @@ APPEND_ONLY_V1 = (
     'coding_events', 'feedback_events', 'experiments', 'evaluation_runs',
     'usage_ledger', 'egress_log', 'codebook_versions', 'sources', 'segments',
 )
-APPEND_ONLY = (*APPEND_ONLY_V1, 'code_proposals', 'code_proposal_decisions')
+APPEND_ONLY = (*APPEND_ONLY_V1, 'code_proposals', 'code_proposal_decisions', 'memo_revisions')
 TABLES = (*APPEND_ONLY, 'cases', 'source_cases', 'attributes', 'codes', 'memos', 'result_cache')
+MEMO_KINDS = ('analytic', 'reflexive', 'theme', 'method')
 CODE_FIELDS = ('parent_id', 'name', 'status', 'definition', 'include', 'exclude',
                'examples_pos', 'examples_neg')
 
@@ -445,14 +446,19 @@ class Store:
             raise ValueError(f"segment {record['segment_id']}: invalid coding record ({exc})") from None
 
     def save_memo(self, values: dict, memo_id: int | None = None) -> int:
-        if not values or set(values) - {'title', 'text', 'segment_id', 'code_id'}:
+        """Create or edit a memo; the memo_history trigger keeps every replaced version."""
+        if not values or set(values) - {'title', 'text', 'kind', 'segment_id', 'code_id', 'case_id',
+                                        'source_id'}:
             raise ValueError('invalid memo fields')
         if memo_id is None and not {'title', 'text'} <= set(values):
             raise ValueError('memo title and text are required')
         for field in ('title', 'text'):
             if field in values and not isinstance(values[field], str):
                 raise ValueError(f'memo {field} must be text')
-        for field, table in (('segment_id', 'segments'), ('code_id', 'codes')):
+        if 'kind' in values and values['kind'] not in MEMO_KINDS:
+            raise ValueError('memo kind must be analytic, reflexive, theme or method')
+        for field, table in (('segment_id', 'segments'), ('code_id', 'codes'), ('case_id', 'cases'),
+                             ('source_id', 'sources')):
             value = values.get(field)
             if value is not None and (type(value) is not int or not self.one(
                     f'SELECT id FROM {table} WHERE id=?', (value,))):

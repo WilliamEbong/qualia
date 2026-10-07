@@ -6,16 +6,18 @@ export type Segment = { id: number; source_id: number; start: number; end: numbe
 export type Code = { id: number; parent_id: number | null; name: string; status: 'active' | 'archived'; definition: string; include: string; exclude: string; examples_pos: string; examples_neg: string }
 export type Version = { id: number; hash: string; frozen_at: string; snapshot_json: string }
 export type Coding = { id: number; segment_id: number; code_id: number; span_start: number; span_end: number; action: string; actor_type: string; actor: string; backend: string | null; model: string | null; cli_version: string | null; codebook_version_id: number; pipeline_version: string; prompt_hash: string; created_at: string; score: number | null; reviewed_by: string | null; rationale: string | null; review_trigger: string | null; suggestion_id: number | null; review_status: string }
-export type Memo = { id: number; title: string; text: string; segment_id: number | null; code_id: number | null }
+export type MemoKind = 'analytic' | 'reflexive' | 'theme' | 'method'
+export type Memo = { id: number; title: string; text: string; kind?: MemoKind; segment_id: number | null; code_id: number | null; case_id?: number | null; source_id?: number | null; created_at?: string }
+export type MemoRevision = { id: number; memo_id: number; title: string; text: string; kind: MemoKind; replaced_at: string }
 export type Case = { id: number; name: string }
 export type Attribute = { id: number; case_id: number | null; source_id: number | null; key: string; value: string }
 export type SourceCase = { source_id: number; case_id: number }
 export type Proposal = { id: number; batch_id: string; mode: 'draft' | 'refine' | 'evidence'; kind: 'new_code' | 'revise_code'; target_code_id: number | null; payload_json: string; rationale: string; evidence_json: string; actor_type: 'model' | 'rule'; backend: string | null; model: string | null; cli_version: string | null; prompt_hash: string; codebook_version_id: number | null; created_at: string; decision: 'accept' | 'reject' | null; decided_by: string | null; decision_note: string | null; applied_json: string | null; resulting_code_id: number | null; decided_at: string | null }
 // code_proposals is optional: older public demo snapshots predate codebook proposals.
-export type Workspace = Omit<components['schemas']['Workspace'], 'sources' | 'segments' | 'codes' | 'codebook_versions' | 'coding_events' | 'current_codings' | 'suggestions' | 'memos' | 'cases' | 'attributes' | 'source_cases' | 'code_proposals'> & {
+export type Workspace = Omit<components['schemas']['Workspace'], 'sources' | 'segments' | 'codes' | 'codebook_versions' | 'coding_events' | 'current_codings' | 'suggestions' | 'memos' | 'cases' | 'attributes' | 'source_cases' | 'code_proposals' | 'memo_revisions'> & {
   sources: Source[]; segments: Segment[]; codes: Code[]; codebook_versions: Version[];
   coding_events: Coding[]; current_codings: Coding[]; suggestions: Coding[]; memos: Memo[]; cases: Case[];
-  attributes: Attribute[]; source_cases: SourceCase[]; code_proposals?: Proposal[];
+  attributes: Attribute[]; source_cases: SourceCase[]; code_proposals?: Proposal[]; memo_revisions?: MemoRevision[];
 }
 export type Span = { segmentId: number; start: number; end: number }
 export type MatrixCell = { code_id: number; case_id: number; count: number }

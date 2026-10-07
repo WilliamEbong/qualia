@@ -92,7 +92,7 @@ def create_app(home: Path | None = None, token: str | None = None, dist: Path | 
             data = {table: db.rows(f'SELECT * FROM {table}') for table in (
                 'sources', 'segments', 'cases', 'attributes', 'source_cases', 'codes',
                 'codebook_versions', 'coding_events', 'current_codings', 'memos',
-                'experiments')}
+                'memo_revisions', 'experiments')}
             data['evaluation_runs'] = db.rows(
                 'SELECT id,split,backend,model,codebook_version_id,pipeline_version,metrics_json,created_at '
                 "FROM evaluation_runs WHERE split='validation'")
