@@ -180,7 +180,7 @@ npm --prefix web test
 npm --prefix web run build
 ```
 
-The current suite passes 561 Python tests (5 platform skips; live provider tests are opt-in) and 37 web tests. CI also runs a dependency audit, a research-data guard and secret scanning. Development history, specifications and evidence are in [docs/BUILD-STATE.md](docs/BUILD-STATE.md), [specs/](specs) and [design-review/](design-review/LOOP-REPORT.md).
+The current suite passes 674 Python tests (5 platform skips; live provider tests are opt-in) and 44 web tests. CI also runs a dependency audit, a research-data guard and secret scanning. Development history, specifications and evidence are in [docs/BUILD-STATE.md](docs/BUILD-STATE.md), [specs/](specs) and [design-review/](design-review/LOOP-REPORT.md).
 
 ## Decisions
 
