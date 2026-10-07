@@ -28,9 +28,20 @@
   - CLI edits no longer reset fields you didn't give.
   - Long analyses no longer block coding.
 
-## Evidence
+## Also new (2026-10-07, after v0.2.0; not yet in a release)
 
-- 674 Python tests passed (5 skipped, 8 live tests not run); 44 web tests passed. Ruff, the data guard, npm audit and pip-audit are clean.
+- **Model defaults by task:** Claude Haiku / GPT-6-Luna for high-volume classification, Opus / GPT-6.1-Sol for codebook proposals, Opus / GPT-6-Astra for uncertain passages.
+- **Model picker:** every AI form has one, with one-line descriptions, a named default and an "Other exact model ID" option to pin a version.
+- **Exact model recorded:** each suggestion and proposal records the exact model that answered, for example `claude-haiku-4-5-20251001`.
+- **Repeatability check:** Evaluation can run the same passages twice and show how often the model agrees with itself.
+- **Model experiments:** Experiments can measure a classification model switch and keep it only if validation improves.
+- **Fixes:**
+  - Explicit Claude requests always ran on Haiku because of a routing setting named "claude".
+  - Using Evaluate in the app blocked later experiments.
+  - Haiku sometimes returned out-of-range spans; the request now gives each passage's length.
+
+
+- 686 Python tests passed (5 skipped, 8 live tests not run); 63 web tests passed. Ruff, the data guard, npm audit and pip-audit are clean.
 - The static demo check passed, with no API calls.
 - Live synthetic runs: Claude drafted 6 codes in 29 s and Codex drafted 2 in 9 s. No codes were written without a decision.
 - Codex (gpt-6-astra) built the CLI-version change and then reviewed the whole round. It found 1 high and 2 medium issues, all fixed.
