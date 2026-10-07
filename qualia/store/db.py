@@ -166,6 +166,19 @@ class Store:
             raise
 
     @contextmanager
+    def reading(self):
+        """One consistent snapshot for multi-table reads, without blocking writers (WAL)."""
+        if self.connection.in_transaction:
+            yield self
+            return
+        self.connection.execute('BEGIN')
+        try:
+            self._check_operation()
+            yield self
+        finally:
+            self.connection.rollback()
+
+    @contextmanager
     def immediate(self):
         if self.connection.in_transaction:
             raise ValueError('admission requires an independent transaction')

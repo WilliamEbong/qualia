@@ -60,7 +60,7 @@ def export_data(db, project, format='json', no_text=True, bundle=None) -> str:
         tables += ['experiments', 'evaluation_runs', 'usage_ledger', 'egress_log']
     data = {'format_version': 1, 'text_excluded': no_text,
             'attribute_values_redacted': no_text, 'bundle': bundle}
-    with db.transaction():
+    with db.reading():
         for table in tables:
             rows = db.rows(f'SELECT * FROM {table}')
             if table == 'attributes' and no_text:

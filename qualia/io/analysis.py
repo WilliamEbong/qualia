@@ -25,7 +25,7 @@ def read_analysis(db, project, options: AnalysisOptions) -> AnalysisReport:
         if (file.is_symlink() or file.is_junction()
                 or (file.is_file() and file.stat().st_nlink != 1)):
             raise ValueError('analysis configuration must not contain links')
-    with db.transaction():
+    with db.reading():
         before = pipeline_hash(project)
         data = {table: db.rows(f'SELECT * FROM {table} ORDER BY '
                               + ('source_id,case_id' if table == 'source_cases' else 'id'))

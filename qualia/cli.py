@@ -97,8 +97,11 @@ def import_command(file: Path, project: str = 'demo', text_column: str = 'text',
 @codebook_app.command('add')
 def add_code(name: str, definition: str = '', parent: int | None = None, project: str = 'demo'):
     """Create a human-defined draft code."""
-    with Store(resolve_project(project) / 'project.db') as db:
-        typer.echo(db.save_code({'name': name, 'definition': definition, 'parent_id': parent}))
+    try:
+        with Store(resolve_project(project) / 'project.db') as db:
+            typer.echo(db.save_code({'name': name, 'definition': definition, 'parent_id': parent}))
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
 
 
 @codebook_app.command('freeze')
@@ -113,13 +116,15 @@ def freeze_codebook(project: str = 'demo'):
 
 @codebook_app.command('save')
 def save_code(file: Path, code_id: int | None = None, project: str = 'demo'):
-    """Create/edit/archive a draft code from a validated JSON record."""
+    """Create/edit/archive a draft code from a validated JSON record.
+
+    With --code-id only the fields present in the file change."""
     from qualia.server.api_models import CodeInput
 
     try:
         record = CodeInput.model_validate_json(file.read_text(encoding='utf-8'))
         with Store(resolve_project(project) / 'project.db') as db:
-            typer.echo(db.save_code(record.model_dump(), code_id=code_id))
+            typer.echo(db.save_code(record.model_dump(exclude_unset=code_id is not None), code_id=code_id))
     except (OSError, ValueError) as exc:
         raise typer.BadParameter(f'Invalid code record in {file.name}') from exc
 
@@ -195,7 +200,10 @@ def code_command(segment: int, code: int, project: str = 'demo', start: int = 0,
         values.update(actor_type='human', pipeline_version=pipeline_hash(path),
                       codebook_version_id=version or frozen['id'],
                       span_end=end if end is not None else selected['end']-selected['start'])
-        typer.echo(db.assign(values))
+        try:
+            typer.echo(db.assign(values))
+        except ValueError as exc:
+            raise typer.BadParameter(str(exc)) from exc
 
 
 @app.command('memo')
@@ -225,8 +233,11 @@ def case_command(name: str, project: str = 'demo', case_id: int | None = None,
         record = CaseInput(name=name, source_ids=[source] if source else [], attributes=json.loads(attributes))
     except ValueError as exc:
         raise typer.BadParameter('Attributes must be a JSON object of string values') from exc
-    with Store(resolve_project(project) / 'project.db') as db:
-        typer.echo(db.save_case(record.model_dump(), case_id=case_id))
+    try:
+        with Store(resolve_project(project) / 'project.db') as db:
+            typer.echo(db.save_case(record.model_dump(), case_id=case_id))
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
 
 
 @app.command('retrieve')

@@ -78,8 +78,10 @@ def availability(project, registry=None):
         reason = '' if available else getattr(backend, 'unavailable_reason', 'Backend is unavailable.')
         if backend.external and not config['allow_external']:
             reason = 'External AI is disabled for this project.'
+        if not available and not reason:
+            reason = 'Backend is unavailable.'
         backends.append({'name': name, 'available': available, 'external': backend.external,
-                         'reason': reason or 'Backend is unavailable.' if not available else reason})
+                         'reason': reason})
     return {'allow_external': config['allow_external'], 'backends': backends}
 
 
