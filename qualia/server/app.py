@@ -88,7 +88,8 @@ def create_app(home: Path | None = None, token: str | None = None, dist: Path | 
         path = project_dir(slug, home)
         if not (path / 'project.db').is_file():
             raise HTTPException(404, 'Project not found')
-        with Store(path / 'project.db') as db:
+        # One read snapshot, so current_coding_ids always refer to events in the same response.
+        with Store(path / 'project.db') as db, db.reading():
             data = {table: db.rows(f'SELECT * FROM {table}') for table in (
                 'sources', 'segments', 'cases', 'attributes', 'source_cases', 'codes',
                 'codebook_versions', 'coding_events', 'memos', 'memo_revisions', 'experiments')}

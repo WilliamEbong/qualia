@@ -231,3 +231,23 @@ def test_api_cli_and_export_round_trip(tmp_path, monkeypatch):
     assert len(exported['code_proposals']) == 2 and len(exported['code_proposal_decisions']) == 2
     assert 'definition' not in json.loads(exported['code_proposals'][0]['payload_json'])
     assert 'note' not in exported['code_proposal_decisions'][1]
+
+
+def test_quotes_must_match_whole_words():
+    from qualia.ai.schemas import quote_in
+
+    assert quote_in('care', ['I was scared.']) is None
+    assert quote_in('scared', ['I was scared.']) == 'scared'
+    assert quote_in('“i WAS  scared”', ['I was scared.']) == 'I was scared'
+
+
+def test_no_text_export_removes_proposal_focus(project):
+    from qualia.io.exporters import export_data
+
+    backend = Fixture(response=response(proposal()))
+    with Store(project / 'project.db') as db:
+        segment = seed(db)
+        propose_with_ai(db, project, 'draft', backend='fixture', segment_ids=[segment],
+                        focus='CONFIDENTIAL focus', registry={'fixture': backend})
+        exported = export_data(db, project)
+    assert 'CONFIDENTIAL' not in exported

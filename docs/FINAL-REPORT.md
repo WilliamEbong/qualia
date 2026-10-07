@@ -1,6 +1,6 @@
 # Qualia implementation and handoff
 
-Updated 2026-10-04 with owner-approved native classification and both improvement operators verified. The local research application, analytics, presentation and user documentation are implemented and verified. Claude uses restricted file tools; Codex uses no-tools proposals and trusted application. Both passed bounded synthetic live experiments. The remaining release action is the owner-run security review before publication; public release is not claimed. The official scanner was superseded by the owner-run Claude security review before public release. Native classification now uses the approved invocation-accounting policy; see BUILD-STATE for its latest verification. Jev is live-verified and enabled for demo with its existing $1 daily local limit. Private main was updated through e95972e with successful Checks; no public release is claimed.
+Updated 2026-10-06. Qualia is public (https://github.com/WilliamEbong/qualia, release v0.1.1, static demo at https://williamebong.github.io/qualia/). Since release it gained codebook proposals (AI drafting and refinement plus an offline evidence check, all decided by a person), one-step create-freeze-assign coding, memo kinds, links and history, a 45% smaller workspace payload, and a minimum-version policy for the Claude Code and Codex CLIs. Native classification and both improvement operators remain verified as described below; Jev is live-verified and enabled for demo with its $1 daily local limit. See BUILD-STATE P20 for the latest evidence.
 
 ## Open and use it
 
@@ -17,7 +17,8 @@ Use [the illustrated user guide](USER-GUIDE.md) for the complete step-by-step wo
 
 | Area | Implemented behavior |
 |---|---|
-| Qualitative research | TXT/Markdown/mapped CSV import; immutable source revisions; cases and attributes; versioned/frozen codebooks; full-segment and overlapping-span coding; keyboard shortcuts; memos, retrieval and case-code matrix |
+| Qualitative research | TXT/Markdown/mapped CSV import; immutable source revisions; cases and attributes; versioned/frozen codebooks; full-segment and overlapping-span coding; keyboard shortcuts; one-step create-freeze-assign coding; memos with kinds, case/source links and kept history; retrieval and case-code matrix |
+| Codebook proposals | AI draft (inductive) and refine proposals via Claude/Codex with verbatim-checked examples, an offline evidence check over your review decisions, and acceptance into the draft codebook only by a named person; proposals and decisions are append-only and exported |
 | Traceability | Append-only coding/review events with source spans, historical codebook identity, actor, backend/model and pipeline information; text-optional reproducibility bundles |
 | Analysis and visualization | Filtered coding frequencies, case-group comparisons, co-occurrence/overlap/Jaccard, word counts, explicit numeric summaries, paired Pearson relationships and scatter plots; exact tables and contributing evidence links |
 | Data science handoff | Case CSV, JSON metadata/provenance, SVG charts, and matching standard-library Python/base-R starters; no arbitrary script execution inside Qualia |
@@ -47,7 +48,7 @@ You use **Qualia's interface**. A classification action calls the local server, 
 | Design boundary |295c712→fe7b8e8 protected functional diff empty;199 functional attributes unchanged; no new runtime dependencies |
 | Hygiene |Gitleaks0 findings in checked current tree/history; npm0 vulnerabilities across249 dependencies; pip-audit0 across31 production dependencies; no tracked research storage |
 | Remote CI | Private Checks passed at e95972e: [run37184680691](https://github.com/WilliamEbong/qualia/actions/runs/37184680691). This handoff-only follow-up changes no implementation. |
-| External security review | Official scanner superseded by owner decision; planned Claude `/security-review` remains a pre-public-release action, not a passed scan. |
+| External security review | Official scanner superseded by owner decision; the owner-run Claude `/security-review` was not performed before publishing and remains recommended. Independent Codex (gpt-6-astra) review of the 2026-10-06 changes is recorded in BUILD-STATE P20. |
 
 Earlier native-classification checkpoint: full offline suite411 passed,5 skipped,4 live deselected; final router/ledger/API31 passed, including a subsequent safe-auth-error regression. Both **Codex gpt-6-luna and Claude haiku passed actual synthetic public-router classification** with one-invocation budgets, egress/usage records, validated output and zero coding events. Claude's512-token test fixture truncated; independent diagnosis increased only that fixture allowance to4096, below the unchanged8192 production ceiling. Earlier failed attempts were recorded and consumed subscription usage. See [live evidence](research/cli-classification.md#approved-policy-live-verification).
 
@@ -67,9 +68,9 @@ The public synthetic Codex experiment passed in41.92s: Astra proposed one prompt
 
 Claude improvement is also enabled and live-verified with Opus5.5 and Haiku validation. Its one-record result likewise remained1.0 to1.0 and correctly reverted. Both workflows use the user's existing subscription sign-in; no extra API key or approval for each candidate is needed. See [step-by-step improvement guide](USER-GUIDE.md#15-understand-improvement-experiments).
 
-### Before public release
+### Still recommended
 
-Run your planned Claude Code `/security-review`. The official scanner is superseded, not passed. Private-main checkpoint pushes are authorized; public visibility and deployment remain your separate decisions. No drive-wide ACL, firewall, credential or billing change was made.
+Run your planned Claude Code `/security-review` on the public repository. The official scanner is superseded, not passed. No drive-wide ACL, firewall, credential or billing change was made.
 
 ## Checkpoints and cost
 

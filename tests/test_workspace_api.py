@@ -82,3 +82,21 @@ def test_invalid_input_retains_server_protections(tmp_path):
     assert bad.headers['x-frame-options'] == 'DENY'
     assert client.get(prefix).json()['sources'] == []
     assert client.post(prefix + '/coding', json={'segment_id': -1, 'code_id': 1}).status_code == 422
+
+
+def test_workspace_current_coding_ids_come_from_one_read_snapshot(tmp_path, monkeypatch):
+    from qualia.store.db import Store
+
+    client = TestClient(create_app(tmp_path, token='t'), base_url='http://127.0.0.1',
+                        headers={'X-Qualia-Token': 't'})
+    client.post('/api/projects', json={'name': 'study'})
+    calls = []
+    original = Store.reading
+
+    def tracked(self):
+        calls.append(True)
+        return original(self)
+
+    monkeypatch.setattr(Store, 'reading', tracked)
+    assert client.get('/api/projects/study').status_code == 200
+    assert calls

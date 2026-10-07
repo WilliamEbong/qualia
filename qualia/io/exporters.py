@@ -10,7 +10,7 @@ from qualia.workspace import pipeline_hash
 
 TEXT_FIELDS = {'text', 'source_text', 'segment_text', 'excerpt', 'excerpts', 'rationale',
                'note', 'notes', 'title', 'hypothesis', 'reason', 'definition', 'include',
-               'exclude', 'examples_pos', 'examples_neg', 'prompt', 'content', 'response'}
+               'exclude', 'examples_pos', 'examples_neg', 'prompt', 'content', 'response', 'focus'}
 
 
 def _without_text(value):

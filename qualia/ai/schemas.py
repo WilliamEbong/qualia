@@ -193,7 +193,8 @@ def quote_in(example: str, texts) -> str | None:
     words = re.findall(r'\w+', example)
     if not words:
         return None
-    pattern = re.compile(r'\W+'.join(map(re.escape, words)), re.IGNORECASE)
+    # Whole words only: 'care' must not be evidenced by 'scared'.
+    pattern = re.compile(r'(?<!\w)' + r'\W+'.join(map(re.escape, words)) + r'(?!\w)', re.IGNORECASE)
     for text in texts:
         match = pattern.search(text)
         if match:
