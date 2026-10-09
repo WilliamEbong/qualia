@@ -10,6 +10,10 @@ Qualia is a local-first workspace for qualitative research. Code interviews and 
 
 ![Visual tour: home, coding, review, synthetic statistics and measured experiment](design-review/final/walkthrough.gif)
 
+[![60-second explainer video: coding, AI review, provenance and measured experiments](docs/media/qualia-explainer-poster.jpg)](docs/media/qualia-explainer.mp4)
+
+**[Watch the 60-second explainer](docs/media/qualia-explainer.mp4)** (silent, made with [Remotion](https://www.remotion.dev) from the public demo data; source in [`video/`](video/PLAN.md)).
+
 ## Why Qualia
 
 - **Your methodology stays yours.** You write the codes and freeze codebook versions. AI can propose codes and revisions, but nothing reaches your codebook until you accept it, and no automation can edit a frozen version.
@@ -204,6 +208,7 @@ The current suite passes 686 Python tests (5 platform skips; live provider tests
 - Default models follow the task: economical for high-volume classification, stronger for rare interpretive work. Model names that follow the provider's latest model are recorded with the exact model that answered; exact IDs pin a version.
 - Sampling cannot be fixed through the subscription CLIs, so consistency comes from stored answers, recorded provenance, a repeatability check and measured model experiments.
 - The workspace response sends current coding as event IDs instead of a second copy of each row (the demo payload fell from 13.5 MB to 7.4 MB).
+- The explainer video is code (Remotion, in `video/`), not generated footage: it reads the public demo snapshot, so every passage, code and provenance value on screen is real. Its one illustrative suggestion score is labelled as such.
 - Owner decisions are recorded with their reasoning in [docs/answers/](docs/answers).
 
 Software: [MIT](LICENSE). Dataset provenance and permissions: [DATA-LICENSES.md](DATA-LICENSES.md).

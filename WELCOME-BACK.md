@@ -1,4 +1,8 @@
-# Qualia - handoff (2026-10-07)
+# Qualia - handoff (2026-10-09)
+
+**New: a 60-second explainer video** at docs/media/qualia-explainer.mp4 (poster: docs/media/qualia-explainer-poster.jpg), linked from the README. It is made with Remotion from the public demo data. The source and storyboard are in `video/` (see video/PLAN.md), and nothing in the app changed. To re-render it: `cd video`, `npm ci`, `npm run render`. It is committed locally but **not pushed**; push when you're happy with it. Details: docs/BUILD-STATE.md (P22).
+
+## Earlier round (2026-10-07)
 
 **The improvement round is finished, verified and pushed to main.** Details: docs/BUILD-STATE.md (P20) and docs/answers/07-improvement-round.md.
 

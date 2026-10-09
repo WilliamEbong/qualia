@@ -1,0 +1,26 @@
+{
+  "name": "qualia-explainer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "60-second Qualia explainer video, rendered with Remotion",
+  "scripts": {
+    "studio": "remotion studio",
+    "typecheck": "tsc --noEmit",
+    "render": "remotion render Explainer out/qualia-explainer.mp4",
+    "poster": "remotion still Explainer out/qualia-explainer-poster.png --frame=1760"
+  },
+  "dependencies": {
+    "@fontsource-variable/libre-franklin": "5.3.0",
+    "@fontsource/cormorant-garamond": "5.3.0",
+    "@fontsource/ibm-plex-mono": "5.3.0",
+    "@remotion/cli": "4.0.529",
+    "@remotion/fonts": "4.0.529",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "remotion": "4.0.529"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "typescript": "5.9.3"
+  }
+}
