@@ -36,7 +36,7 @@ export const steps = [
     do: (ui) => ui.type(field(request(ui.page), 'Focus (optional)'), 'Experiences of support')},
   {caption: 'The returned proposals still require a human decision.', demo: true,
     do: ask},
-  {caption: 'Your identity and decision note accompany the proposal decision.',
+  {caption: 'Your identity and decision note accompany the proposal decision.', demo: true,
     do: async (ui) => {
       await ui.fill(field(panel(ui.page), 'Reviewer'), '');
       await ui.type(field(panel(ui.page), 'Reviewer'), 'researcher');
@@ -71,7 +71,7 @@ export const steps = [
       await ui.hover(ui.page.locator('.code-card').last());
       await ui.click(panel(ui.page).getByText(/^Decided proposals/));
     }},
-  {caption: 'Freezing the accepted draft stays a separate human decision.',
+  {caption: 'Freezing the accepted draft stays a separate human decision.', demo: true,
     do: async (ui) => { await ui.click(button(ui.page, 'Freeze codebook')); await ui.sleep(800); }},
   {caption: 'Refining suggests revisions to existing code definitions and guidance.', demo: true,
     do: async (ui) => {
@@ -87,7 +87,7 @@ export const steps = [
     do: async (ui) => { await ask(ui); await ui.hover(card(ui.page).locator('h4')); }},
   {caption: 'Compare the suggested boundary with your intended meaning.', demo: true,
     do: async (ui) => { await ui.hover(card(ui.page).locator('dl.code-fields')); await ui.hover(card(ui.page).locator('> p').first()); }},
-  {caption: 'Record why the proposed revision does not fit your judgment.',
+  {caption: 'Record why the proposed revision does not fit your judgment.', demo: true,
     do: async (ui) => {
       await ui.fill(field(panel(ui.page), 'Decision note (optional)'), '');
       await ui.type(field(panel(ui.page), 'Decision note (optional)'), 'Keep the existing definition for this practice study.');
@@ -101,7 +101,7 @@ export const steps = [
       await panel(ui.page).getByRole('status').waitFor();
       await ui.hover(panel(ui.page).getByRole('status'));
     }},
-  {caption: 'Disclose AI-assisted codebook development in your methods.',
+  {caption: 'Disclose AI-assisted codebook development in your methods.', demo: true,
     do: async (ui) => {
       const decided = panel(ui.page).locator('details.version');
       if ((await decided.getAttribute('open')) === null) await ui.click(decided.locator('summary'));

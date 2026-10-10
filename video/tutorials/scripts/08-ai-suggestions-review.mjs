@@ -48,7 +48,7 @@ export const steps = [
     }},
   {caption: 'The result reports suggestions, segments, calls and cache hits.', demo: true,
     do: async (ui) => { await ui.hover(ui.page.getByRole('status').filter({hasText: 'Classification'})); await ui.hover(card(ui.page)); }},
-  {caption: 'Your review identity becomes part of the decision history.',
+  {caption: 'Your review identity becomes part of the decision history.', demo: true,
     do: async (ui) => { await ui.fill(field(ui.page, 'Reviewer'), ''); await ui.type(field(ui.page, 'Reviewer'), 'researcher'); }},
   {caption: 'Read the passage and rationale together before deciding.', demo: true,
     do: async (ui) => {
@@ -69,7 +69,7 @@ export const steps = [
     }},
   {caption: 'Check the source context before accepting or rejecting a suggestion.', demo: true,
     do: (ui) => ui.click(card(ui.page).getByRole('button', {name: 'Open segment'}))},
-  {caption: 'A review note records the reason for your decision.',
+  {caption: 'A review note records the reason for your decision.', demo: true,
     do: async (ui) => {
       await ui.click(review(ui.page));
       await ui.type(field(ui.page, 'Review note (optional)'), 'Practice acceptance after checking context.');
@@ -87,7 +87,7 @@ export const steps = [
       await ui.hover(ui.page.getByRole('heading', {name: 'Current assignments'}));
       await ui.hover(ui.page.getByRole('heading', {name: 'Provenance'}));
     }},
-  {caption: 'A second source lets you practice rejecting a suggestion.',
+  {caption: 'A second source lets you practice rejecting a suggestion.', demo: true,
     do: async (ui) => { await ui.click(source(ui.page, 1)); await ui.click(review(ui.page)); }},
   {caption: 'Keep this practice run local and limited to the selected source.', demo: true,
     do: classify},
@@ -97,7 +97,7 @@ export const steps = [
       await ui.hover(card(ui.page).locator('blockquote'));
       await ui.click(card(ui.page).getByText('Suggestion provenance'));
     }},
-  {caption: 'Typing in a form does not trigger review shortcuts.',
+  {caption: 'Typing in a form does not trigger review shortcuts.', demo: true,
     do: async (ui) => {
       await ui.fill(field(ui.page, 'Review note (optional)'), '');
       await ui.type(field(ui.page, 'Review note (optional)'), 'Practice rejection after checking the passage.');
