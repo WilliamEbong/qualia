@@ -14,6 +14,22 @@ Qualia is a local-first workspace for qualitative research. Code interviews and 
 
 **[Watch the 60-second explainer](docs/media/qualia-explainer.mp4)** (silent, made with [Remotion](https://www.remotion.dev) from the public demo data; source in [`video/`](video/PLAN.md)).
 
+**Video tutorials**: silent and captioned, about two to four minutes each, recorded from the real app with the public demo and an invented practice study (AI scenes use the offline demonstration backend; source in [`video/tutorials/`](video/tutorials/README.md)).
+
+1. [Install and open](docs/media/tutorials/01-install-and-open.mp4)
+2. [First project in 5 minutes](docs/media/tutorials/02-first-project.mp4)
+3. [Import material](docs/media/tutorials/03-import-material.mp4)
+4. [Cases and attributes](docs/media/tutorials/04-cases-and-attributes.mp4)
+5. [Build and freeze a codebook](docs/media/tutorials/05-build-and-freeze-codebook.mp4)
+6. [Code by keyboard](docs/media/tutorials/06-code-by-keyboard.mp4)
+7. [Memos, themes, reflexivity](docs/media/tutorials/07-memos-themes-reflexivity.mp4)
+8. [AI suggestions and review queue](docs/media/tutorials/08-ai-suggestions-review.mp4)
+9. [Draft codes with proposals](docs/media/tutorials/09-draft-codes-proposals.mp4)
+10. [Evaluation explained](docs/media/tutorials/10-evaluation.mp4)
+11. [Experiments: KEEP or REVERT](docs/media/tutorials/11-experiments-keep-revert.mp4)
+12. [Matrix and Analysis workbench](docs/media/tutorials/12-matrix-and-analysis.mp4)
+13. [Export, Python/R, backup](docs/media/tutorials/13-export-python-r-backup.mp4)
+
 ## Why Qualia
 
 - **Your methodology stays yours.** You write the codes and freeze codebook versions. AI can propose codes and revisions, but nothing reaches your codebook until you accept it, and no automation can edit a frozen version.
@@ -209,6 +225,7 @@ The current suite passes 686 Python tests (5 platform skips; live provider tests
 - Sampling cannot be fixed through the subscription CLIs, so consistency comes from stored answers, recorded provenance, a repeatability check and measured model experiments.
 - The workspace response sends current coding as event IDs instead of a second copy of each row (the demo payload fell from 13.5 MB to 7.4 MB).
 - The explainer video is code (Remotion, in `video/`), not generated footage: it reads the public demo snapshot, so every passage, code and provenance value on screen is real. Its one illustrative suggestion score is labelled as such.
+- The video tutorials are recorded from the real app by scripts (`video/tutorials/`), so any one re-records with one command. Recordings use a scratch workspace, never real projects; AI scenes use the offline demonstration backend and say so on screen.
 - Owner decisions are recorded with their reasoning in [docs/answers/](docs/answers).
 
 Software: [MIT](LICENSE). Dataset provenance and permissions: [DATA-LICENSES.md](DATA-LICENSES.md).

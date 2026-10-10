@@ -1,6 +1,10 @@
-# Qualia - handoff (2026-10-09)
+# Qualia - handoff (2026-10-10)
 
-**New: a 60-second explainer video** at docs/media/qualia-explainer.mp4 (poster: docs/media/qualia-explainer-poster.jpg), linked from the README. It is made with Remotion from the public demo data. The source and storyboard are in `video/` (see video/PLAN.md), and nothing in the app changed. To re-render it: `cd video`, `npm ci`, `npm run render`. It is pushed to main (03025e8); Checks and Public demo both passed. Details: docs/BUILD-STATE.md (P22).
+**New: 13 video tutorials** in docs/media/tutorials/ (MP4 plus poster JPG each), listed in the README under "Video tutorials" and linked from the matching user-guide sections. They are silent and captioned, 1080p, and run 2:01 to 3:24. Each one is recorded from the real app by a script, using a scratch workspace (never your projects), the invented practice study or the public AnnoMI demo. AI scenes use the offline fake backend and say so on screen. Codex wrote the storyboards and reviewed the finished set, and all of its findings are fixed. The app itself is unchanged. To re-make one, see video/tutorials/README.md (for example `node tutorials/make.mjs 06` from `video/`). The full set adds about 102 MB to the repository. Details: docs/BUILD-STATE.md (P23).
+
+## Earlier (2026-10-09)
+
+**A 60-second explainer video** at docs/media/qualia-explainer.mp4 (poster: docs/media/qualia-explainer-poster.jpg), linked from the README. It is made with Remotion from the public demo data. The source and storyboard are in `video/` (see video/PLAN.md), and nothing in the app changed. To re-render it: `cd video`, `npm ci`, `npm run render`. It is pushed to main (03025e8); Checks and Public demo both passed. Details: docs/BUILD-STATE.md (P22).
 
 ## Earlier round (2026-10-07)
 
