@@ -12,7 +12,7 @@ feature: it lives in `video/`, has its own `package.json`, and changes nothing i
 - **Qualia's own look (doc 04 tokens), not a new style:** ivory ground, Cormorant Garamond display (400, never bold),
   Libre Franklin text, IBM Plex Mono captions, square corners, no shadows, 1px keylines, the horizon rule at 63.3%
   height. Fonts come from the same Fontsource packages the web app uses, loaded with `@remotion/fonts` so rendering
-  waits for them. The `title_dome` plate is read from `web/public` via `Config.setPublicDir` (no copied binaries).
+  waits for them. The `title_dome` and `paper` plates are imported from `web/public` in `theme.tsx` (no copied binaries; since P23 the Remotion public folder holds the tutorial recordings).
 - **Motion stays low:** fades and short slides with `cubic-bezier(0.3, 0, 0.7, 1)`; no springs, bounce or glow.
 - **Honest data only.** Transcript lines and expert codes come from `demo/snapshot.json` (public-domain AnnoMI demo).
   The provenance card shows one recorded event verbatim. Experiment numbers are the real, published Jev tuning

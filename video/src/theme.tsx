@@ -1,8 +1,11 @@
 import {loadFont} from '@remotion/fonts';
-import {AbsoluteFill, Easing, Img, interpolate, staticFile, useCurrentFrame} from 'remotion';
+import {AbsoluteFill, Easing, Img, interpolate, useCurrentFrame} from 'remotion';
 import cormorant from '@fontsource/cormorant-garamond/files/cormorant-garamond-latin-400-normal.woff2';
 import franklin from '@fontsource-variable/libre-franklin/files/libre-franklin-latin-wght-normal.woff2';
 import plexMono from '@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2';
+// The web app's generated plates, bundled by import so the public folder can hold recordings.
+import titleDome from '../../web/public/plates/title_dome.webp';
+import paper from '../../web/public/plates/paper.webp';
 
 // Same fonts and values as web/src/styles/tokens.css; loadFont blocks rendering until each is ready.
 loadFont({family: 'Cormorant Garamond', url: cormorant, weight: '400'});
@@ -48,7 +51,7 @@ export const Scene: React.FC<{dur: number; dark?: boolean; horizon?: boolean; ch
   const frame = useCurrentFrame();
   return (
     <AbsoluteFill style={{backgroundColor: dark ? color.plateGround : color.ivory, opacity: 1 - ramp(frame, dur - 9)}}>
-      <Img src={staticFile(dark ? 'plates/title_dome.webp' : 'plates/paper.webp')}
+      <Img src={dark ? titleDome : paper}
         style={{position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover'}} />
       {horizon && (
         <div style={{position: 'absolute', left: 0, right: 0, top: HORIZON, height: 1,

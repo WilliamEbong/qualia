@@ -1,6 +1,6 @@
 import {Config} from '@remotion/cli/config';
 
-// Reuse the web app's generated plates instead of copying binaries.
-Config.setPublicDir('../web/public');
+// public/ holds the tutorial recordings (gitignored); plates are imported from web/public in theme.tsx.
+Config.setPublicDir('public');
 Config.setMuted(true);
 Config.setCodec('h264');
