@@ -24,7 +24,7 @@ module-name = "qualia"
 module-root = ""
 
 [dependency-groups]
-dev = ["pytest>=9,<10", "ruff>=0.15", "pip-audit>=2.9", "krippendorff==0.8.2"]
+dev = ["pytest>=9,<10", "ruff>=0.15", "pip-audit>=2.9", "krippendorff==0.9.0"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
