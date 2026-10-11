@@ -61,7 +61,7 @@ Qualia provides several familiar NVivo-style workflows: text coding, hierarchica
 
 ## 2. Install and open Qualia
 
-Video tutorial: [Install and open](media/tutorials/01-install-and-open.mp4) (silent, captioned).
+Video tutorial: [Install and open](https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/01-install-and-open.mp4) (silent, captioned).
 
 ### Install on Windows (no terminal needed)
 
@@ -140,7 +140,7 @@ The vault is an application access boundary, not encrypted storage. Your operati
 
 ## 3. Try a small practice study
 
-Video tutorial: [First project in 5 minutes](media/tutorials/02-first-project.mp4) (silent, captioned).
+Video tutorial: [First project in 5 minutes](https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/02-first-project.mp4) (silent, captioned).
 
 This synthetic exercise produces easy-to-check results without using private research data or AI.
 
@@ -170,7 +170,7 @@ Use this project to practice removal, memos, filters and exports. Keep actual re
 
 ## 4. Import your material
 
-Video tutorial: [Import material](media/tutorials/03-import-material.mp4) (silent, captioned).
+Video tutorial: [Import material](https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/03-import-material.mp4) (silent, captioned).
 
 ### Text or Markdown
 
@@ -210,7 +210,7 @@ Use `--version-of SOURCE_ID` for an explicit revision. Replace example paths, pr
 
 ## 5. Organize cases and attributes
 
-Video tutorial: [Cases and attributes](media/tutorials/04-cases-and-attributes.mp4) (silent, captioned).
+Video tutorial: [Cases and attributes](https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/04-cases-and-attributes.mp4) (silent, captioned).
 
 A source can link to more than one case. Each linked case receives that source's selected segments in case-based analyses. This is useful for some designs, but it does not separate participants inside a multi-speaker transcript automatically.
 
@@ -233,7 +233,7 @@ Choose units deliberately. Numeric analysis uses one observation per eligible ca
 
 ## 6. Create and freeze a codebook
 
-Video tutorial: [Build and freeze a codebook](media/tutorials/05-build-and-freeze-codebook.mp4) (silent, captioned).
+Video tutorial: [Build and freeze a codebook](https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/05-build-and-freeze-codebook.mp4) (silent, captioned).
 
 1. Open **Codebook**.
 2. Under **Create code**, enter a **Name** and **Definition**.
@@ -252,7 +252,7 @@ Your codebook belongs to you. AI classification and improvement experiments do n
 
 ### Draft and refine codes with proposals
 
-Video tutorial: [Draft codes with proposals](media/tutorials/09-draft-codes-proposals.mp4) (silent, captioned).
+Video tutorial: [Draft codes with proposals](https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/09-draft-codes-proposals.mp4) (silent, captioned).
 
 Proposals help you write or sharpen the codebook. Each one is a suggested new code or a suggested revision, shown with its reasons, its evidence and where it came from. A proposal changes nothing on its own: you accept it into the draft codebook, usually after editing it, or reject it with a note. Freezing stays a separate decision.
 
@@ -288,7 +288,7 @@ Use this view to inspect definitions before choosing a frozen version for coding
 
 ## 7. Code passages manually
 
-Video tutorial: [Code by keyboard](media/tutorials/06-code-by-keyboard.mp4) (silent, captioned).
+Video tutorial: [Code by keyboard](https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/06-code-by-keyboard.mp4) (silent, captioned).
 
 ### Whole segments and selected spans
 
@@ -328,7 +328,7 @@ Offsets are relative to the segment and count Unicode code points. `0:5` include
 
 ## 8. Write memos and retrieve evidence
 
-Video tutorial: [Memos, themes, reflexivity](media/tutorials/07-memos-themes-reflexivity.mp4) (silent, captioned).
+Video tutorial: [Memos, themes, reflexivity](https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/07-memos-themes-reflexivity.mp4) (silent, captioned).
 
 ### Memos
 
@@ -373,7 +373,7 @@ Retrieval lists current coded spans. Several spans in one segment can produce se
 
 ## 9. Compare codes in the matrix
 
-Video tutorial: [Matrix and Analysis workbench](media/tutorials/12-matrix-and-analysis.mp4) (silent, captioned).
+Video tutorial: [Matrix and Analysis workbench](https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/12-matrix-and-analysis.mp4) (silent, captioned).
 
 1. Ensure you have cases linked to sources and current coding assignments.
 2. Open **Matrix**.
@@ -388,7 +388,7 @@ Use a cell as a route back to the supporting coded excerpts, not as a standalone
 
 ## 10. Use the Analysis workbench
 
-Video tutorial: [Matrix and Analysis workbench](media/tutorials/12-matrix-and-analysis.mp4) (silent, captioned).
+Video tutorial: [Matrix and Analysis workbench](https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/12-matrix-and-analysis.mp4) (silent, captioned).
 
 Analysis reads visible workspace data. It does not write coding, call AI or read the protected benchmark vault. It describes the data and decisions selected by your criteria; it does not establish statistical significance or causation.
 
@@ -465,7 +465,7 @@ Additional limits bound text processing, case/attribute expansion, word/pair mem
 
 ## 11. Continue in Python or R
 
-Video tutorial: [Export, Python/R, backup](media/tutorials/13-export-python-r-backup.mp4) (silent, captioned).
+Video tutorial: [Export, Python/R, backup](https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/13-export-python-r-backup.mp4) (silent, captioned).
 
 Use this workflow for deeper analysis outside Qualia. It does not install or execute an unrestricted code runner in the application.
 
@@ -501,7 +501,7 @@ The starters reproduce selected numeric summaries, pairwise correlations and cas
 
 ## 12. Generate and review AI suggestions
 
-Video tutorial: [AI suggestions and review queue](media/tutorials/08-ai-suggestions-review.mp4) (silent, captioned).
+Video tutorial: [AI suggestions and review queue](https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/08-ai-suggestions-review.mp4) (silent, captioned).
 
 ### Know which backend you are using
 
@@ -683,7 +683,7 @@ Jev can also take load off Claude or Codex: set it as the cheap tier and escalat
 
 ## 14. Evaluate a classifier against reference labels
 
-Video tutorial: [Evaluation explained](media/tutorials/10-evaluation.mp4) (silent, captioned).
+Video tutorial: [Evaluation explained](https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/10-evaluation.mp4) (silent, captioned).
 
 **Analysis** describes your current research coding and attributes. **Evaluation** measures classifier predictions against separately supplied reference labels. Evaluation never turns its predictions into research coding assignments.
 
@@ -760,7 +760,7 @@ Use `--protected` without `--split protected`. A protected benchmark must alread
 
 ## 15. Understand improvement experiments
 
-Video tutorial: [Experiments: KEEP or REVERT](media/tutorials/11-experiments-keep-revert.mp4) (silent, captioned).
+Video tutorial: [Experiments: KEEP or REVERT](https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/11-experiments-keep-revert.mp4) (silent, captioned).
 
 An experiment proposes a change to implementation configuration/prompts, measures it on validation data, and records **KEEP** or **REVERT**. It does not authorize changing research code definitions, benchmark labels, methodology or protected test data.
 
@@ -851,7 +851,7 @@ An interrupted operation can leave a pending recovery journal. Stop and use the 
 
 ## 16. Export a project or reproducibility bundle
 
-Video tutorial: [Export, Python/R, backup](media/tutorials/13-export-python-r-backup.mp4) (silent, captioned).
+Video tutorial: [Export, Python/R, backup](https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/13-export-python-r-backup.mp4) (silent, captioned).
 
 1. Select **Export** in the navigation.
 2. Choose **JSON** or **CSV** under **Format**.
@@ -888,7 +888,7 @@ Do not confuse the smaller static snapshot with the editable local `demo` projec
 
 ## 18. Back up your work and handle interruptions
 
-Video tutorial: [Export, Python/R, backup](media/tutorials/13-export-python-r-backup.mp4) (silent, captioned).
+Video tutorial: [Export, Python/R, backup](https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/13-export-python-r-backup.mp4) (silent, captioned).
 
 ### Make a complete manual backup
 

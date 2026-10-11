@@ -10,25 +10,18 @@ Qualia is a local-first workspace for qualitative research. Code interviews and 
 
 ![Visual tour: home, coding, review, synthetic statistics and measured experiment](design-review/final/walkthrough.gif)
 
-[![60-second explainer video: coding, AI review, provenance and measured experiments](docs/media/qualia-explainer-poster.jpg)](docs/media/qualia-explainer.mp4)
+[![60-second explainer video: coding, AI review, provenance and measured experiments](docs/media/qualia-explainer-poster.jpg)](https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/qualia-explainer.mp4)
 
-**[Watch the 60-second explainer](docs/media/qualia-explainer.mp4)** (silent, made with [Remotion](https://www.remotion.dev) from the public demo data; source in [`video/`](video/PLAN.md)).
+**[Watch the 60-second explainer](https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/qualia-explainer.mp4)** (silent, made with [Remotion](https://www.remotion.dev) from the public demo data; source in [`video/`](video/PLAN.md)).
 
-**Video tutorials**: silent and captioned, about two to four minutes each, recorded from the real app with the public demo and an invented practice study (AI scenes use the offline demonstration backend; source in [`video/tutorials/`](video/tutorials/README.md)).
+**Video tutorials** (click a poster to play): silent and captioned, about two to four minutes each, recorded from the real app with the public demo and an invented practice study (AI scenes use the offline demonstration backend; source in [`video/tutorials/`](video/tutorials/README.md)).
 
-1. [Install and open](docs/media/tutorials/01-install-and-open.mp4)
-2. [First project in 5 minutes](docs/media/tutorials/02-first-project.mp4)
-3. [Import material](docs/media/tutorials/03-import-material.mp4)
-4. [Cases and attributes](docs/media/tutorials/04-cases-and-attributes.mp4)
-5. [Build and freeze a codebook](docs/media/tutorials/05-build-and-freeze-codebook.mp4)
-6. [Code by keyboard](docs/media/tutorials/06-code-by-keyboard.mp4)
-7. [Memos, themes, reflexivity](docs/media/tutorials/07-memos-themes-reflexivity.mp4)
-8. [AI suggestions and review queue](docs/media/tutorials/08-ai-suggestions-review.mp4)
-9. [Draft codes with proposals](docs/media/tutorials/09-draft-codes-proposals.mp4)
-10. [Evaluation explained](docs/media/tutorials/10-evaluation.mp4)
-11. [Experiments: KEEP or REVERT](docs/media/tutorials/11-experiments-keep-revert.mp4)
-12. [Matrix and Analysis workbench](docs/media/tutorials/12-matrix-and-analysis.mp4)
-13. [Export, Python/R, backup](docs/media/tutorials/13-export-python-r-backup.mp4)
+<table>
+<tr><td align="center" width="25%"><a href="https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/01-install-and-open.mp4"><img src="docs/media/tutorials/01-install-and-open.jpg" alt="Tutorial 1: Install and open" width="200"></a><br>1 · Install and open</td><td align="center" width="25%"><a href="https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/02-first-project.mp4"><img src="docs/media/tutorials/02-first-project.jpg" alt="Tutorial 2: First project in 5 minutes" width="200"></a><br>2 · First project in 5 minutes</td><td align="center" width="25%"><a href="https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/03-import-material.mp4"><img src="docs/media/tutorials/03-import-material.jpg" alt="Tutorial 3: Import material" width="200"></a><br>3 · Import material</td><td align="center" width="25%"><a href="https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/04-cases-and-attributes.mp4"><img src="docs/media/tutorials/04-cases-and-attributes.jpg" alt="Tutorial 4: Cases and attributes" width="200"></a><br>4 · Cases and attributes</td></tr>
+<tr><td align="center" width="25%"><a href="https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/05-build-and-freeze-codebook.mp4"><img src="docs/media/tutorials/05-build-and-freeze-codebook.jpg" alt="Tutorial 5: Build and freeze a codebook" width="200"></a><br>5 · Build and freeze a codebook</td><td align="center" width="25%"><a href="https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/06-code-by-keyboard.mp4"><img src="docs/media/tutorials/06-code-by-keyboard.jpg" alt="Tutorial 6: Code by keyboard" width="200"></a><br>6 · Code by keyboard</td><td align="center" width="25%"><a href="https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/07-memos-themes-reflexivity.mp4"><img src="docs/media/tutorials/07-memos-themes-reflexivity.jpg" alt="Tutorial 7: Memos, themes, reflexivity" width="200"></a><br>7 · Memos, themes, reflexivity</td><td align="center" width="25%"><a href="https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/08-ai-suggestions-review.mp4"><img src="docs/media/tutorials/08-ai-suggestions-review.jpg" alt="Tutorial 8: AI suggestions and review queue" width="200"></a><br>8 · AI suggestions and review queue</td></tr>
+<tr><td align="center" width="25%"><a href="https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/09-draft-codes-proposals.mp4"><img src="docs/media/tutorials/09-draft-codes-proposals.jpg" alt="Tutorial 9: Draft codes with proposals" width="200"></a><br>9 · Draft codes with proposals</td><td align="center" width="25%"><a href="https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/10-evaluation.mp4"><img src="docs/media/tutorials/10-evaluation.jpg" alt="Tutorial 10: Evaluation explained" width="200"></a><br>10 · Evaluation explained</td><td align="center" width="25%"><a href="https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/11-experiments-keep-revert.mp4"><img src="docs/media/tutorials/11-experiments-keep-revert.jpg" alt="Tutorial 11: Experiments: KEEP or REVERT" width="200"></a><br>11 · Experiments: KEEP or REVERT</td><td align="center" width="25%"><a href="https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/12-matrix-and-analysis.mp4"><img src="docs/media/tutorials/12-matrix-and-analysis.jpg" alt="Tutorial 12: Matrix and Analysis workbench" width="200"></a><br>12 · Matrix and Analysis workbench</td></tr>
+<tr><td align="center" width="25%"><a href="https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/13-export-python-r-backup.mp4"><img src="docs/media/tutorials/13-export-python-r-backup.jpg" alt="Tutorial 13: Export, Python/R, backup" width="200"></a><br>13 · Export, Python/R, backup</td></tr>
+</table>
 
 ## Why Qualia
 
