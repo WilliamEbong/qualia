@@ -309,14 +309,14 @@ wheels = [
 
 [[package]]
 name = "krippendorff"
-version = "0.8.2"
+version = "0.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/fd/1c/839234d9b9ca3c2c1f9445bb7f3022662face6cc6f9e3f915d8b7654dea7/krippendorff-0.8.2.tar.gz", hash = "sha256:f975bf4b5d93439d3264c4fc85a45d014aca9f5f9fca17f18fa2f3c89ee158ca", size = 18229, upload-time = "2025-11-03T03:03:39.821Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/1c/bc/ca3aefd9240f0c306559fc5f74cf43f0a78c46b647aea4358ea63143d56e/krippendorff-0.9.0.tar.gz", hash = "sha256:574dd5af0dd0da54e3f6774f2cad279fbd38a92178324766a406536f1a0c8f7c", size = 18699, upload-time = "2026-10-07T04:23:17.343Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/01/4f/597b65bc88a031ee68b459fec05f8b40a60c3c3f6d5cde5b1403d965d199/krippendorff-0.8.2-py3-none-any.whl", hash = "sha256:1922ff73f7caa5faab6237a1abcb4f3e6ab605e3f7d39acd7998176873b8cd57", size = 18616, upload-time = "2025-11-03T03:03:38.583Z" },
+    { url = "https://files.pythonhosted.org/packages/c1/38/f032217b046b9fd1b9d7acf0a574b8318b183ffd9818d47cf137d55de034/krippendorff-0.9.0-py3-none-any.whl", hash = "sha256:22ab549f5f05050080ea5c1a95be1401b64aaa01576fe61b2e8da666bc4e0034", size = 19021, upload-time = "2026-10-07T04:23:16.34Z" },
 ]
 
 [[package]]
@@ -706,7 +706,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "krippendorff", specifier = "==0.8.2" },
+    { name = "krippendorff", specifier = "==0.9.0" },
     { name = "pip-audit", specifier = ">=2.9" },
     { name = "pytest", specifier = ">=9,<10" },
     { name = "ruff", specifier = ">=0.15" },
@@ -932,7 +932,7 @@ wheels = [
 
 [[package]]
 name = "typer"
-version = "0.27.2"
+version = "0.27.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "annotated-doc" },
@@ -940,9 +940,9 @@ dependencies = [
     { name = "rich" },
     { name = "shellingham" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/16/f7/57713ba479fd405eb76de31404b2c744c289e336b2d999511ebf51e496f7/typer-0.27.2.tar.gz", hash = "sha256:269b7eb9d3c202ca84b4bc9618cb04ebb43d3d4d1e567e4c768607232c05f945", size = 204045, upload-time = "2026-08-28T10:26:55.046Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/03/51/d33db42cc72ffd8c30777547b42d01f0cbf9d95a770457698d0174b3ed71/typer-0.27.3.tar.gz", hash = "sha256:d0396f770a560ab1b0a8504e13b5f254b728cedb05c61cf0359e944e50ce8901", size = 205303, upload-time = "2026-10-06T17:24:16.61Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/dc/bf/205d0004930ede8f542fb58f601526fccf4ae7626075ca1e6c4de5d3d652/typer-0.27.2-py3-none-any.whl", hash = "sha256:b3a5fc4342d5fc8fda8fc3010b1cf117e9249aab7fae800c2eff62fd3842d97d", size = 123130, upload-time = "2026-08-28T10:26:53.752Z" },
+    { url = "https://files.pythonhosted.org/packages/07/ea/2e31b67051e91a133189e9c000c222502ddc6969856416de0d095de4c0b0/typer-0.27.3-py3-none-any.whl", hash = "sha256:e50022f28b82a86313e54501317a1db64bf8f8d036ff8cfe5ca7e47675454aff", size = 123312, upload-time = "2026-10-06T17:24:15.054Z" },
 ]
 
 [[package]]
