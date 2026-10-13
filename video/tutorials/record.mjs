@@ -323,7 +323,7 @@ try {
       await sleep(Math.max(0, hold(s.caption) - (Date.now() - t0 - cursor)));
       cursor = step.endMs = Date.now() - t0;
       // Long waits (a `fast` step) play back faster so the step lasts about as long as its caption needs.
-      if (s.fast) step.rate = Math.max(1, Math.round(((step.endMs - step.startMs) / (hold(s.caption) + 1500)) * 10) / 10);
+      if (s.fast) step.rate = Math.max(1, Math.round(((step.endMs - step.startMs) / hold(s.caption)) * 10) / 10);
     }
     steps.push(step);
     console.log(`${i + 1}/${tutorial.steps.length} ${s.caption}`);

@@ -3,6 +3,8 @@
 import {button, field} from '../shared.mjs';
 
 export const seed = ({cli}) => cli('demo');
+// A touch slower so the series' two-minute minimum holds now that the evaluation wait is sped up.
+export const pace = 1.08;
 
 // Each metric's row header also holds its one-line explanation.
 const metric = (page, name) => page.getByRole('table', {name: 'Validation metrics', exact: true}).getByRole('rowheader', {name: new RegExp(`^${name}`)});
