@@ -13,8 +13,6 @@ const classify = async (ui) => {
   await ui.page.getByRole('status').filter({hasText: 'Classification'}).waitFor();
 };
 
-// Slower pacing keeps this short tutorial near two minutes.
-export const pace = 1.1;
 
 export const steps = [
   {caption: 'Suggestions require a frozen codebook and imported passages.',

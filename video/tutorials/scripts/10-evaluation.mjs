@@ -6,12 +6,12 @@ export const seed = ({cli}) => cli('demo');
 
 // Each metric's row header also holds its one-line explanation.
 const metric = (page, name) => page.getByRole('table', {name: 'Validation metrics', exact: true}).getByRole('rowheader', {name: new RegExp(`^${name}`)});
+// The whole row: the metric's name, its one-line explanation and its value.
+const row = (page, name) => page.getByRole('table', {name: 'Validation metrics', exact: true}).getByRole('row').filter({has: metric(page, name)});
 const perCode = (page) => page.getByRole('table', {name: 'Per-code validation metrics', exact: true});
 const repeat = (page) => page.getByLabel('Repeatability check');
 const LONG = 240_000;
 
-// Slower pacing keeps this short tutorial near two minutes.
-export const pace = 1.2;
 
 export const steps = [
   {caption: 'Evaluation measures predictions against separately supplied reference labels.',
@@ -32,18 +32,18 @@ export const steps = [
   {caption: 'The local demo validation split contains 1,258 utterances.', demo: true,
     do: (ui) => ui.hover(field(ui.page, 'Recorded validation run'))},
   {caption: 'Macro F1 averages over every code, so rare codes count equally.', demo: true,
-    do: (ui) => ui.hover(metric(ui.page, 'Macro F1'))},
+    do: (ui) => ui.hover(row(ui.page, 'Macro F1'), 'Macro F1')},
   {caption: 'Micro F1 pools code decisions, giving common codes more weight.', demo: true,
-    do: async (ui) => { await ui.hover(metric(ui.page, 'Micro F1')); await ui.hover(metric(ui.page, 'Macro F1')); }},
+    do: async (ui) => { await ui.hover(row(ui.page, 'Micro F1'), 'Micro F1'); await ui.hover(row(ui.page, 'Macro F1'), 'Macro F1'); }},
   {caption: 'Exact and partial matching answer different questions.', demo: true,
     do: async (ui) => {
-      await ui.hover(metric(ui.page, 'Exact code-set match'));
-      await ui.hover(metric(ui.page, 'Partial match'));
+      await ui.hover(row(ui.page, 'Exact code-set match'), 'Exact code-set match');
+      await ui.hover(row(ui.page, 'Partial match'), 'Partial match');
     }},
   {caption: 'Reference-versus-prediction agreement is not human intercoder reliability.', demo: true,
     do: async (ui) => {
-      await ui.hover(metric(ui.page, 'Cohen kappa'));
-      await ui.hover(metric(ui.page, 'Nominal alpha'));
+      await ui.hover(row(ui.page, 'Cohen kappa'), 'Cohen kappa');
+      await ui.hover(row(ui.page, 'Nominal alpha'), 'Nominal alpha');
       await ui.hover(ui.page.getByText(/^Alpha basis:/));
     }},
   {caption: 'Read performance together with the number of reference examples for each code.', demo: true,
@@ -57,7 +57,7 @@ export const steps = [
       await ui.hover(perCode(ui.page).getByRole('row').nth(1));
     }},
   {caption: 'Calibration describes this validation set rather than guaranteed future accuracy.', demo: true,
-    do: (ui) => ui.hover(metric(ui.page, 'Validation ECE'))},
+    do: (ui) => ui.hover(row(ui.page, 'Validation ECE'), 'Validation ECE')},
   {caption: 'Provenance binds the result to its benchmark, codebook and classifier identity.', demo: true,
     do: (ui) => ui.click(ui.page.getByText('Evaluation provenance and metric definitions'))},
   {caption: 'Use the recorded identities when comparing or reproducing a run.', demo: true,
@@ -95,5 +95,5 @@ export const steps = [
       await ui.hover(table.getByRole('columnheader', {name: 'Kappa between runs'}));
     }},
   {caption: 'Deterministic fake results demonstrate the workflow rather than model quality.', demo: true,
-    do: async (ui) => { await ui.hover(field(ui.page, 'Recorded validation run')); await ui.hover(metric(ui.page, 'Macro F1')); }},
+    do: async (ui) => { await ui.hover(field(ui.page, 'Recorded validation run')); await ui.hover(row(ui.page, 'Macro F1'), 'Macro F1'); }},
 ];

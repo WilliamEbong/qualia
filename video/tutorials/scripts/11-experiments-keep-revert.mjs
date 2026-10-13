@@ -36,7 +36,7 @@ export const steps = [
     do: (ui) => ui.hover(ui.page.getByRole('heading', {name: 'Experiment history'}))},
   {caption: 'Read the recorded decision rather than assuming a gain was kept.', demo: true,
     do: (ui) => ui.click(attempts(ui.page).getByRole('button').first())},
-  {caption: 'REVERT is a valid outcome, not an instruction to bypass the policy.', demo: true,
+  {caption: 'Here the measured policy kept the change; REVERT would be just as valid an outcome.', demo: true,
     do: (ui) => ui.hover(attempts(ui.page).locator('.decision-caption').first())},
   {caption: 'The hypothesis is a proposed explanation rather than proof of improvement.', demo: true,
     do: (ui) => ui.hover(ui.page.getByRole('heading', {name: 'Operator hypothesis'}))},

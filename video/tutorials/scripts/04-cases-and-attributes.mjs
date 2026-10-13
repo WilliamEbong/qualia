@@ -7,8 +7,6 @@ const attributes = (page) => page.getByLabel('Attributes, one name=value per lin
 const edit = (page, name) => page.getByRole('button', {name: `Edit case ${name}`});
 const sourceList = (page) => page.getByLabel('Sources and cases').locator('ul').first();
 
-// Slower pacing keeps this short tutorial near two minutes.
-export const pace = 1.65;
 
 export const steps = [
   {caption: 'A case represents the unit you want to compare.',

@@ -40,9 +40,7 @@ export const steps = [
       await ui.click(button(ui.page, 'Edit memo').first());
       // Append at the very end: Control+End, then type without another click moving the caret.
       const memo = text(ui.page, 'Memo');
-      await ui.click(memo);
-      await memo.press('Control+End');
-      await memo.pressSequentially(' Look for cases where support does not reduce pressure.', {delay: 45});
+      await ui.append(memo, ' Look for cases where support does not reduce pressure.');
     }},
   {caption: 'Earlier memo versions remain available with their replacement times.',
     do: async (ui) => {

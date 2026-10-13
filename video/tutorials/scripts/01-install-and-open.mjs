@@ -4,17 +4,16 @@
 import {button} from '../shared.mjs';
 
 export const seed = ({cli}) => cli('demo');
+// The recording opens on the public Releases page, loaded before capture starts.
+export const start = 'https://github.com/WilliamEbong/qualia/releases/latest';
 
 const card = (title, ...lines) => ({title, lines});
 const catalogue = (page) => page.getByRole('heading', {name: 'Project catalogue'});
 
-// Slower pacing keeps this short tutorial near two minutes.
-export const pace = 1.25;
 
 export const steps = [
   {caption: 'Download the latest release zip for Windows.',
-    card: {title: 'Download', lines: ['Download the latest Qualia-<version>.zip from the Releases page:'],
-      command: 'github.com/WilliamEbong/qualia/releases'}},
+    do: (ui) => ui.hover(ui.page.getByRole('link', {name: /^Qualia-v[\d.]+\.zip$/}).first())},
   {caption: 'Unblock the downloaded zip before extracting it.',
     card: card('Unblock', 'Right-click the zip, choose Properties,', 'tick Unblock and select OK.')},
   {caption: 'Keep the application in a folder you will retain.',
@@ -26,7 +25,12 @@ export const steps = [
   {caption: 'Qualia opens automatically when installation finishes.',
     card: card('Shortcuts', 'A Qualia icon appears on your Desktop and in the Start menu.')},
   {caption: 'The demonstration lets you explore public research material locally.',
-    do: async (ui) => { await ui.hover(catalogue(ui.page)); await ui.hover(ui.page.locator('.project-drawer').first()); }},
+    do: async (ui) => {
+      await ui.page.goto(ui.base);
+      await ui.page.waitForLoadState('networkidle');
+      await ui.hover(catalogue(ui.page));
+      await ui.hover(ui.page.locator('.project-drawer').first());
+    }},
   {caption: "Use Qualia's own window for your research.",
     do: async (ui) => {
       await ui.select(ui.page.getByLabel('Local project'), 'demo');

@@ -17,8 +17,6 @@ const paste = async (ui, opener, format, name, text) => {
   await ui.fill(ui.page.getByLabel('Or paste source text'), text);
 };
 
-// Slower pacing keeps this short tutorial near two minutes.
-export const pace = 1.3;
 
 export const steps = [
   {caption: 'Check the project before importing research material.',

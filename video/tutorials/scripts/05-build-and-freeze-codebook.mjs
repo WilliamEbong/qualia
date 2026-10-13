@@ -6,8 +6,6 @@ export const seed = (q) => practice(q, 'imported');
 const field = (page, label) => labelled(page.locator('#code-editor'), label);
 const versions = (page) => page.locator('details.version summary', {hasText: /^cb_v/});
 
-// Slower pacing keeps this short tutorial near two minutes.
-export const pace = 1.5;
 
 export const steps = [
   {caption: 'Your codebook belongs to you.',

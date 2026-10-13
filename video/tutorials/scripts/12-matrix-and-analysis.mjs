@@ -2,6 +2,8 @@
 import {button, field, practice} from '../shared.mjs';
 
 export const seed = (q) => practice(q, 'coded');
+// Slightly quicker holds keep this 29-step tutorial within four minutes.
+export const pace = 0.85;
 
 const criteria = (page) => page.locator('details', {has: page.locator('summary', {hasText: /^Analysis criteria$/})});
 const apply = (ui) => ui.click(button(ui.page, 'Apply analysis criteria'));
@@ -20,9 +22,9 @@ export const steps = [
       await ui.click(button(ui.page, 'Matrix'));
     }},
   {caption: 'Repeated spans of one code on a segment count once in a matrix cell.',
-    do: async (ui) => { for (const c of ['p01', 'p02', 'p03']) await ui.hover(ui.page.getByRole('button', {name: new RegExp(`^Support · ${c} ·`)})); }},
+    do: async (ui) => { for (const c of ['p01', 'p02', 'p03']) await ui.hover(ui.page.getByRole('button', {name: new RegExp(`^Support · ${c} ·`)}), `the Support cell for ${c}`); }},
   {caption: 'A matrix cell leads back to its supporting coded excerpts.',
-    do: (ui) => ui.click(ui.page.getByRole('button', {name: /^Support · p03 ·/}))},
+    do: (ui) => ui.click(ui.page.getByRole('button', {name: /^Support · p03 ·/}), 'the Support cell for p03')},
   {caption: 'Use the passage context to interpret the count.',
     do: async (ui) => {
       await ui.hover(field(ui.page, 'Code'));
@@ -90,7 +92,7 @@ export const steps = [
   {caption: 'Selecting a code pair opens its contributing passages.',
     do: async (ui) => {
       await ui.hover(heading(ui.page, 'Code co-occurrence'));
-      await ui.click(ui.page.getByRole('button', {name: /^Support and Pressure:/}).first());
+      await ui.click(ui.page.getByRole('button', {name: /^Support and Pressure:/}).first(), 'the Support and Pressure cell');
     }},
   {caption: 'Jaccard measures segments carrying both codes divided by those carrying either.',
     do: (ui) => ui.click(summary(ui.page, 'Exact pair counts and segment-presence Jaccard'))},

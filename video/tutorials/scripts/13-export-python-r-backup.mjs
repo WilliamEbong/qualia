@@ -1,5 +1,6 @@
 // Tutorial 13 · Export, Python/R, backup (guide §11, §16, §18). Storyboard: ../storyboards/13-export-python-r-backup.md
 // Steps outside the browser (terminal, file manager) are cards; R is not claimed to have been run.
+import {execFileSync} from 'node:child_process';
 import {button, field, practice} from '../shared.mjs';
 
 export const seed = (q) => practice(q, 'coded');
@@ -41,7 +42,13 @@ export const steps = [
   {caption: 'Analysis exports retain case metadata and query criteria, so they are not anonymous.',
     card: card('Before running anything', 'Review the downloaded data and starter files.')},
   {caption: 'Run the Python starter deliberately outside Qualia.',
-    card: {title: 'Continue in Python', lines: ['From the output folder:'], command: 'python qualia-analysis.py qualia-analysis.csv'}},
+    card: {title: 'Continue in Python', lines: ['In a terminal, from the folder with the downloaded files:'], terminal: true,
+      command: 'python qualia-analysis.py qualia-analysis.csv'},
+    // Run the starter that was just downloaded and show its real output, as a terminal would.
+    prepare: (ui, card) => {
+      const output = execFileSync(ui.python, ['qualia-analysis.py', 'qualia-analysis.csv'], {cwd: ui.work, encoding: 'utf8'});
+      card.command = [`> ${card.command}`, ...output.trim().split(/\r?\n/).slice(0, 12)].join('\n');
+    }},
   {caption: 'The guide does not claim verified R execution in its tested environment.',
     card: {title: 'Continue in R', lines: ['With R installed:'], command: 'Rscript qualia-analysis.R qualia-analysis.csv'}},
   {caption: 'A case table cannot reconstruct every segment-level chart or source excerpt.',
