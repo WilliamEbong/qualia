@@ -7,7 +7,8 @@ export const seed = ({cli}) => cli('demo');
 // Each metric's row header also holds its one-line explanation.
 const metric = (page, name) => page.getByRole('table', {name: 'Validation metrics', exact: true}).getByRole('rowheader', {name: new RegExp(`^${name}`)});
 // The whole row: the metric's name, its one-line explanation and its value.
-const row = (page, name) => page.getByRole('table', {name: 'Validation metrics', exact: true}).getByRole('row').filter({has: metric(page, name)});
+const row = (page, name) => page.getByRole('table', {name: 'Validation metrics', exact: true}).getByRole('row')
+  .filter({has: page.getByRole('rowheader', {name: new RegExp(`^${name}`)})});
 const perCode = (page) => page.getByRole('table', {name: 'Per-code validation metrics', exact: true});
 const repeat = (page) => page.getByLabel('Repeatability check');
 const LONG = 240_000;

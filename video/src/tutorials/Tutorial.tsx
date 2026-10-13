@@ -13,6 +13,8 @@ const STAGE = {left: 64, top: 60, width: 1792, height: 1008};
 // Height of the caption panel inside the stage; close-ups keep their target above it.
 const PANEL = 160;
 const GLIDE = 700;
+// The camera starts moving this long before the pointer does, so a caption never names something off screen.
+const ANTICIPATE = 450;
 const MAX_ZOOM = 2;
 
 type Props = {id: string; timeline: Timeline | null};
@@ -73,8 +75,9 @@ const cameraKeys = (events: Event[], view: View): Key[] => {
     const seen = b.x >= cur.cx - hw + 12 && b.x + b.width <= cur.cx + hw - 12 && b.y >= cur.cy - hh + 12
       && b.y + b.height <= cur.cy + hh - PANEL / (scale * cur.z) - 12;
     if (seen && Math.abs(Math.log(shot.z / cur.z)) < 0.3) continue;
-    const from = between(cur.from, cur, glide(clamp((e.t - cur.t) / GLIDE, 0, 1)));
-    keys.push({...shot, from});
+    const t = Math.max(cur.t + 50, e.t - ANTICIPATE);
+    const from = between(cur.from, cur, glide(clamp((t - cur.t) / GLIDE, 0, 1)));
+    keys.push({...shot, t, from});
   }
   return keys;
 };
@@ -172,6 +175,8 @@ const StepView: React.FC<{i: number; step: Step; n: number; total: number; timel
   const current = mine[mine.length - 1];
   const since = (e: Event) => frame - Math.round(((e.t - step.startMs) * FPS) / 1000 / rate);
   const ring = !step.card && current?.box && current.action?.verb !== 'Press' ? current.box : null;
+  // The ring marks the control while it matters, then fades: after a click the page often changes under it.
+  const ringEnd = current?.action?.verb === 'Look at' ? 90 : 45;
   const corner = ring && at(ring.x, ring.y);
   const keysDown = mine.filter((e) => e.action?.verb === 'Press' && since(e) < 45);
   const chapter = [...tutorials[i].chapters].reverse().find(([first]) => first <= n)?.[1];
@@ -191,7 +196,8 @@ const StepView: React.FC<{i: number; step: Step; n: number; total: number; timel
         )}
         {ring && corner && current && (
           <div style={{position: 'absolute', left: corner.x - 10, top: corner.y - 10, width: ring.width * k + 20, height: ring.height * k + 20,
-            border: `4px solid ${color.ochre}`, boxSizing: 'border-box', opacity: ramp(since(current), 4, 6)}} />
+            border: `4px solid ${color.ochre}`, boxSizing: 'border-box',
+            opacity: ramp(since(current), 4, 6) * (1 - ramp(since(current), ringEnd, 6))}} />
         )}
         {keysDown.length > 0 && (
           <div style={{position: 'absolute', right: 40, bottom: PANEL + 8, display: 'flex', gap: 12}}>
