@@ -24,7 +24,7 @@ jobs:
           git archive --format=tar --prefix="$name/" HEAD | tar -x -C package
           cp -r web/dist "package/$name/web/dist"
           (cd package && zip -qr "../$name.zip" "$name")
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: qualia-package
           path: Qualia-*.zip
