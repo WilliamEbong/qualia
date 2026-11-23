@@ -24,7 +24,8 @@ from qualia.workspace import pipeline_hash, read_config
 RETRYABLE = {'timeout', 'transient', 'process_failed', 'transport_error', 'rate_limit'}
 SAFE_FAILURES = RETRYABLE | {'invalid_model', 'unavailable', 'input_limit', 'output_limit',
                             'unsupported_version', 'invalid_input', 'tool_call', 'invalid_response',
-                            'subscription_auth_required', 'quota', 'unsupported_flag'}
+                            'subscription_auth_required', 'quota', 'unsupported_flag',
+                            'authentication', 'containment_unavailable'}
 
 
 def safe_failure(exc) -> str:

@@ -462,6 +462,9 @@ def test_safe_failures_name_a_rejected_flag_or_old_version_but_never_provider_te
     leaked = ValueError('RAW_PROVIDER_BODY')
     leaked.code = 'RAW_PROVIDER_BODY'
     assert safe_failure(leaked) == 'provider_error'
+    # Fixed adapter codes the user guide tells people to act on are shown as themselves.
+    assert safe_failure(BackendError('authentication')) == 'authentication'
+    assert safe_failure(BackendError('containment_unavailable')) == 'containment_unavailable'
 
 
 def test_task_defaults_follow_intelligence_need_and_project_overrides_win():
