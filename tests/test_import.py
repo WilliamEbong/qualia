@@ -70,3 +70,12 @@ def test_malformed_csv_is_rejected(tmp_path, content):
         with pytest.raises(ValueError, match='broken.csv'):
             import_text(db, project, 'broken.csv', content, 'csv')
         assert db.rows('SELECT * FROM sources') == []
+
+
+def test_csv_sources_are_named_by_spreadsheet_row_even_with_multiline_cells(tmp_path):
+    project = init_project('study', tmp_path)
+    content = 'text\r\n"First answer.\r\n\r\nSecond paragraph."\r\nNext answer.\r\n'
+    with Store(project / 'project.db') as db:
+        import_text(db, project, 'answers.csv', content, 'csv')
+        names = [row['name'] for row in db.rows('SELECT name FROM sources ORDER BY id')]
+    assert names == ['answers.csv: row 2', 'answers.csv: row 3']

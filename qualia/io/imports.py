@@ -69,8 +69,9 @@ def import_text(db, project, name, content, format, text_column='text', case_col
             if (not columns or len(set(columns)) != len(columns) or any(not c for c in columns)
                     or text_column not in columns or any(c not in columns for c in attributes)):
                 raise ValueError(f'{name}: row 1: invalid or missing mapped CSV columns')
-            for row in reader:
-                context = f'{name}: row {reader.line_num}'
+            # Number records as a spreadsheet shows them (header is row 1), not physical lines.
+            for number, row in enumerate(reader, 2):
+                context = f'{name}: row {number}'
                 if None in row or any(value is None for value in row.values()):
                     raise ValueError(f'{context}: malformed CSV column count')
                 records.append(_record(context, {
