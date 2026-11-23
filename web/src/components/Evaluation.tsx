@@ -9,7 +9,7 @@ const splitLine = (name: string, split: { records: number; codebook_version_id: 
 
 export function Evaluation({ w, review, evaluation: e, benchmarks: b }: { w: WorkspaceController; review: ReviewController; evaluation: EvaluationController; benchmarks: BenchmarksController }) {
   return <section className="content-page evaluation-page" aria-label="Validation evaluation"><header className="section-heading"><div><p className="caption">Measure against reference labels</p><h2>Validation evaluation</h2></div><span className="caption">{counted(e.runs.length, 'recorded evaluation')}</span></header>
-    <div className="two-column"><div>{!w.readOnly && <form key={`${w.slug}-benchmark`} className="editor benchmark-import" onSubmit={b.importBenchmark}><fieldset disabled={w.busy}><h3>Benchmarks</h3>
+    <div className="two-column"><div>{!w.readOnly && <form key={`${w.slug}-benchmark`} className="editor benchmark-import" data-ready={!!b.status?.validation} onSubmit={b.importBenchmark}><fieldset disabled={w.busy}><h3>Benchmarks</h3>
       <p className="caption">{b.status ? <>{splitLine('Validation', b.status.validation)}<br />{splitLine('Dev', b.status.dev)}</> : 'Checking benchmarks…'}</p>
       <p>A benchmark is a JSONL file of passages with the codes a person gave them (User Guide, section 14). Each split is imported once; importing the same file again changes nothing.</p>
       <label>Benchmark file<input type="file" name="file" accept=".jsonl,application/x-ndjson,application/json,text/plain" required /></label>
