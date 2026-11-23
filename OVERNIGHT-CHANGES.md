@@ -1,5 +1,9 @@
 # Overnight work on Qualia: 2026-11-22 to 2026-11-23
 
+## Landed 2026-11-23
+
+The branch was merged into `main` as `e5b035c` and pushed. On the merge, 707 Python and 73 web tests passed and CI is green. The public demo was redeployed: the first Pages run failed on an artifact timing glitch and the re-run passed. Two design-contract changes, collapsing the trust captions and changing the code highlight, were not made, because they conflict with the protected docs 04 and 05; they wait for your decision in the gitignored `OWNER-NEEDED.md`.
+
 ## What changed for you
 
 These are the effects you can see when you use Qualia. The details and evidence for each one follow further down.
@@ -56,11 +60,11 @@ Two design-rule changes are waiting for your decision in `OWNER-NEEDED.md`.
 - **Code map:** a code map of the project, built with graphify, is ready in this worktree.
 
 **What I need from you:** nothing is required.
-- **To take the changes:** merge the branch (steps under "How to merge" below). Each change can be undone on its own.
+- **The changes are in:** merged into `main` as `e5b035c` on 2026-11-23. Each change can still be undone on its own.
 - **Optional:** look through `design-review/overnight/before` and `final` to see the visual changes.
 - **Optional:** decide whether manual codes should be allowed to share a name ("Found, not changed").
 
-Branch `claude/overnight-fixes-3d262b`, based on `main` at `2978c5d`. Nothing was pushed, merged, released, tagged or version-bumped.
+Branch `claude/overnight-fixes-3d262b`, based on `main` at `2978c5d`. It was merged into `main` as `e5b035c` and pushed on 2026-11-23; nothing was released, tagged or version-bumped.
 
 ## Tests
 
@@ -573,7 +577,7 @@ I checked every UI change in the built app with Playwright at 1280 and 375 px. T
 
 ## How to merge
 
-From `C:\Users\Owner\OneDrive\Documents\Qualia`, with no uncommitted work on `main`:
+Done on 2026-11-23 (merge `e5b035c`, pushed); the steps are kept for the record. From `C:\Users\Owner\OneDrive\Documents\Qualia`, with no uncommitted work on `main`:
 
 ```powershell
 git switch main
@@ -593,16 +597,16 @@ cd web; npm ci; npm test; npm run build; cd ..
 
 Then run the mutation e2e test against your demo (the command is in the header of `tests/e2e/mvp.spec.ts`), and run `/graphify .` once if you want the code map in the main checkout.
 
-**Rollback:** to undo the whole merge before you push, run
+**Rollback:** the merge is now pushed, so use the revert below. (Before a push, the way was
 
 ```powershell
 git reset --keep HEAD~1
 ```
 
-After a push, run
+which no longer applies.) After a push, run
 
 ```powershell
-git revert -m 1 HEAD
+git revert -m 1 e5b035c
 ```
 
 Each change can also be undone on its own with `git revert <hash>`, using the hashes listed above. Or open a pull request from the branch instead of merging locally.
