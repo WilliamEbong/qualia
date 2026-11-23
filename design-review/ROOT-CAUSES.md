@@ -20,6 +20,6 @@ Sources: the fresh scorer reports of rounds 5–7. The final batch was scored by
 ## How this pass worked
 
 - Research: a read-only Opus agent read the William Web Design kit (CRAFT.md, COPY.md and its rules), impeccable, taste-skill, frontend-design and design-critique, and compared the tactics with NVivo, ATLAS.ti, Dovetail, Linear and GitHub. The tactic for each fixed cause is in its row.
-- William approved the two contract changes in this session himself (2026-11-23). Docs 04 and 05 record them ().
+- William approved the two contract changes in this session himself (2026-11-23). Docs 04 and 05 record them (`70a89eb`).
 - Usage was near its limit, so each cause was checked by measurement in the browser while it was being fixed. The fresh-reviewer cause checks were folded into the one final scoring round, not run separately.
 - Not done this pass: causes 8 (one disclosure style), 9 (Retrieval text search), 10 (Memos compose button) and 11 (fuller Home progress). Cause 12 needs new demo data, which is protected.
