@@ -311,6 +311,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/projects/{slug}/benchmarks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Benchmarks */
+        get: operations["benchmarks_api_projects__slug__benchmarks_get"];
+        put?: never;
+        /** Import Benchmark */
+        post: operations["import_benchmark_api_projects__slug__benchmarks_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/projects/{slug}/experiments": {
         parameters: {
             query?: never;
@@ -772,6 +790,30 @@ export interface components {
             reason: string;
             /** Models */
             models?: components["schemas"]["ModelChoice"][];
+        };
+        /** BenchmarkImportInput */
+        BenchmarkImportInput: {
+            /**
+             * Split
+             * @enum {string}
+             */
+            split: "dev" | "validation";
+            /** Version */
+            version?: number | null;
+            /** Content */
+            content: string;
+        };
+        /** BenchmarkSplit */
+        BenchmarkSplit: {
+            /** Records */
+            records: number;
+            /** Codebook Version Id */
+            codebook_version_id: number;
+        };
+        /** BenchmarkStatus */
+        BenchmarkStatus: {
+            dev: components["schemas"]["BenchmarkSplit"] | null;
+            validation: components["schemas"]["BenchmarkSplit"] | null;
         };
         /** CaseInput */
         CaseInput: {
@@ -1899,6 +1941,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["IdResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    benchmarks_api_projects__slug__benchmarks_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BenchmarkStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_benchmark_api_projects__slug__benchmarks_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BenchmarkImportInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BenchmarkStatus"];
                 };
             };
             /** @description Validation Error */

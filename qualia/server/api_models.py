@@ -164,6 +164,22 @@ class EvaluateInput(Record):
     model: str | None = None
 
 
+class BenchmarkImportInput(Record):
+    split: Literal['dev', 'validation']
+    version: int | None = Field(default=None, gt=0)
+    content: str = Field(min_length=1, max_length=20_000_000)
+
+
+class BenchmarkSplit(Record):
+    records: int
+    codebook_version_id: int
+
+
+class BenchmarkStatus(Record):
+    dev: BenchmarkSplit | None
+    validation: BenchmarkSplit | None
+
+
 class ModelExperimentInput(Record):
     backend: str = Field(min_length=1, max_length=40)
     model: str = Field(pattern=r'^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,119}$')

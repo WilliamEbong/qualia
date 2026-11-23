@@ -5,6 +5,8 @@ from pathlib import Path
 from fastapi import FastAPI
 
 from qualia.server.api_models import (
+    BenchmarkImportInput,
+    BenchmarkStatus,
     EvaluateInput,
     EvaluationResult,
     ExperimentResult,
@@ -17,6 +19,22 @@ from qualia.store.db import Store
 
 
 def register_evaluation_routes(app: FastAPI, home: Path | None):
+    @app.get('/api/projects/{slug}/benchmarks', response_model=BenchmarkStatus)
+    def benchmarks(slug: str):
+        from qualia.io.benchmarks import benchmark_status
+
+        return benchmark_status(existing_project(slug, home))
+
+    @app.post('/api/projects/{slug}/benchmarks', response_model=BenchmarkStatus)
+    def import_benchmark(slug: str, record: BenchmarkImportInput):
+        # Same rules as `qualia benchmark import`; the protected split stays a local CLI operation.
+        from qualia.io.benchmarks import benchmark_status, import_with_frozen_version
+
+        path = existing_project(slug, home)
+        with Store(path / 'project.db') as db:
+            import_with_frozen_version(db, path, record.content.encode('utf-8'), record.split, record.version)
+        return benchmark_status(path)
+
     @app.get('/api/projects/{slug}/experiments', response_model=list[ExperimentResult])
     def history(slug: str):
         path = existing_project(slug, home)

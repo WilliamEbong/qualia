@@ -326,18 +326,12 @@ def review_command(suggestion: int, decision: str, project: str = 'demo',
 def benchmark_import(file: Path, project: str = 'demo', split: str = 'validation',
                      version: int | None = None):
     """Import a complete JSONL split once, bound to a frozen codebook."""
-    from qualia.io.benchmarks import import_benchmark
+    from qualia.io.benchmarks import import_with_frozen_version
 
     path = resolve_project(project)
     try:
         with Store(path / 'project.db') as db:
-            frozen = (db.one('SELECT * FROM codebook_versions WHERE id=?', (version,)) if version else
-                      db.one('SELECT * FROM codebook_versions ORDER BY id DESC LIMIT 1'))
-            if frozen is None:
-                raise ValueError('freeze the benchmark codebook first')
-            codes = [code['id'] for code in json.loads(frozen['snapshot_json'])
-                     if code.get('status', 'active') == 'active']
-            result = import_benchmark(path, file.read_bytes(), split, frozen['id'], codes)
+            result = import_with_frozen_version(db, path, file.read_bytes(), split, version)
         typer.echo(json.dumps(result, ensure_ascii=False))
     except (OSError, ValueError) as exc:
         raise typer.BadParameter(str(exc)) from exc

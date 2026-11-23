@@ -185,6 +185,25 @@ def import_benchmark(project, records_or_bytes, split, codebook_version_id, code
     return metadata
 
 
+def benchmark_status(project):
+    """Dev and validation split summaries from the regular index; the protected split is never reported."""
+    splits = _read_index(project)['splits']
+    return {split: ({'records': splits[split]['metadata']['counts']['records'],
+                     'codebook_version_id': splits[split]['metadata']['codebook_version_id']}
+                    if split in splits else None) for split in ('dev', 'validation')}
+
+
+def import_with_frozen_version(db, project, content, split, version=None):
+    """Bind a benchmark to a frozen codebook version (latest when None) and its active codes."""
+    frozen = (db.one('SELECT * FROM codebook_versions WHERE id=?', (version,)) if version else
+              db.one('SELECT * FROM codebook_versions ORDER BY id DESC LIMIT 1'))
+    if frozen is None:
+        raise ValueError(f'frozen codebook version {version} not found' if version else
+                         'freeze the benchmark codebook first')
+    codes = [code['id'] for code in json.loads(frozen['snapshot_json']) if code.get('status', 'active') == 'active']
+    return import_benchmark(project, content, split, frozen['id'], codes)
+
+
 def load_benchmark(project, split='validation', protected=False):
     if split not in SPLITS:
         raise ValueError('unknown benchmark split')
