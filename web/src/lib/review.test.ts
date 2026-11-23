@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { eceCaption, groupSuggestions, isAcceptedModel, modelScore, reasonCaption, reviewReasons, reviewShortcut, thresholdCaption } from './review-state'
+import { eceCaption, groupByCode, groupSuggestions, isAcceptedModel, modelScore, reasonCaption, reviewReasons, reviewShortcut, thresholdCaption } from './review-state'
 import type { Coding } from './entities'
 
 describe('review trust semantics', () => {
@@ -37,5 +37,18 @@ describe('review trust semantics', () => {
     expect(reviewShortcut('a')).toBe('accept')
     expect(reviewShortcut('r')).toBe('reject')
     expect(reviewShortcut('Enter')).toBeNull()
+  })
+})
+
+describe('review queue grouped by code', () => {
+  it('lists each code once, per frozen version, largest group first, least certain first inside', () => {
+    const items = [
+      { id: 1, code_id: 7, codebook_version_id: 1, score: 0.6 }, { id: 2, code_id: 8, codebook_version_id: 1, score: 0.4 },
+      { id: 3, code_id: 7, codebook_version_id: 1, score: 0.3 }, { id: 4, code_id: 7, codebook_version_id: 2, score: 0.5 },
+    ] as Coding[]
+    const groups = groupByCode(items, item => `code ${item.code_id} v${item.codebook_version_id}`)
+    expect(groups.map(group => [group.reason, group.items.map(item => item.id)])).toEqual([
+      ['code 7 v1', [3, 1]], ['code 8 v1', [2]], ['code 7 v2', [4]],
+    ])
   })
 })

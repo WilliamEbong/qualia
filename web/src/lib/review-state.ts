@@ -36,6 +36,17 @@ export function groupSuggestions(suggestions: Coding[]) {
   return [...groups].map(([reason, items]) => ({ reason, items: items.sort(leastCertainFirst) }))
 }
 
+// Feature 020: one group per code (per frozen version, since names can change), largest first.
+export function groupByCode(suggestions: Coding[], nameOf: (item: Coding) => string) {
+  const groups = new Map<string, Coding[]>()
+  for (const item of suggestions) {
+    const key = `${item.code_id}:${item.codebook_version_id}`
+    groups.set(key, [...(groups.get(key) ?? []), item])
+  }
+  return [...groups.values()].sort((a, b) => b.length - a.length)
+    .map(items => ({ reason: nameOf(items[0]), items: [...items].sort(leastCertainFirst) }))
+}
+
 export function modelScore(score: number | null): string {
   return score !== null && Number.isFinite(score) && score >= 0 && score <= 1 ? `model-reported ${score.toFixed(2)}` : 'model-reported score unavailable'
 }
