@@ -159,6 +159,9 @@ def test_server_security_and_offline_workspace(project, tmp_path):
     assert client.get('/api/projects', headers={'host': 'evil.example'}).status_code == 403
     assert client.get('/api/projects').status_code == 401
     assert client.get('/api/projects', headers={'x-qualia-token': 'wrong'}).status_code == 401
+    # A non-ASCII token is still a rejected token, with the security headers, not a crash.
+    rejected = client.get('/api/projects', headers=[(b'x-qualia-token', 'café'.encode('latin-1'))])
+    assert rejected.status_code == 401 and rejected.headers['x-frame-options'] == 'DENY'
     headers = {'x-qualia-token': 'test-token'}
     assert client.get('/api/projects', headers={**headers, 'origin': 'https://evil.example'}).status_code == 403
     response = client.get('/api/projects/study', headers=headers)

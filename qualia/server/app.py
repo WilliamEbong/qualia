@@ -47,7 +47,8 @@ def create_app(home: Path | None = None, token: str | None = None, dist: Path | 
         elif origin and origin != f'http://{host}':
             response = JSONResponse({'detail': 'Origin forbidden'}, status_code=403)
         elif request.url.path.startswith('/api/') and not secrets.compare_digest(
-                request.headers.get('x-qualia-token', ''), app.state.token):
+                # Bytes: compare_digest raises on non-ASCII str. Header values decode as latin-1.
+                request.headers.get('x-qualia-token', '').encode('latin-1'), app.state.token.encode()):
             response = JSONResponse({'detail': 'Invalid launch token'}, status_code=401)
         else:
             if request.url.path.startswith('/api/'):
