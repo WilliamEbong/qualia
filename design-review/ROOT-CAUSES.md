@@ -23,3 +23,35 @@ Sources: the fresh scorer reports of rounds 5–7. The final batch was scored by
 - William approved the two contract changes in this session himself (2026-11-23). Docs 04 and 05 record them (`70a89eb`).
 - Usage was near its limit, so each cause was checked by measurement in the browser while it was being fixed. The fresh-reviewer cause checks were folded into the one final scoring round, not run separately.
 - Not done this pass: causes 8 (one disclosure style), 9 (Retrieval text search), 10 (Memos compose button) and 11 (fuller Home progress). Cause 12 needs new demo data, which is protected.
+
+## Final scoring (two fresh Opus scorers, A and B, screenshots before and after)
+
+**Cause checks:**
+
+| Cause | A | B |
+|---|---|---|
+| 1 Review length | reduced (page 8089 → 4988 px) | reduced (desktop 8089 → 4988, phone 11972 → 7091 px) |
+| 2 Highlight looks like a selection | reduced (faint fill still reads as a selection) | gone |
+| 3 Phone header | reduced (about 140 px) | gone (about 300 → 140 px) |
+| 4 Name field | not fixed | reduced |
+| 5 Duplicate suggestion line | gone | gone |
+| 6 Disabled-button reasons | gone | gone |
+| 7 Matrix column and key | gone | gone |
+
+For cause 4, both captures used a fresh browser with no saved name, so they show the first-visit field by design. After a name is saved, every screen shows the one-line "Recording decisions as X · Change", which was verified in the browser. The scorers saw only the first visit.
+
+**Scores (desktop / phone):** A 7.6 / 6.8, B 7.3 / 6.6. The previous round's scorers gave 8.3 / 7.6 and 7.7 / 6.7. These are different people, and the screens they rate lowest have changed: the fixed causes no longer appear among their reasons.
+
+**The next causes, from this round's reasons:**
+
+| Screen | Reason | Scorers | Root cause |
+|---|---|---|---|
+| Review | 15 near-identical cards (same code, same score), with no grouping or batch action | 2 | The queue is grouped by trigger reason only. When one code is suggested many times, the researcher must decide each card one by one. Needs group-by-code with "accept all n" (a feature with server-side batch review). |
+| Evaluation | The Run button is apart from the backend and model settings it uses | 2 | Round 7 moved Run into the result panel's empty state. The settings and the action should sit in one form. |
+| Workspace (phone) | The coding sheet covers part of the passage being coded | 2 | The sticky sheet's height (30vh) overlaps the active passage. The transcript needs bottom padding equal to the sheet, or the sheet should start collapsed. |
+| Experiments (phone) | Checklist statuses wrap onto their own lines | 2 | The round 7 phone rule puts each status under its label. A status column that fits or a mono suffix would read better. |
+| Analysis (phone) | The tab strip is clipped with no scroll cue | 2 | The tabs need the same edge chevron as the code row. |
+| Matrix | The Total header is about 3 px off the baseline | 2 | `.matrix-total` header alignment |
+| Workspace / Review | The same identity field is labelled "Human actor" on Workspace and "Reviewer" on Review | 1 | Two labels for one setting. The e2e test uses "Human actor". |
+| Retrieval | No text search, no speaker filter | 2 | A missing feature (cause 9) |
+| Memos | The compose form always takes half the page | 1 | Cause 10, still open |
