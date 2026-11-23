@@ -1,4 +1,4 @@
-# Overnight maintenance pass: 2026-11-22
+# Overnight maintenance pass: 2026-11-22 to 2026-11-23 (rounds 1–3)
 
 Branch `claude/overnight-fixes-3d262b`, based on `main` at `2978c5d`. It has not been pushed or merged, and nothing was released, tagged or version-bumped.
 
@@ -117,7 +117,7 @@ Three read-only Opus auditors covered: storage and migrations; AI routing, budge
 23. **Benchmarks whose text contains U+2028 or U+0085 load again.** `0e5a27d`
     - **Who notices:** anyone whose benchmark text contains these characters, which come from some pasted web and PDF text. Before, the split published fine but could never be read back.
     - **Evidence:** `tests/test_benchmarks.py::test_text_with_unicode_line_separators_stays_one_record`.
-24. **CSV sources are named by spreadsheet row.** `6005e79`
+24. **CSV sources are named by spreadsheet row.** `6005e79`, corrected in `a1f70f6` after Codex review found that blank rows were not counted
     - **Who notices:** anyone importing a CSV with multi-paragraph cells. After the first such cell, every later source was named with the wrong row.
     - **Evidence:** `tests/test_import.py::test_csv_sources_are_named_by_spreadsheet_row_even_with_multiline_cells`.
 25. **Opening Import, Case or Export moves keyboard focus into the panel.** `d280474`
@@ -134,6 +134,50 @@ Three read-only Opus auditors covered: storage and migrations; AI routing, budge
 - **Jev cost above 64k input tokens.** Jev's context is 64k.
 - **Smaller items.** Bare CR or U+2029 paragraph breaks, missing request-size caps, live-region timing, and duplicate evidence IDs.
 - **Flaky tests under load.** The installed-CLI probes and the launcher idle-timing test each failed once while other sessions loaded the PC, and passed when re-run alone.
+
+## Round 3: tidy, simplify, graphify
+
+Your bar was that deletion counts as improvement and that nothing should change behaviour. An Opus over-engineering audit (ponytail-audit) swept the whole repo. It found the project already lean: no unused dependency, no dead function, no unused CSS or test helper. These three changes passed the bar:
+
+26. **CLI commands start without loading the web server.** `e2bf1eb`
+    - **Who notices:** every `qualia` command except `open`, every time it runs.
+    - **Measured:** importing `qualia.cli` dropped from about 3.5 s to about 1.0 s (median of five interleaved runs on this loaded PC).
+    - **Checked:** `qualia open` still serves the app (HTTP 200).
+27. **One duplicate-key JSON guard instead of three copies.** `e39873d`
+    - **Change:** net −11 lines, with no behaviour change.
+    - **Who notices:** whoever next maintains the parsers.
+28. **CI runs the web typecheck once instead of three times.** `31349b6`
+    - **Who notices:** every CI run.
+    - **Measured:** one `tsc --noEmit` took about 1 minute on this PC. `npm run build` already runs it, and `typecheck` and `lint` were identical copies of it.
+
+**Left alone, with the reason:**
+- **Tailwind.** No component uses a Tailwind class, so only its CSS reset is in use. Doc 01 names "shadcn/ui + Tailwind 4" as the stack, and removing it needs a visual re-check.
+- **`qualia/ai/protocol.py`.** Nothing imports it, but `docs/CONTRACTS.md` names it a frozen contract.
+- **Repeated helpers in the Claude and Codex backends.** The vendor-isolation rule in CLAUDE.md requires each backend to keep its own copy.
+- **The quadratic segment trigger on large imports.** The fix needs a migration (see round 2).
+
+### graphify
+
+- **Where it is:** a code knowledge graph of the repo is in `graphify-out/`, built with graphify 0.9.17. The project already gitignores that folder, so it is local to this worktree and not committed.
+- **Size:** 1,684 nodes, 4,329 edges and 96 labelled communities, covering Python, TypeScript, scripts and config.
+- **What it skipped:**
+  - 127 images and 14 videos (UI screenshots and tutorial clips). Extracting them needs one AI agent per image, so it fails the tangible-value bar.
+  - Semantic extraction of the 181 docs.
+  - 5 SQL migrations, because the `tree_sitter_sql` extra is not installed.
+- **Health:** 0 missing endpoints and 0 self-loops. There are 498 dangling edges, mostly references to standard-library and third-party names outside the repo.
+- **Cost:** the build used no tokens. The code graph is built structurally, with no AI.
+- **To use it from the repo root:**
+
+```powershell
+graphify query "how does a classification run reserve budget before calling a backend"
+```
+
+```powershell
+graphify explain "classify_segments()"
+```
+
+  Or open `graphify-out\graph.html` in a browser. To rebuild after changes, run `/graphify . --update` in Claude Code.
+- **The main checkout:** `C:\Users\Owner\OneDrive\Documents\Qualia` has no graph yet. After merging, run `/graphify .` there once, or copy this worktree's `graphify-out` folder across.
 
 ## Found, not changed
 
