@@ -531,3 +531,39 @@ label > .caption { display: block; margin: 2px 0 6px; }
   .review-page .suggestion .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .review-page .suggestion .actions > :last-child { grid-column: 1 / -1; }
 }
+
+/* Round 5: content before controls. */
+@media (max-width: 500px) {
+  /* Compact phone header: brand and theme on one row, project picker, then the status line. */
+  .app-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; padding: 12px 16px; align-items: center; }
+  .app-header > .button { grid-column: 2; grid-row: 1; min-height: 40px; padding: 0 10px; font-size: var(--type-caption); }
+  .brand { grid-column: 1; grid-row: 1; width: auto; padding-left: 12px; }
+  .brand h1 { font-size: var(--type-heading); }
+  .project-controls { grid-column: 1 / -1; width: 100%; flex-wrap: nowrap; }
+  .project-controls > label { font-size: 0; flex: 1; }
+  .project-controls > label select { font-size: var(--type-body); }
+  .local-status { grid-column: 1 / -1; border-left: 0; padding-left: 0; }
+}
+/* Analysis: a section index under the counts. */
+.analysis-index { display: flex; flex-wrap: wrap; gap: 4px 20px; margin: 0 0 16px; font-size: var(--type-caption); }
+.analysis-index a { color: var(--foreground); text-underline-offset: 3px; min-height: 40px; display: inline-flex; align-items: center; }
+.memo-kinds { margin: 0 0 16px; }
+.memo-kinds summary { font-size: var(--type-caption); color: var(--secondary); min-height: 40px; display: flex; align-items: center; cursor: pointer; }
+.experiments-start { grid-column: 1 / -1; margin: 32px 0 0; font-size: var(--type-small-heading); }
+/* Home: a shorter plate so the project catalogue reaches the first screen. */
+.home-introduction { aspect-ratio: auto; height: clamp(340px, 46vh, 520px); min-height: 0; }
+@media (max-width: 900px) { .home-introduction { height: 380px; min-height: 0; } }
+/* Review: the classification form folds once there are suggestions to decide. */
+/* Retrieval: open-in-transcript is a quiet link, not a heavy button. */
+.button.text-link { border-color: transparent; background: transparent; padding-left: 0; padding-right: 0; text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 900px) {
+  /* Phone workspace: a slimmer pinned panel leaves room for the passage. */
+  .coding-panel { max-height: 34vh; }
+  .coding-panel > .rail-title { font-size: var(--type-subtitle); margin: 0 0 8px; }
+}
+.run-classification > summary { cursor: pointer; min-height: 40px; }
+.run-classification > summary h3 { display: inline; margin: 0; }
+@media (max-width: 500px) {
+  /* Keyboard shortcuts do not apply on touch screens; the line only took reading space. */
+  .transcript-heading + .caption { display: none; }
+}
