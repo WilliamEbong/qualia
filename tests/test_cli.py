@@ -65,6 +65,16 @@ def test_cli_partial_code_edit_keeps_unsent_fields_and_errors_are_clean(tmp_path
     with Store(db_path) as db:
         row = db.one('SELECT * FROM codes WHERE id=?', (child,))
     assert (row['status'], row['parent_id'], row['definition']) == ('archived', parent, 'Now defined.')
+    # A file holding only the changed field is enough, as the guide's command table says.
+    edit.write_text(json.dumps({'definition': 'Only this field.'}), encoding='utf-8')
+    result = runner.invoke(app, ['codebook', 'save', str(edit), '--code-id', str(child), '--project', 'study'])
+    assert result.exit_code == 0, result.output
+    with Store(db_path) as db:
+        row = db.one('SELECT * FROM codes WHERE id=?', (child,))
+    assert (row['name'], row['status'], row['definition']) == ('Child', 'archived', 'Only this field.')
+    edit.write_text(json.dumps({'name': None}), encoding='utf-8')
+    result = runner.invoke(app, ['codebook', 'save', str(edit), '--code-id', str(child), '--project', 'study'])
+    assert result.exit_code == 2, result.output
     for args in (['codebook', 'add', 'Loop', '--parent', '99'], ['case', 'P1', '--source', '99']):
         result = runner.invoke(app, [*args, '--project', 'study'])
         assert result.exit_code == 2 and isinstance(result.exception, SystemExit), result.output

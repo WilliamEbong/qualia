@@ -119,10 +119,12 @@ def save_code(file: Path, code_id: int | None = None, project: str = 'demo'):
     """Create/edit/archive a draft code from a validated JSON record.
 
     With --code-id only the fields present in the file change."""
-    from qualia.server.api_models import CodeInput
+    from qualia.server.api_models import CodeInput, ProposalValues
 
     try:
-        record = CodeInput.model_validate_json(file.read_text(encoding='utf-8'))
+        # An edit may omit any field (including name); validate_code still rejects nulls.
+        model = CodeInput if code_id is None else ProposalValues
+        record = model.model_validate_json(file.read_text(encoding='utf-8'))
         with Store(resolve_project(project) / 'project.db') as db:
             typer.echo(db.save_code(record.model_dump(exclude_unset=code_id is not None), code_id=code_id))
     except (OSError, ValueError) as exc:
