@@ -746,7 +746,7 @@ uv run qualia benchmark import "C:\Research\validation.jsonl" --project my-study
 uv run qualia evaluate --project my-study --backend rules --output "C:\Research\evaluation-reports"
 ```
 
-Replace the example version with your actual frozen version. Reimporting identical bytes is a no-op; replacing an existing split with changed content is rejected. CLI evaluation writes JSON and Markdown reports to the output directory. Without `--output`, they go in the workspace's `reports` folder.
+Replace the example version with your frozen codebook version: the number after `cb_v` that `codebook freeze` prints (`cb_v3` means `--version 3`). Reimporting identical bytes is a no-op; replacing an existing split with changed content is rejected. CLI evaluation writes JSON and Markdown reports to the output directory. Without `--output`, they go in the workspace's `reports` folder.
 
 ### Protected evaluation
 
@@ -996,13 +996,13 @@ Run these from the application folder. Most project commands default to `demo`; 
 | Open local app | Qualia icon, `uv run qualia app` (own window, stops when closed) or `uv run qualia open` (terminal) |
 | Import text | `uv run qualia import "C:\Research\interview.txt" --project my-study` |
 | Add/freeze/list codes | `uv run qualia codebook add "Support" --definition "Help from others" --project my-study`; then `codebook freeze` / `codebook list` with the same project option |
-| Save a draft code record | `uv run qualia codebook save "C:\Research\code.json" --project my-study --code-id CODE_ID` (with `--code-id`, only the fields in the file change) |
+| Save a draft code record | `uv run qualia codebook save "C:\Research\code.json" --project my-study --code-id CODE_ID` (with `--code-id`, only the fields in the file change). The file is JSON, for example `{"include": "support, helped"}` to set the inclusion terms the `rules` classifier matches |
 | Codebook proposals | `uv run qualia codebook propose --mode evidence --project my-study`; `--mode draft --backend claude --segments "12,13" --focus "waiting"`; `--mode refine --backend codex --codes "3"` |
 | Review proposals | `uv run qualia codebook proposals --project my-study` (add `--all` for decided ones); `uv run qualia codebook decide PROPOSAL_ID accept --actor researcher --project my-study` (or `reject --note "..."`; `--values edits.json` to edit before accepting) |
 | Code a whole segment | `uv run qualia code SEGMENT_ID CODE_ID --project my-study --actor researcher` |
 | Code/remove a span | Add `--start START --end END`; add `--remove` for a removal of that code/span |
 | Create a memo | `uv run qualia memo "Title" "Memo text" --project my-study --kind reflexive --source SOURCE_ID` (also `--segment`, `--code`, `--case`; with `--memo-id` only the options given change) |
-| Create/link a case | `uv run qualia case "Participant 1" --project my-study --source SOURCE_ID` |
+| Create/link a case | `uv run qualia case "Participant 1" --project my-study --source SOURCE_ID`; add attributes as JSON, written in Windows PowerShell as `--attributes '{\"group\":\"urban\"}'` |
 | Retrieve by code/case | `uv run qualia retrieve --project my-study --code CODE_ID --case CASE_ID` |
 | Code-by-case counts | `uv run qualia matrix --project my-study` |
 | Read-only analysis | `uv run qualia analyze --project my-study --group-by group --numeric age --numeric wellbeing` |
