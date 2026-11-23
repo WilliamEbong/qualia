@@ -5,6 +5,7 @@ import { AnnotationSync, annotationStyle } from '../lib/annotations'
 import { codeStyle } from '../lib/entities'
 import type { WorkspaceController } from '../lib/workspace'
 import { Button } from './ui/button'
+import { ActorField } from './ActorField'
 import type { ReviewController } from '../lib/review'
 import { Suggestion } from './Review'
 
@@ -30,7 +31,7 @@ export function Transcript({ w, review }: { w: WorkspaceController; review: Revi
 export function CodingPanel({ w, review }: { w: WorkspaceController; review: ReviewController }) {
   return <aside className={`coding-panel${w.actor.trim() ? "" : " needs-actor"}`} aria-label="Coding and provenance">
     <h2 className="rail-title">Code this passage</h2>
-    <label>Human actor<input disabled={w.readOnly} value={w.actor} onChange={event => w.setActor(event.target.value)} maxLength={200} /></label><p className="caption">{w.actor.trim() ? 'Your name or initials, saved with each coding decision.' : 'Enter your name or initials to start coding.'}</p>
+    <ActorField w={w} label="Human actor" />
     <label>Frozen codebook<select value={w.version?.id ?? ''} onChange={event => w.setVersionId(Number(event.target.value))}><option value="" disabled>No frozen version</option>{w.data?.codebook_versions.map(version => <option key={version.id} value={version.id}>Version {version.id} · {version.frozen_at.slice(0, 16).replace('T', ' ')} UTC</option>)}</select></label>
     {!w.version && <p className="empty-note">Create codes and freeze your codebook before assigning a code.</p>}
     <div className="selection-note"><p className="caption">{w.currentSpan ? `Selected span · characters ${w.currentSpan.start}–${w.currentSpan.end}` : 'Whole segment selected'}</p>{w.currentSpan && <><blockquote>{w.selectionText}</blockquote><Button onClick={w.clearSpan}>Use whole segment</Button></>}</div>

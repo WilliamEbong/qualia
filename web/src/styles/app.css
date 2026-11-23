@@ -789,3 +789,6 @@ label > .caption { display: block; margin: 2px 0 6px; }
 .review-page .suggestion .actions { margin-top: 8px; }
 /* A disabled action states why, directly under it, in the attention voice (doc 04 §3: ochre text + icon + word). */
 .blocked-reason { color: var(--foreground); margin-top: 6px; border-left: 3px solid var(--uncertain); padding-left: 8px; }
+/* The coder's name, once set, is one quiet line (cause 4 in design-review/ROOT-CAUSES.md). */
+.actor-line { font-size: var(--type-caption); color: var(--secondary); margin: 8px 0 12px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
+.actor-field > .button { margin: 4px 0 12px; }
