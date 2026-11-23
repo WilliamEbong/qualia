@@ -251,3 +251,18 @@ def test_no_text_export_removes_proposal_focus(project):
                         focus='CONFIDENTIAL focus', registry={'fixture': backend})
         exported = export_data(db, project)
     assert 'CONFIDENTIAL' not in exported
+
+
+def test_refine_cannot_turn_a_researcher_negative_example_into_a_positive_one():
+    segments = [{'id': '5', 'text': 'The bus was late again.'}]
+    codes = [{'id': 3, 'name': 'Waiting', 'examples_pos': json.dumps(['queued for hours']),
+              'examples_neg': json.dumps(['I hate waiting rooms'])}]
+    raw = {'proposals': [{'kind': 'revise_code', 'target_code_id': 3, 'name': 'Waiting', 'definition': 'd',
+                          'include': '', 'exclude': '', 'rationale': 'r', 'evidence_segment_ids': ['5'],
+                          'examples_pos': ['queued for hours', 'I hate waiting rooms', 'bus was late'],
+                          'examples_neg': []}],
+           'input_tokens': 1, 'output_tokens': 1, 'cli_version': 'v'}
+    proposal = validate_proposals(raw, 'refine', segments, codes, {3})['proposals'][0]
+    # Keeping an existing positive is allowed; moving the negative across needs a quote from the passages.
+    assert proposal['examples_pos'] == ['queued for hours', 'bus was late']
+    assert proposal['removed_examples'] == 1

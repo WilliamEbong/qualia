@@ -7,7 +7,7 @@ export type Code = { id: number; parent_id: number | null; name: string; status:
 export type Version = { id: number; hash: string; frozen_at: string; snapshot_json: string }
 export type Coding = { id: number; segment_id: number; code_id: number; span_start: number; span_end: number; action: string; actor_type: string; actor: string; backend: string | null; model: string | null; model_version?: string | null; cli_version: string | null; codebook_version_id: number; pipeline_version: string; prompt_hash: string; created_at: string; score: number | null; reviewed_by: string | null; rationale: string | null; review_trigger: string | null; suggestion_id: number | null; review_status: string }
 export type MemoKind = 'analytic' | 'reflexive' | 'theme' | 'method'
-export type Memo = { id: number; title: string; text: string; kind?: MemoKind; segment_id: number | null; code_id: number | null; case_id?: number | null; source_id?: number | null; created_at?: string }
+export type Memo = { id: number; title: string; text: string; kind?: MemoKind; segment_id: number | null; code_id: number | null; case_id?: number | null; source_id?: number | null; created_at?: string; author?: string | null }
 export type MemoRevision = { id: number; memo_id: number; title: string; text: string; kind: MemoKind; replaced_at: string }
 export type Case = { id: number; name: string }
 export type Attribute = { id: number; case_id: number | null; source_id: number | null; key: string; value: string }
@@ -25,6 +25,8 @@ export type Retrieval = Coding & { source_id: number; segment_text: string; exce
 export type View = 'home' | 'workspace' | 'codebook' | 'memos' | 'retrieval' | 'matrix' | 'review' | 'evaluation' | 'experiments' | 'analysis'
 
 const codePoints = new WeakMap<Source, string[]>()
+export const counted = (count: number, noun: string, plural = `${noun}s`) => `${count} ${count === 1 ? noun : plural}`
+
 export function sourceCodePoints(source: Source): string[] {
   let points = codePoints.get(source)
   if (!points) { points = Array.from(source.text); codePoints.set(source, points) }
@@ -111,3 +113,67 @@ export function uniqueSegmentCount(codings: Coding[], codeId: number, sourceIds:
 }
 
 export const codeStyle = (index: number) => ({ '--code-color': `var(--code-${index % 8 + 1})`, '--code-border': 'solid', '--code-pattern': index >= 8 ? 'var(--code-hatch)' : 'none' })
+
+// Home's study status: what the project holds, and the single next step that moves it forward.
+export function studyStatus(data: Pick<Workspace, 'sources' | 'segments' | 'codes' | 'codebook_versions' | 'current_codings' | 'suggestions'>) {
+  const coded = new Set(data.current_codings.map(item => item.segment_id)).size
+  const latest = data.codebook_versions[data.codebook_versions.length - 1]
+  const pending = data.suggestions.length
+  const next: { label: string; view: View; panel?: 'import' } =
+    !data.sources.length ? { label: 'Import your first source', view: 'workspace', panel: 'import' }
+    : !data.codes.length ? { label: 'Create your first codes', view: 'codebook' }
+    : !latest ? { label: 'Freeze the codebook', view: 'codebook' }
+    : !coded ? { label: 'Code a passage', view: 'workspace' }
+    : pending ? { label: `Review ${counted(pending, 'pending suggestion')}`, view: 'review' }
+    : { label: 'Explore the analysis', view: 'analysis' }
+  return { sources: data.sources.length, passages: data.segments.length, coded, pending,
+    latestVersion: latest ? `cb_v${latest.id} · ${String(latest.frozen_at).slice(0, 10)}` : null, next }
+}
+
+// Retrieval: excerpts grouped under their code, in codebook order.
+export function groupByCode<T extends { code_id: number }>(items: T[], codeOrder: number[], nameOf: (id: number) => string) {
+  const ids = [...new Set(items.map(item => item.code_id))].sort((a, b) => (codeOrder.indexOf(a) + 1 || Infinity) - (codeOrder.indexOf(b) + 1 || Infinity))
+  return ids.map(id => ({ codeId: id, name: nameOf(id), items: items.filter(item => item.code_id === id) }))
+}
+
+// One caption per memo card: kind, created date, author when recorded, and the last edit.
+export function memoMeta(memo: Pick<Memo, 'kind' | 'created_at' | 'author'>, revisions: Array<{ replaced_at?: string }>) {
+  const day = (value?: string) => (value ?? '').slice(0, 10)
+  const edited = revisions.map(item => item.replaced_at ?? '').sort().at(-1)
+  return [`${memo.kind ?? 'analytic'} memo`, day(memo.created_at), memo.author, edited ? `edited ${day(edited)}` : ''].filter(Boolean).join(' · ')
+}
+
+// Totals use the cells' definition: distinct currently coded segments whose source is linked to a case.
+export function matrixTotals(data: { segments: Array<{ id: number; source_id: number }>; source_cases: Array<{ source_id: number; case_id: number }>; current_codings: Array<{ segment_id: number; code_id: number }> }) {
+  const sourceOf = new Map(data.segments.map(segment => [segment.id, segment.source_id]))
+  const casesOf = new Map<number, number[]>()
+  for (const link of data.source_cases) casesOf.set(link.source_id, [...(casesOf.get(link.source_id) ?? []), link.case_id])
+  const byCode = new Map<number, Set<number>>(), byCase = new Map<number, Set<number>>(), all = new Set<number>()
+  for (const coding of data.current_codings) {
+    const cases = casesOf.get(sourceOf.get(coding.segment_id) ?? -1) ?? []
+    if (!cases.length) continue
+    all.add(coding.segment_id)
+    byCode.set(coding.code_id, (byCode.get(coding.code_id) ?? new Set()).add(coding.segment_id))
+    for (const case_ of cases) byCase.set(case_, (byCase.get(case_) ?? new Set()).add(coding.segment_id))
+  }
+  const sizes = (map: Map<number, Set<number>>) => Object.fromEntries([...map].map(([key, value]) => [key, value.size]))
+  return { byCode: sizes(byCode), byCase: sizes(byCase), all: all.size }
+}
+
+const CODE_FIELDS = ['parent_id', 'name', 'status', 'definition', 'include', 'exclude', 'examples_pos', 'examples_neg'] as const
+const frozenCodesOf = (latest: Version | undefined): Code[] | null => { try { return latest ? JSON.parse(latest.snapshot_json) : null } catch { return null } }
+
+// Draft codes that are new or edited since the latest frozen version.
+export function changedCodeIds(codes: Code[], latest: Version | undefined): Set<number> {
+  const frozen = frozenCodesOf(latest)
+  if (!frozen) return new Set(codes.map(code => code.id))
+  const before = new Map(frozen.map(code => [code.id, code]))
+  return new Set(codes.filter(code => { const old = before.get(code.id); return !old || CODE_FIELDS.some(field => String(old[field] ?? '') !== String(code[field] ?? '')) }).map(code => code.id))
+}
+
+// How many codes differ between the draft and the latest frozen version (added, edited or removed).
+export function draftChanges(codes: Code[], latest: Version | undefined): number {
+  const frozen = frozenCodesOf(latest)
+  if (!frozen) return codes.length
+  return changedCodeIds(codes, latest).size + frozen.filter(code => !codes.some(item => item.id === code.id)).length
+}

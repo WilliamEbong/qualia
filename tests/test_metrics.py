@@ -150,3 +150,10 @@ def test_tune_thresholds_maximises_each_code_f1_on_the_tuning_split():
 def test_tune_thresholds_requires_complete_candidates():
     with pytest.raises(ValueError, match='exactly one prediction'):
         tune_thresholds([reference('a', [1])], [], [1], {})
+
+
+def test_tune_thresholds_keeps_a_current_cutoff_the_grid_cannot_beat():
+    records = [reference('a', [1]), reference('b', [1]), reference('c', [])]
+    candidates = [prediction('a', [(1, .74)]), prediction('b', [(1, .76)]), prediction('c', [(1, .72)])]
+    # Current 0.73 separates perfectly (F1 1.0); the best grid cutoff, 0.70, scores only 0.8.
+    assert tune_thresholds(records, candidates, [1], {'1': .73}) == {'1': .73}

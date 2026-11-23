@@ -7,6 +7,7 @@ from contextlib import contextmanager
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
+from qualia.ai.schemas import unique_object
 from qualia.store.db import canonical
 from qualia.workspace import (
     check_manifest,
@@ -40,21 +41,15 @@ def _hash(value):
 
 
 def _json(raw):
-    def unique(pairs):
-        result = {}
-        for key, value in pairs:
-            if key in result:
-                raise ValueError('duplicate JSON key')
-            result[key] = value
-        return result
-    return json.loads(raw, object_pairs_hook=unique)
+    return json.loads(raw, object_pairs_hook=unique_object)
 
 
 def _validate(records_or_bytes, split, code_ids):
     if isinstance(records_or_bytes, bytes):
         raw = records_or_bytes
         try:
-            lines = raw.decode('utf-8').splitlines()
+            # JSONL lines end only at \n; splitlines() would also split text on U+2028 or U+0085.
+            lines = [line.removesuffix('\r') for line in raw.decode('utf-8').removesuffix('\n').split('\n')]
         except UnicodeDecodeError:
             raise ValueError(f'{split}.jsonl: line 1: invalid UTF-8') from None
     elif isinstance(records_or_bytes, list):
@@ -188,6 +183,25 @@ def import_benchmark(project, records_or_bytes, split, codebook_version_id, code
         os.replace(temporary, project/'benchmarks/index.json')
         (project/'benchmarks/.published').touch(exist_ok=True)
     return metadata
+
+
+def benchmark_status(project):
+    """Dev and validation split summaries from the regular index; the protected split is never reported."""
+    splits = _read_index(project)['splits']
+    return {split: ({'records': splits[split]['metadata']['counts']['records'],
+                     'codebook_version_id': splits[split]['metadata']['codebook_version_id']}
+                    if split in splits else None) for split in ('dev', 'validation')}
+
+
+def import_with_frozen_version(db, project, content, split, version=None):
+    """Bind a benchmark to a frozen codebook version (latest when None) and its active codes."""
+    frozen = (db.one('SELECT * FROM codebook_versions WHERE id=?', (version,)) if version else
+              db.one('SELECT * FROM codebook_versions ORDER BY id DESC LIMIT 1'))
+    if frozen is None:
+        raise ValueError(f'frozen codebook version {version} not found' if version else
+                         'freeze the benchmark codebook first')
+    codes = [code['id'] for code in json.loads(frozen['snapshot_json']) if code.get('status', 'active') == 'active']
+    return import_benchmark(project, content, split, frozen['id'], codes)
 
 
 def load_benchmark(project, split='validation', protected=False):

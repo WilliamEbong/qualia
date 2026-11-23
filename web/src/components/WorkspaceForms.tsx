@@ -1,10 +1,11 @@
+import { focusOnOpen } from '../lib/workspace'
 import type { WorkspaceController } from '../lib/workspace'
 import { Button } from './ui/button'
 
 export function WorkspaceForms({ w }: { w: WorkspaceController }) {
   if (!w.panel) return null
-  return <section className="operation-panel" aria-label={`${w.panel} options`}>
-    <header className="section-heading"><h2>{w.panel === 'import' ? 'Import source material' : w.panel === 'case' ? 'Case details' : 'Export research'}</h2><Button onClick={() => w.setPanel(null)}>Close</Button></header>
+  return <section key={w.panel} className="operation-panel" aria-label={`${w.panel} options`}>
+    <header className="section-heading"><h2 tabIndex={-1} ref={focusOnOpen}>{w.panel === 'import' ? 'Import source material' : w.panel === 'case' ? 'Case details' : 'Export research'}</h2><Button onClick={() => w.setPanel(null)}>Close</Button></header>
     {w.panel === 'import' && <form onSubmit={w.importSource}><fieldset disabled={w.readOnly}>
       <div className="form-grid"><label>File<input type="file" name="file" accept=".txt,.md,.csv,text/plain,text/markdown,text/csv" /></label><label>Source name<input name="name" placeholder="Uses the filename if left blank" maxLength={255} /></label><label>File format<select name="format" defaultValue="txt"><option value="txt">Plain text</option><option value="md">Markdown</option><option value="csv">CSV with column mapping</option></select></label><label>Source version<select name="version_of" defaultValue=""><option value="">New source</option>{w.data?.sources.map(item => <option key={item.id} value={item.id}>New version of {item.name}</option>)}</select></label></div>
       <label>Or paste source text<textarea name="content" rows={5} placeholder="Choose a file above, or paste text here." /></label>

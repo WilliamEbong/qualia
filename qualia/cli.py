@@ -8,9 +8,7 @@ import webbrowser
 from pathlib import Path
 
 import typer
-import uvicorn
 
-from qualia.server.app import create_app
 from qualia.store.db import Store
 from qualia.workspace import init_project, list_projects, local_setting, pipeline_hash, project_dir
 
@@ -24,7 +22,10 @@ app.add_typer(jev_app, name='jev')
 
 
 def resolve_project(slug: str) -> Path:
-    path = project_dir(slug)
+    try:
+        path = project_dir(slug)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
     if not (path / 'project.db').is_file():
         raise typer.BadParameter(f'Project {slug} does not exist; run qualia init {slug}')
     return path
@@ -89,7 +90,8 @@ def import_command(file: Path, project: str = 'demo', text_column: str = 'text',
                                  speaker_column=speaker_column,
                                  attribute_columns=[x.strip() for x in attribute_columns.split(',') if x.strip()],
                                  version_of=version_of)
-        typer.echo(f"{result['new_sources']} new sources; {result['new_segments']} new segments")
+        sources, segments = result['new_sources'], result['new_segments']
+        typer.echo(f"{sources} new source{'s' * (sources != 1)}; {segments} new segment{'s' * (segments != 1)}")
     except (OSError, ValueError) as exc:
         raise typer.BadParameter(str(exc)) from exc
 
@@ -119,10 +121,12 @@ def save_code(file: Path, code_id: int | None = None, project: str = 'demo'):
     """Create/edit/archive a draft code from a validated JSON record.
 
     With --code-id only the fields present in the file change."""
-    from qualia.server.api_models import CodeInput
+    from qualia.server.api_models import CodeInput, ProposalValues
 
     try:
-        record = CodeInput.model_validate_json(file.read_text(encoding='utf-8'))
+        # An edit may omit any field (including name); validate_code still rejects nulls.
+        model = CodeInput if code_id is None else ProposalValues
+        record = model.model_validate_json(file.read_text(encoding='utf-8'))
         with Store(resolve_project(project) / 'project.db') as db:
             typer.echo(db.save_code(record.model_dump(exclude_unset=code_id is not None), code_id=code_id))
     except (OSError, ValueError) as exc:
@@ -189,8 +193,12 @@ def code_command(segment: int, code: int, project: str = 'demo', start: int = 0,
     from qualia.server.api_models import CodingInput
 
     path = resolve_project(project)
-    record = CodingInput(segment_id=segment, code_id=code, span_start=start, span_end=end,
-                         codebook_version_id=version, action='remove' if remove else 'assign', actor=actor)
+    try:
+        record = CodingInput(segment_id=segment, code_id=code, span_start=start, span_end=end,
+                             codebook_version_id=version, action='remove' if remove else 'assign',
+                             actor=actor)
+    except ValueError as exc:
+        raise typer.BadParameter('Invalid coding values: IDs must be positive, offsets nonnegative, actor nonblank') from exc
     with Store(path / 'project.db') as db:
         selected = db.one('SELECT * FROM segments WHERE id=?', (segment,))
         frozen = db.one('SELECT id FROM codebook_versions ORDER BY id DESC LIMIT 1')
@@ -263,9 +271,13 @@ def export_command(project: str = 'demo', format: str = 'json',
 
     path = resolve_project(project)
     with Store(path / 'project.db') as db:
-        content = export_data(db, path, format=format, no_text=no_text, bundle=bundle)
+        try:
+            content = export_data(db, path, format=format, no_text=no_text, bundle=bundle)
+        except ValueError as exc:
+            raise typer.BadParameter(str(exc)) from exc
     if output:
-        output.write_text(content, encoding='utf-8')
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(content, encoding='utf-8', newline='')
         typer.echo(str(output))
     else:
         typer.echo(content)
@@ -314,18 +326,12 @@ def review_command(suggestion: int, decision: str, project: str = 'demo',
 def benchmark_import(file: Path, project: str = 'demo', split: str = 'validation',
                      version: int | None = None):
     """Import a complete JSONL split once, bound to a frozen codebook."""
-    from qualia.io.benchmarks import import_benchmark
+    from qualia.io.benchmarks import import_with_frozen_version
 
     path = resolve_project(project)
     try:
         with Store(path / 'project.db') as db:
-            frozen = (db.one('SELECT * FROM codebook_versions WHERE id=?', (version,)) if version else
-                      db.one('SELECT * FROM codebook_versions ORDER BY id DESC LIMIT 1'))
-            if frozen is None:
-                raise ValueError('freeze the benchmark codebook first')
-            codes = [code['id'] for code in json.loads(frozen['snapshot_json'])
-                     if code.get('status', 'active') == 'active']
-            result = import_benchmark(path, file.read_bytes(), split, frozen['id'], codes)
+            result = import_with_frozen_version(db, path, file.read_bytes(), split, version)
         typer.echo(json.dumps(result, ensure_ascii=False))
     except (OSError, ValueError) as exc:
         raise typer.BadParameter(str(exc)) from exc
@@ -477,6 +483,11 @@ def open_command(port: int = typer.Option(8765, min=1024, max=65535), browser: b
         raise typer.BadParameter('QUALIA_PORT must be an integer') from exc
     if not 1024 <= port <= 65535:
         raise typer.BadParameter('QUALIA_PORT must be between 1024 and 65535')
+    # Loaded here so other commands start without the web server stack.
+    import uvicorn
+
+    from qualia.server.app import create_app
+
     server = uvicorn.Server(uvicorn.Config(create_app(), host='127.0.0.1', port=port, access_log=False))
     stopped = threading.Event()
     if browser:

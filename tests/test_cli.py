@@ -16,7 +16,7 @@ def test_cli_import_codebook_coding_export(tmp_path, monkeypatch):
     args = ['import', str(transcript), '--project', 'study']
     result = runner.invoke(app, args)
     assert result.exit_code == 0, result.output
-    assert '1 new sources' in result.output
+    assert '1 new source; 2 new segments' in result.output
     assert '0 new sources' in runner.invoke(app, args).output
     assert runner.invoke(app, ['codebook', 'add', 'Possibility', '--project', 'study']).exit_code == 0
     assert runner.invoke(app, ['codebook', 'freeze', '--project', 'study']).exit_code == 0
@@ -65,6 +65,16 @@ def test_cli_partial_code_edit_keeps_unsent_fields_and_errors_are_clean(tmp_path
     with Store(db_path) as db:
         row = db.one('SELECT * FROM codes WHERE id=?', (child,))
     assert (row['status'], row['parent_id'], row['definition']) == ('archived', parent, 'Now defined.')
+    # A file holding only the changed field is enough, as the guide's command table says.
+    edit.write_text(json.dumps({'definition': 'Only this field.'}), encoding='utf-8')
+    result = runner.invoke(app, ['codebook', 'save', str(edit), '--code-id', str(child), '--project', 'study'])
+    assert result.exit_code == 0, result.output
+    with Store(db_path) as db:
+        row = db.one('SELECT * FROM codes WHERE id=?', (child,))
+    assert (row['name'], row['status'], row['definition']) == ('Child', 'archived', 'Only this field.')
+    edit.write_text(json.dumps({'name': None}), encoding='utf-8')
+    result = runner.invoke(app, ['codebook', 'save', str(edit), '--code-id', str(child), '--project', 'study'])
+    assert result.exit_code == 2, result.output
     for args in (['codebook', 'add', 'Loop', '--parent', '99'], ['case', 'P1', '--source', '99']):
         result = runner.invoke(app, [*args, '--project', 'study'])
         assert result.exit_code == 2 and isinstance(result.exception, SystemExit), result.output
@@ -77,3 +87,30 @@ def test_read_snapshot_does_not_block_a_writer(tmp_path):
             reader.rows('SELECT * FROM codes')
             writer.save_code({'name': 'Written during a read'})
         assert reader.one('SELECT count(*) AS n FROM codes')['n'] == 1
+
+
+def test_cli_export_output_file_keeps_stored_newlines(tmp_path, monkeypatch):
+    """Offsets index the stored text, so the export file must not rewrite LF as CRLF."""
+    monkeypatch.setenv('QUALIA_HOME', str(tmp_path / 'home'))
+    runner = CliRunner()
+    assert runner.invoke(app, ['init', 'study']).exit_code == 0
+    transcript = tmp_path / 'transcript.txt'
+    transcript.write_bytes(b'line one\nline two\n\nsecond para')
+    assert runner.invoke(app, ['import', str(transcript), '--project', 'study']).exit_code == 0
+    output = tmp_path / 'new folder' / 'export.csv'  # a folder that does not exist yet
+    result = runner.invoke(app, ['export', '--project', 'study', '--format', 'csv',
+                                 '--include-text', '--output', str(output)])
+    assert result.exit_code == 0, result.output
+    assert b'\r\n' not in output.read_bytes()
+    assert b'line one\nline two\n\nsecond para' in output.read_bytes()
+
+
+def test_cli_reports_bad_input_as_usage_errors_not_tracebacks(tmp_path, monkeypatch):
+    monkeypatch.setenv('QUALIA_HOME', str(tmp_path / 'home'))
+    runner = CliRunner()
+    assert runner.invoke(app, ['init', 'study']).exit_code == 0
+    for args in (['codebook', 'list', '--project', 'Bad_Name'],
+                 ['export', '--project', 'study', '--format', 'xlsx'],
+                 ['code', '1', '1', '--project', 'study', '--start', '-1']):
+        result = runner.invoke(app, args)
+        assert result.exit_code == 2 and isinstance(result.exception, SystemExit), (args, result.output)

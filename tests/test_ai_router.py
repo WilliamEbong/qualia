@@ -462,6 +462,9 @@ def test_safe_failures_name_a_rejected_flag_or_old_version_but_never_provider_te
     leaked = ValueError('RAW_PROVIDER_BODY')
     leaked.code = 'RAW_PROVIDER_BODY'
     assert safe_failure(leaked) == 'provider_error'
+    # Fixed adapter codes the user guide tells people to act on are shown as themselves.
+    assert safe_failure(BackendError('authentication')) == 'authentication'
+    assert safe_failure(BackendError('containment_unavailable')) == 'containment_unavailable'
 
 
 def test_task_defaults_follow_intelligence_need_and_project_overrides_win():
@@ -512,14 +515,105 @@ def test_reported_model_version_is_stored_and_survives_cache_reuse():
         db.save_code({'name': 'Synthetic'})
         db.freeze_codebook()
 
+        def run_once(run_id, persist=True):
+            return classify_segments(db, [{'id': '1', 'text': 'Synthetic.'}],
+                                     [{'id': 1, 'name': 'Synthetic', 'status': 'active'}], ROUTING,
+                                     prompt='p', codebook_version_id=1, pipeline_version='pipeline',
+                                     backend='fixture', model='haiku', run_id=run_id, persist=persist,
+                                     registry={'fixture': backend})
+        # The first run only fills the cache (as an evaluation does); the cached run records it.
+        run_once('first', persist=False)
+        run_once('second')
+        assert backend.calls == 1
+        versions = [row['model_version'] for row in db.rows('SELECT model_version FROM coding_events')]
+        assert versions == ['claude-haiku-4-5-20251001']
+
+
+def test_a_confident_no_code_answer_is_not_escalated():
+    tiers = {'escalate_below': .7, 'tiers': {'strong': {'backend': 'strong', 'model': 'strong-v1'}}}
+
+    class Unscored(Scored):
+        scores = {}
+
+    class Low(Scored):
+        scores = {2: .4}
+
+    # No candidate at all is an answer, not uncertainty; candidates all cut by a threshold still are.
+    for primary, escalated in ((Unscored(), 0), (Low(), 1)):
+        strong = CountingBackend()
+        with Store(':memory:') as db:
+            result = scored_run(db, {'fixture': primary, 'strong': strong},
+                                {**tiers, 'code_thresholds': {'2': .5}})
+        assert result['escalated_segments'] == strong.calls == escalated
+
+
+def test_one_segment_the_provider_cannot_admit_does_not_stop_the_rest_of_the_run():
+    class Bounded(CountingBackend):
+        def estimate_cost(self, segments, context):
+            if any(segment['id'] == 's1' for segment in segments):
+                raise ValueError('request exceeds local size bound')
+            return 0.0
+
+    backend = Bounded()
+    segments = [{'id': f's{index}', 'text': 'Synthetic.'} for index in range(4)]
+    with Store(':memory:') as db:
+        result = classify_segments(db, segments, [{'id': 1, 'name': 'Synthetic', 'status': 'active'}],
+                                   {**ROUTING, 'segments_per_call': 1}, prompt='Classify synthetic content.',
+                                   codebook_version_id=1, pipeline_version='pipeline',
+                                   backend='fixture', model='fixture-v1', registry={'fixture': backend})
+    assert result['status'] == 'partial' and result['segments'] == 3 and backend.calls == 3
+    assert result['errors'] == ['segment s1: cost estimate unavailable']
+
+
+def test_retries_back_off_before_resending(monkeypatch):
+    import qualia.ai.router as router
+    pauses = []
+    monkeypatch.setattr(router, '_pause', pauses.append)
+    backend = CountingBackend(failures=2)
+    with Store(':memory:') as db:
+        result = run(db, backend, config={'max_retries': 2})
+    assert result['status'] == 'completed' and backend.calls == 3
+    assert pauses == [1.0, 2.0]
+
+
+def test_rerunning_classification_does_not_requeue_recorded_suggestions(tmp_path):
+    project = init_project('rerun', tmp_path)
+    with Store(project/'project.db') as db:
+        import_text(db, project, 'synthetic', 'First.\n\nSecond.', 'txt')
+        db.save_code({'name': 'Only'})
+        db.freeze_codebook()
+        first = classify_project(db, project, backend='fake')
+        assert len(first['suggestion_ids']) == 2
+        db.review(first['suggestion_ids'][0], 'reject', 'researcher', 'pipeline')
+        import_text(db, project, 'later', 'Third.', 'txt')
+        second = classify_project(db, project, backend='fake')
+        # Only the new passage gets a suggestion; the rejected and the pending ones are not repeated.
+        assert len(second['suggestion_ids']) == 1
+        assert len(db.rows('SELECT id FROM pending_suggestions')) == 2
+
+
+def test_a_new_model_snapshot_still_records_its_own_suggestion():
+    class Snapshot(CountingBackend):
+        version = 'snapshot-1'
+
+        def classify(self, segments, schema, context):
+            self.calls += 1
+            return {**FakeBackend.classify(self, segments, schema, context), 'model_version': self.version}
+
+    backend = Snapshot()
+    with Store(':memory:') as db:
+        db.add('sources', {'name': 's', 'text': 'Synthetic.', 'content_hash': 'h'})
+        db.add('segments', {'source_id': 1, 'start': 0, 'end': 10, 'ordinal': 0})
+        db.save_code({'name': 'Synthetic'})
+        db.freeze_codebook()
+
         def run_once(run_id):
             return classify_segments(db, [{'id': '1', 'text': 'Synthetic.'}],
                                      [{'id': 1, 'name': 'Synthetic', 'status': 'active'}], ROUTING,
                                      prompt='p', codebook_version_id=1, pipeline_version='pipeline',
                                      backend='fixture', model='haiku', run_id=run_id, persist=True,
-                                     registry={'fixture': backend})
-        run_once('first')
-        run_once('second')
-        assert backend.calls == 1
-        versions = [row['model_version'] for row in db.rows('SELECT model_version FROM coding_events')]
-        assert versions == ['claude-haiku-4-5-20251001'] * 2
+                                     use_cache=False, registry={'fixture': backend})
+        assert len(run_once('first')['suggestion_ids']) == 1
+        assert run_once('same')['suggestion_ids'] == []
+        backend.version = 'snapshot-2'  # the alias now answers with a newer model
+        assert len(run_once('newer')['suggestion_ids']) == 1

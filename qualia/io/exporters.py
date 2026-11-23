@@ -92,7 +92,12 @@ def export_data(db, project, format='json', no_text=True, bundle=None) -> str:
     columns = ['record_type', *sorted({key for row in rows for key in row} - {'record_type'})]
     output = io.StringIO(newline='')
     writer = csv.writer(output, lineterminator='\n')
-    writer.writerow(columns)
+    # Formula escaping adds a leading apostrophe; escaped_columns names the cells it touched,
+    # so a reader can strip exactly that character and recover the stored text.
+    writer.writerow([*columns, 'escaped_columns'])
     for row in rows:
-        writer.writerow([_csv_cell(row.get(column)) for column in columns])
+        cells = [_csv_cell(row.get(column)) for column in columns]
+        escaped = [column for column, cell in zip(columns, cells, strict=True)
+                   if isinstance(row.get(column), str) and cell != row[column]]
+        writer.writerow([*cells, ';'.join(escaped)])
     return output.getvalue()

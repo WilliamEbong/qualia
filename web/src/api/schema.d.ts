@@ -226,6 +226,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/projects/{slug}/matrix/totals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Matrix Totals */
+        get: operations["matrix_totals_api_projects__slug__matrix_totals_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/projects/{slug}/matrix": {
         parameters: {
             query?: never;
@@ -305,6 +322,24 @@ export interface paths {
         put?: never;
         /** Review */
         post: operations["review_api_projects__slug__review_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/projects/{slug}/benchmarks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Benchmarks */
+        get: operations["benchmarks_api_projects__slug__benchmarks_get"];
+        put?: never;
+        /** Import Benchmark */
+        post: operations["import_benchmark_api_projects__slug__benchmarks_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -773,6 +808,30 @@ export interface components {
             /** Models */
             models?: components["schemas"]["ModelChoice"][];
         };
+        /** BenchmarkImportInput */
+        BenchmarkImportInput: {
+            /**
+             * Split
+             * @enum {string}
+             */
+            split: "dev" | "validation";
+            /** Version */
+            version?: number | null;
+            /** Content */
+            content: string;
+        };
+        /** BenchmarkSplit */
+        BenchmarkSplit: {
+            /** Records */
+            records: number;
+            /** Codebook Version Id */
+            codebook_version_id: number;
+        };
+        /** BenchmarkStatus */
+        BenchmarkStatus: {
+            dev: components["schemas"]["BenchmarkSplit"] | null;
+            validation: components["schemas"]["BenchmarkSplit"] | null;
+        };
         /** CaseInput */
         CaseInput: {
             /** Name */
@@ -1012,6 +1071,19 @@ export interface components {
             /** New Segments */
             new_segments: number;
         };
+        /** MatrixTotals */
+        MatrixTotals: {
+            /** By Code */
+            by_code: {
+                [key: string]: number;
+            };
+            /** By Case */
+            by_case: {
+                [key: string]: number;
+            };
+            /** All */
+            all: number;
+        };
         /** MemoInput */
         MemoInput: {
             /** Title */
@@ -1032,6 +1104,8 @@ export interface components {
             case_id?: number | null;
             /** Source Id */
             source_id?: number | null;
+            /** Author */
+            author?: string | null;
         };
         /** ModelChoice */
         ModelChoice: {
@@ -1745,6 +1819,37 @@ export interface operations {
             };
         };
     };
+    matrix_totals_api_projects__slug__matrix_totals_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MatrixTotals"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     matrix_api_projects__slug__matrix_get: {
         parameters: {
             query?: never;
@@ -1899,6 +2004,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["IdResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    benchmarks_api_projects__slug__benchmarks_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BenchmarkStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_benchmark_api_projects__slug__benchmarks_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BenchmarkImportInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BenchmarkStatus"];
                 };
             };
             /** @description Validation Error */

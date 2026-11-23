@@ -12,6 +12,8 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
+from qualia.ai.schemas import unique_object
+
 MAX_INPUT_BYTES = 1_048_576
 MAX_OUTPUT_BYTES = 262_144
 
@@ -300,14 +302,6 @@ def token_count(value):
 def json_object(data):
     def reject_constant(_):
         raise ValueError('nonfinite JSON')
-
-    def unique_object(pairs):
-        result = {}
-        for key, value in pairs:
-            if key in result:
-                raise ValueError('duplicate JSON property')
-            result[key] = value
-        return result
 
     result = json.loads(data, parse_constant=reject_constant, object_pairs_hook=unique_object)
     if not isinstance(result, dict):

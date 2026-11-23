@@ -654,8 +654,9 @@ def test_installed_codex_advertises_no_tools_to_localhost(tmp_path, local_record
     path, body = requests[0]
     assert path == '/v1/responses' and body['model'] == model
     assert not body.get('tools')
-    additional = [item for item in body['input'] if item.get('type') == 'additional_tools']
-    assert additional and all(not item['tools'] for item in additional)
+    # Codex 0.170 stopped sending an additional_tools item; older builds send it empty.
+    # Either way no input item may carry a tool definition.
+    assert all(not item.get('tools') for item in body['input'] if isinstance(item, dict))
     # Owner-approved byte/time limits are local bounds, not a provider token cap.
     assert 'max_output_tokens' not in body
 

@@ -120,7 +120,8 @@ def response_schema() -> dict:
     return Predictions.model_json_schema()
 
 
-def _unique_object(pairs):
+def unique_object(pairs):
+    """json.loads object_pairs_hook that rejects a repeated key."""
     result = {}
     for key, value in pairs:
         if key in result:
@@ -151,7 +152,7 @@ def validate_result(raw, segments: list[dict], codebook: list[dict]) -> dict:
         return str(segments[index]['id']) if 0 <= index < len(segments) else first
 
     try:
-        value = json.loads(raw, object_pairs_hook=_unique_object) if isinstance(raw, str) else raw
+        value = json.loads(raw, object_pairs_hook=unique_object) if isinstance(raw, str) else raw
         result = Result.model_validate(value).model_dump()
     except ValidationError as exc:
         location = exc.errors(include_input=False)[0]['loc']
@@ -212,7 +213,7 @@ def validate_proposals(raw, mode: str, segments: list[dict], codes: list[dict],
     Each example is replaced by the passage's own wording, so stored examples are verbatim even
     when a model normalizes quotes or spacing; examples with no match are removed and counted."""
     try:
-        value = json.loads(raw, object_pairs_hook=_unique_object) if isinstance(raw, str) else raw
+        value = json.loads(raw, object_pairs_hook=unique_object) if isinstance(raw, str) else raw
         result = CodeProposalResult.model_validate(value).model_dump()
     except (ValidationError, ValueError, TypeError):
         raise ProposalValidationError('invalid provider response') from None
@@ -237,13 +238,11 @@ def validate_proposals(raw, mode: str, segments: list[dict], codes: list[dict],
         names[proposal['name'].strip().casefold()] = target if target is not None else -index
         if any(identity not in texts for identity in proposal['evidence_segment_ids']):
             fail('evidence names a segment that was not supplied')
-        # A revision may keep the researcher's existing examples; anything new must be quoted.
-        kept = set()
-        for code in codes:
-            if code['id'] == target:
-                kept = {*json.loads(code['examples_pos']), *json.loads(code['examples_neg'])}
+        # A revision may keep the researcher's existing examples on the same side; anything new must be quoted.
+        current = next((code for code in codes if code['id'] == target), None)
         removed = 0
         for field in ('examples_pos', 'examples_neg'):
+            kept = set(json.loads(current[field])) if current else set()
             grounded = []
             for example in proposal[field]:
                 quote = example if example in kept else quote_in(example, texts.values())

@@ -35,11 +35,15 @@ class Store:
         self._check_operation()
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.connection = sqlite3.connect(self.path, timeout=5, check_same_thread=False)
-        self.connection.row_factory = sqlite3.Row
-        self.connection.execute('PRAGMA foreign_keys=ON')
-        self.connection.execute('PRAGMA busy_timeout=5000')
-        self.connection.execute('PRAGMA journal_mode=WAL')
-        self.migrate()
+        try:
+            self.connection.row_factory = sqlite3.Row
+            self.connection.execute('PRAGMA foreign_keys=ON')
+            self.connection.execute('PRAGMA busy_timeout=5000')
+            self.connection.execute('PRAGMA journal_mode=WAL')
+            self.migrate()
+        except BaseException:
+            self.connection.close()  # release the file so it can be replaced or restored
+            raise
         stat = self.path.stat() if str(self.path) != ':memory:' else None
         self._file_identity = (stat.st_dev, stat.st_ino) if stat else None
 
@@ -118,32 +122,47 @@ class Store:
         return digest.hexdigest()
 
     def migrate(self):
-        version = self.connection.execute('PRAGMA user_version').fetchone()[0]
         migrations = sorted((Path(__file__).parent / 'migrations').glob('*.sql'))
+        known = int(migrations[-1].name.split('_')[0])
+        if self.connection.execute('PRAGMA user_version').fetchone()[0] > known:
+            raise ValueError('this project was saved by a newer version of Qualia; open it with that version')
         for file in migrations:
             number = int(file.name.split('_')[0])
-            if number <= version:
+            if number <= self.connection.execute('PRAGMA user_version').fetchone()[0]:
                 continue
-            if version and str(self.path) != ':memory:':
-                backup = sqlite3.connect(str(self.path) + f'.v{version}.bak')
-                try:
-                    self.connection.backup(backup)
-                finally:
-                    backup.close()
-            sql = file.read_text(encoding='utf-8')
-            if number == 1:
-                for table in APPEND_ONLY_V1:
-                    for action in ('UPDATE', 'DELETE'):
-                        sql += (
-                            f'\nCREATE TRIGGER {table}_{action.lower()} BEFORE {action} ON {table}'
-                            f" BEGIN SELECT RAISE(ABORT,'{table} is append-only'); END;"
-                        )
+            # Manual transaction control so executescript keeps the write lock taken here.
+            self.connection.autocommit = True
             try:
-                self.connection.executescript(f'BEGIN IMMEDIATE;\n{sql}\nPRAGMA user_version={number};\nCOMMIT;')
+                self.connection.execute('BEGIN IMMEDIATE')
+                # Another connection may have upgraded while this one waited for the lock.
+                version = self.connection.execute('PRAGMA user_version').fetchone()[0]
+                if number <= version:
+                    self.connection.execute('COMMIT')
+                    continue
+                if version and str(self.path) != ':memory:':
+                    # A separate WAL reader: the lock held here keeps the copy at this version.
+                    reader = sqlite3.connect(self.path)
+                    backup = sqlite3.connect(str(self.path) + f'.v{version}.bak')
+                    try:
+                        reader.backup(backup)
+                    finally:
+                        backup.close()
+                        reader.close()
+                sql = file.read_text(encoding='utf-8')
+                if number == 1:
+                    for table in APPEND_ONLY_V1:
+                        for action in ('UPDATE', 'DELETE'):
+                            sql += (
+                                f'\nCREATE TRIGGER {table}_{action.lower()} BEFORE {action} ON {table}'
+                                f" BEGIN SELECT RAISE(ABORT,'{table} is append-only'); END;"
+                            )
+                self.connection.executescript(f'{sql}\nPRAGMA user_version={number};\nCOMMIT;')
             except Exception:
-                self.connection.rollback()
+                if self.connection.in_transaction:
+                    self.connection.execute('ROLLBACK')
                 raise
-            version = number
+            finally:
+                self.connection.autocommit = sqlite3.LEGACY_TRANSACTION_CONTROL
 
     @contextmanager
     def transaction(self):
@@ -461,13 +480,17 @@ class Store:
     def save_memo(self, values: dict, memo_id: int | None = None) -> int:
         """Create or edit a memo; the memo_history trigger keeps every replaced version."""
         if not values or set(values) - {'title', 'text', 'kind', 'segment_id', 'code_id', 'case_id',
-                                        'source_id'}:
+                                        'source_id', 'author'}:
             raise ValueError('invalid memo fields')
         if memo_id is None and not {'title', 'text'} <= set(values):
             raise ValueError('memo title and text are required')
         for field in ('title', 'text'):
             if field in values and not isinstance(values[field], str):
                 raise ValueError(f'memo {field} must be text')
+        author = values.get('author')
+        if 'author' in values and author is not None and (
+                not isinstance(author, str) or not author.strip() or len(author) > 200):
+            raise ValueError('memo author must be nonblank text of at most 200 characters')
         if 'kind' in values and values['kind'] not in MEMO_KINDS:
             raise ValueError('memo kind must be analytic, reflexive, theme or method')
         for field, table in (('segment_id', 'segments'), ('code_id', 'codes'), ('case_id', 'cases'),
@@ -561,6 +584,17 @@ class Store:
             query += ' AND EXISTS(SELECT 1 FROM source_cases sc WHERE sc.source_id=g.source_id AND sc.case_id=?)'
             parameters.append(case_id)
         return self.rows(query + ' ORDER BY c.segment_id,c.span_start,c.code_id,c.id', parameters)
+
+    def matrix_totals(self) -> dict:
+        """Distinct coded segments per code, per case and overall, with the matrix cells' joins."""
+        base = ('FROM current_codings c JOIN segments g ON g.id=c.segment_id '
+                'JOIN source_cases sc ON sc.source_id=g.source_id')
+        with self.reading():
+            by_code = self.rows(f'SELECT c.code_id AS id, count(DISTINCT c.segment_id) AS n {base} GROUP BY c.code_id')
+            by_case = self.rows(f'SELECT sc.case_id AS id, count(DISTINCT c.segment_id) AS n {base} GROUP BY sc.case_id')
+            total = self.one(f'SELECT count(DISTINCT c.segment_id) AS n {base}')['n']
+        return {'by_code': {str(row['id']): row['n'] for row in by_code},
+                'by_case': {str(row['id']): row['n'] for row in by_case}, 'all': total}
 
     def matrix(self) -> list[dict]:
         return self.rows('SELECT c.code_id, sc.case_id, count(DISTINCT c.segment_id) AS count '

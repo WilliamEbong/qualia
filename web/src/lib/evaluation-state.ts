@@ -1,4 +1,5 @@
 import type { Coding } from './entities'
+import { counted } from './entities'
 
 export type EvaluationRecord = { id: number; split: string; backend: string; model: string; codebook_version_id: number; pipeline_version: string; metrics_json: string; created_at: string }
 export type Interval = [number, number]
@@ -36,7 +37,7 @@ export function matchingCalibration(event: Coding, runs: Evaluation[]): Evaluati
 
 export function calibrationCaption(event: Coding, runs: Evaluation[]): string {
   const match = matchingCalibration(event, runs)
-  return match ? `Validation ECE ${formatMetric(match.metrics?.ece)} · ${match.metrics?.scored_prediction_count} scored code assignments · evaluation #${match.id} · ${match.created_at}`
+  return match ? `Validation ECE ${formatMetric(match.metrics?.ece)} · ${counted(match.metrics?.scored_prediction_count ?? 0, 'scored code assignment')} · evaluation #${match.id} · ${match.created_at}`
     : 'Validation ECE unavailable — no scored validation result matches this suggestion’s backend, model, frozen codebook, pipeline and prompt.'
 }
 
@@ -92,4 +93,23 @@ export function calibrationRows(metrics: EvaluationMetrics) {
   return (Array.isArray(metrics.calibration_bins) ? metrics.calibration_bins : [])
     .filter(bin => finite(bin?.lower) && finite(bin.upper) && finite(bin.count) && bin.count > 0 && finite(bin.accuracy))
     .map(bin => ({ band: `${bin.lower.toFixed(1)}–${bin.upper.toFixed(1)}`, count: bin.count, meanScore: formatMetric(bin.mean_confidence, 2), correct: `${Math.round(bin.accuracy! * 100)}%` }))
+}
+
+export type BenchmarkSplit = { records: number; codebook_version_id: number } | null
+export type BenchmarkStatus = { dev: BenchmarkSplit; validation: BenchmarkSplit }
+
+// Plain reason a run cannot start yet, or '' when every needed split is imported.
+export function benchmarkReason(status: BenchmarkStatus | null, needed: Array<'dev' | 'validation'>): string {
+  if (!status) return 'Checking benchmarks…'
+  const missing = needed.filter(split => !status[split])
+  return !missing.length ? '' : missing.length === 1 ? `Import a ${missing[0]} benchmark first.` : 'Import dev and validation benchmarks first.'
+}
+
+export function experimentPrerequisites({ frozen, status, classifierReady }: { frozen: boolean; status: BenchmarkStatus | null; classifierReady: boolean }) {
+  return [
+    { label: 'A frozen codebook', met: frozen },
+    { label: 'A dev benchmark (for tuning)', met: !!status?.dev },
+    { label: 'A validation benchmark', met: !!status?.validation },
+    { label: 'An available classifier', met: classifierReady },
+  ]
 }

@@ -13,6 +13,7 @@ from qualia.server.api_models import (
     IdResult,
     ImportInput,
     ImportResult,
+    MatrixTotals,
     MemoInput,
 )
 from qualia.store.db import Store
@@ -74,12 +75,12 @@ def register_workspace_routes(app: FastAPI, home: Path | None):
     @app.post('/api/projects/{slug}/memos', response_model=IdResult)
     def create_memo(slug: str, record: MemoInput):
         with Store(existing_project(slug, home) / 'project.db') as db:
-            return {'id': db.save_memo(record.model_dump())}
+            return {'id': db.save_memo(record.model_dump(exclude={'author'} if record.author is None else set()))}
 
     @app.put('/api/projects/{slug}/memos/{memo_id}', response_model=IdResult)
     def update_memo(slug: str, memo_id: int, record: MemoInput):
         with Store(existing_project(slug, home) / 'project.db') as db:
-            return {'id': db.save_memo(record.model_dump(), memo_id=memo_id)}
+            return {'id': db.save_memo(record.model_dump(exclude={'author'} if record.author is None else set()), memo_id=memo_id)}
 
     @app.post('/api/projects/{slug}/cases', response_model=IdResult)
     def create_case(slug: str, record: CaseInput):
@@ -96,6 +97,11 @@ def register_workspace_routes(app: FastAPI, home: Path | None):
         with Store(existing_project(slug, home) / 'project.db') as db:
             return db.retrieve(code_id=code_id, case_id=case_id)
 
+    @app.get('/api/projects/{slug}/matrix/totals', response_model=MatrixTotals)
+    def matrix_totals(slug: str):
+        with Store(existing_project(slug, home) / 'project.db') as db:
+            return db.matrix_totals()
+
     @app.get('/api/projects/{slug}/matrix')
     def matrix(slug: str):
         with Store(existing_project(slug, home) / 'project.db') as db:
@@ -109,5 +115,6 @@ def register_workspace_routes(app: FastAPI, home: Path | None):
         path = existing_project(slug, home)
         with Store(path / 'project.db') as db:
             content = export_data(db, path, format=format, no_text=no_text, bundle=bundle)
-        return {'filename': f'{slug}-{"reproducibility" if bundle else "coding"}.{format}',
+        kind = ('reproducibility' if bundle else 'coding') + ('' if no_text else '-with-text')
+        return {'filename': f'{slug}-{kind}.{format}',
                 'media_type': 'application/json' if format == 'json' else 'text/csv', 'content': content}

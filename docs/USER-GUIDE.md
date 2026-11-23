@@ -138,6 +138,10 @@ Save as `.env`, not `.env.txt`, then restart Qualia. An already-set environment 
 
 The vault is an application access boundary, not encrypted storage. Your operating-system access controls and backup arrangements still matter. The local application is not a hosted collaboration service.
 
+### Home: where your study stands
+
+When a project is open, **Home** shows its sources, passages, coded passages, pending suggestions and latest frozen codebook, with one button for the next step: import a source, create codes, freeze the codebook, code a passage, review pending suggestions or explore the analysis.
+
 ## 3. Try a small practice study
 
 Video tutorial: [First project in 5 minutes](https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/02-first-project.mp4) (silent, captioned).
@@ -175,7 +179,7 @@ Video tutorial: [Import material](https://cdn.jsdelivr.net/gh/WilliamEbong/quali
 ### Text or Markdown
 
 1. Select the correct **Local project**.
-2. In **Workspace**, choose **Import source** or **Import transcript**.
+2. In **Workspace**, choose **Import source**.
 3. Choose a `.txt` or `.md` file, or paste text into **Or paste source text**. Use UTF-8 files.
 4. Set **File format** explicitly and optionally provide a **Source name**.
 5. Leave **Source version** as **New source** for a new document.
@@ -344,7 +348,7 @@ Video tutorial: [Memos, themes, reflexivity](https://cdn.jsdelivr.net/gh/William
 | Theme | A pattern you are building across codes (see below). |
 | Method | Decisions about sampling, units, coding and analysis. |
 
-Use **Show** to list one kind. **Edit memo** keeps the previous version: each card shows **Earlier versions** with the time each was replaced, and exports include them. Saving without changes adds no version.
+Each memo card shows its kind, the date it was written, the name of whoever saved it (from **Human actor**, when recorded) and the date of its last edit. Use **Show** to list one kind. **Edit memo** keeps the previous version: each card shows **Earlier versions** with the time each was replaced, and exports include them. Saving without changes adds no version.
 
 ![A reflexive memo linked to its source, with its earlier version kept](../design-review/final/features/memo-history.png)
 
@@ -366,7 +370,7 @@ Write **Reflexive** memos as you go, link them to the source or case they concer
 
 1. Open **Retrieval**.
 2. Select a **Code**, a **Case**, or both. Leave them at **All codes**/**All cases** for a broader view.
-3. Read the matching coded excerpts and their frozen codebook versions.
+3. Read the matching coded excerpts, grouped under each code with a count, and their frozen codebook versions.
 4. Choose **Open in transcript** to inspect context.
 
 Retrieval lists current coded spans. Several spans in one segment can produce several excerpt cards. Segment-frequency analyses and the matrix deduplicate those spans when counting presence.
@@ -380,7 +384,7 @@ Video tutorial: [Matrix and Analysis workbench](https://cdn.jsdelivr.net/gh/Will
 3. Read each code-by-case cell as the number of distinct currently coded segments carrying that code and linked to that case.
 4. Select a cell to open the corresponding retrieval view.
 
-Repeated spans of the same code on one segment count once in a cell. Multi-case source links contribute to each applicable case. An empty matrix can mean no case links, not necessarily no coding.
+Repeated spans of the same code on one segment count once in a cell. Multi-case source links contribute to each applicable case. The **Total** column and row use the same definition, distinct coded segments, so a segment linked to two cases counts once in its code's total. An empty matrix can mean no case links, not necessarily no coding.
 
 ![Code-by-case matrix](../design-review/final/features/matrix.png)
 
@@ -389,6 +393,8 @@ Use a cell as a route back to the supporting coded excerpts, not as a standalone
 ## 10. Use the Analysis workbench
 
 Video tutorial: [Matrix and Analysis workbench](https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/12-matrix-and-analysis.mp4) (silent, captioned).
+
+Analysis opens on an **Overview**: the counts for your current criteria, the most frequent codes, exports and the methods note. The tabs under the counts open one analysis at a time: **Code frequencies**, **Case groups**, **Co-occurrence**, **Words**, **Numeric attributes** and **Source evidence**. Selecting a bar, cell or count in any view opens **Source evidence** for that selection.
 
 Analysis reads visible workspace data. It does not write coding, call AI or read the protected benchmark vault. It describes the data and decisions selected by your criteria; it does not establish statistical significance or causation.
 
@@ -519,7 +525,7 @@ Video tutorial: [AI suggestions and review queue](https://cdn.jsdelivr.net/gh/Wi
 1. Install Qualia on your own computer. Install the official [Codex CLI](https://github.com/openai/codex) or [Claude Code](https://code.claude.com/docs/en/setup) separately. Qualia works with current versions of both and requires at least Codex **0.160.0** and Claude Code **2.1.284**; newer versions, including automatic updates, are used as installed. Every suggestion and usage record keeps the CLI version that produced it, so a run can be reproduced from its logged version. Whatever the version, Qualia launches the CLI with no action tools in an empty temporary folder, validates the output and keeps the batch, size, time and output limits.
 2. Run `codex` and choose **Sign in with ChatGPT**, or run `claude` and use your eligible Claude subscription account. These are your accounts; no shared developer account is supplied. No API key is required for these subscription paths. Qualia rejects Claude Console/API authentication and forces ChatGPT authentication for Codex.
 3. Confirm your subscription permits the selected model. Keep paid extra usage disabled unless you independently choose it; Qualia does not change billing settings. A successful login does not guarantee remaining quota.
-4. Start with a small synthetic study. Close or finish any active classification. Open that project's `config/routing.yaml` in your local research folder (default `%USERPROFILE%\Qualia\projects\my-study\config\routing.yaml`) in a text editor. The file uses JSON syntax. Preserve the other fields, change `"allow_external": false` to `true`, and consider `"daily_calls": 10` for your initial trial. Save it. This is your explicit permission to send the selected study text and codebook to the provider. Setting the value back to `false` prevents new external dispatches; it does not recall a request already sent.
+4. Start with a small synthetic study. Close or finish any active classification. Open that project's `config/routing.yaml` in your local research folder (default `%USERPROFILE%\Qualia\projects\my-study\config\routing.yaml`) in a text editor. The file uses JSON syntax. Preserve the other fields, change `"allow_external": false` to `true`, and consider `"daily_calls": 10` for your initial trial. That limit counts every classification call made that day in the project, including offline `rules` and `fake` runs, retries and escalations; likewise `run_segments` counts every segment sent in a run, so a retried or escalated segment counts again. Save it. This is your explicit permission to send the selected study text and codebook to the provider. Setting the value back to `false` prevents new external dispatches; it does not recall a request already sent.
 5. Reopen or refresh Qualia, choose the project, and inspect **Review → Backend availability and privacy**. “Available” means the executable can be found; the minimum version, sign-in and provider response are checked during dispatch. Choose `claude` or `codex` and **Current source** for a small first request.
 
 Each installation keeps its own projects, CLI login and optional Jev key. No subscription token or API key is shipped with Qualia. If you customize `QUALIA_HOME`, use that directory instead of the default path above.
@@ -679,7 +685,7 @@ A full tuning experiment on a large benchmark can exceed the default 300 daily c
 
 Sending text to Jev is a research-data disclosure decision. Review participant consent, your data-handling rules and TypeSafe's terms. TypeSafe hosts in the US. Its customer agreement says customer data is not used to change model weights without consent, but ordinary accounts do not get zero data retention; TypeSafe offers that to enterprise customers through sales ([legal](https://docs.typesafe.ai/legal), [privacy policy](https://typesafe.ai/legal/privacy-policy)). Prefer synthetic or de-identified material unless your approvals cover it. Every request appears in the project's egress log and usage ledger. Local budgets limit requests but do not change billing settings with TypeSafe.
 
-Jev can also take load off Claude or Codex: set it as the cheap tier and escalate only uncertain segments to a stronger model. Savings depend on your escalation rate, so measure them with **Evaluation**. Technical background and the wire contract are in [Jev setup notes](JEV-SETUP.md) and [Jev research](research/jev.md).
+Jev can also take load off Claude or Codex: set it as the cheap tier and escalate only uncertain segments to a stronger model. A segment is uncertain when its lowest kept score is below `escalate_below`; a segment where the model proposed no code at all is not escalated. Savings depend on your escalation rate, so measure them with **Evaluation**. Technical background and the wire contract are in [Jev setup notes](JEV-SETUP.md) and [Jev research](research/jev.md).
 
 ## 14. Evaluate a classifier against reference labels
 
@@ -724,7 +730,7 @@ Open **Evaluation provenance and metric definitions** for the exact definitions 
 
 ### Check repeatability
 
-AI models can answer differently when asked the same thing twice. **Evaluation → Check repeatability** (or `qualia repeatability`) classifies the same sample of your project's passages twice with the stored answers switched off, and reports:
+AI models can answer differently when asked the same thing twice. **Evaluation → Check repeatability** (or `qualia repeatability --project my-study`) classifies the same sample of your project's passages twice with the stored answers switched off, and reports:
 
 - **Identical code sets:** the share of passages where both runs suggested exactly the same codes.
 - **Per code:** how often the two runs made the same yes/no decision, and Cohen's kappa between the runs.
@@ -739,6 +745,10 @@ This is an advanced workflow. Prepare UTF-8 JSONL, one record per line, bound to
 {"segment_id":"validation-001","text":"A synthetic example passage.","codes":[1],"transcript_id":"interview-001"}
 ```
 
+**In the app:** open **Evaluation**, and under **Benchmarks** choose the JSONL file, the split (**Validation** to measure the classifier, **Dev** for tuning) and the frozen codebook version (the latest by default), then **Import benchmark**. The card shows which splits are imported and their record counts. **Run validation evaluation** stays disabled, with the reason shown, until a validation benchmark exists. The protected split can only be imported from the command line.
+
+**From a terminal:** the same rules apply.
+
 Code IDs must exist in the selected frozen codebook. Segment IDs must be unique; transcripts cannot overlap splits. Optional `coders` arrays can contain coder code-ID lists or missing ratings. Choose gold labels through your research process rather than generating them from the classifier you are evaluating.
 
 ```powershell
@@ -746,7 +756,7 @@ uv run qualia benchmark import "C:\Research\validation.jsonl" --project my-study
 uv run qualia evaluate --project my-study --backend rules --output "C:\Research\evaluation-reports"
 ```
 
-Replace the example version with your actual frozen version. Reimporting identical bytes is a no-op; replacing an existing split with changed content is rejected. CLI evaluation writes JSON and Markdown reports to the output directory. Without `--output`, they go in the workspace's `reports` folder.
+Replace the example version with your frozen codebook version: the number after `cb_v` that `codebook freeze` prints (`cb_v3` means `--version 3`). Reimporting identical bytes is a no-op; replacing an existing split with changed content is rejected. CLI evaluation writes JSON and Markdown reports to the output directory. Without `--output`, they go in the workspace's `reports` folder.
 
 ### Protected evaluation
 
@@ -810,7 +820,7 @@ The fake operator makes a scripted change to fake classification behavior. A gai
 
 ### Try another classification model
 
-Switching the classification model changes results, so Qualia treats it like any other experiment. **Experiments → Try another classification model** (or `qualia improve --agent model --candidate-backend claude --candidate-model sonnet`) measures the current model and the candidate on your validation benchmark, confirms a gain with a fresh run, and keeps the switch only if the unchanged policy says KEEP. Otherwise the project keeps its current model and the evidence is recorded either way.
+Switching the classification model changes results, so Qualia treats it like any other experiment. **Experiments → Try another classification model** (or `qualia improve --agent model --project my-study --candidate-backend claude --candidate-model sonnet`) measures the current model and the candidate on your validation benchmark, confirms a gain with a fresh run, and keeps the switch only if the unchanged policy says KEEP. Otherwise the project keeps its current model and the evidence is recorded either way.
 
 It costs three validation evaluations with external models. The policy's call limit also applies: a candidate that needs many more calls than the current model is reverted.
 
@@ -867,6 +877,8 @@ Video tutorial: [Export, Python/R, backup](https://cdn.jsdelivr.net/gh/WilliamEb
 | Reproducibility bundle | Adds experiment/evaluation/usage/egress records and configuration hashes. It does not package raw prompt files, credentials or vault contents. |
 | Analysis JSON/CSV/starters | Excludes source transcripts, but retains case metadata, selected query criteria and explicit attribute values for analysis. |
 | Static demo export | Contains the approved public snapshot and its attribution, including that snapshot's public excerpts. |
+
+In a workspace CSV, a value that starts with `=`, `+`, `-` or `@` gets a leading apostrophe so spreadsheets do not run it as a formula. The last column, `escaped_columns`, names the cells on that row that were escaped (separated by `;`); remove the first character of exactly those cells to recover the stored text, for example before checking segment offsets.
 
 A no-text frozen-codebook snapshot retains its original hash and is marked redacted; the hash identifies the original version, not the shortened copy. Include text when you intentionally need textual code definitions for reproduction. Even a text-inclusive bundle is not a full workspace backup or an automatically restorable project; there is no general bundle-import command.
 
@@ -994,13 +1006,13 @@ Run these from the application folder. Most project commands default to `demo`; 
 | Open local app | Qualia icon, `uv run qualia app` (own window, stops when closed) or `uv run qualia open` (terminal) |
 | Import text | `uv run qualia import "C:\Research\interview.txt" --project my-study` |
 | Add/freeze/list codes | `uv run qualia codebook add "Support" --definition "Help from others" --project my-study`; then `codebook freeze` / `codebook list` with the same project option |
-| Save a draft code record | `uv run qualia codebook save "C:\Research\code.json" --project my-study --code-id CODE_ID` (with `--code-id`, only the fields in the file change) |
+| Save a draft code record | `uv run qualia codebook save "C:\Research\code.json" --project my-study --code-id CODE_ID` (with `--code-id`, only the fields in the file change). The file is JSON, for example `{"include": "support, helped"}` to set the inclusion terms the `rules` classifier matches |
 | Codebook proposals | `uv run qualia codebook propose --mode evidence --project my-study`; `--mode draft --backend claude --segments "12,13" --focus "waiting"`; `--mode refine --backend codex --codes "3"` |
 | Review proposals | `uv run qualia codebook proposals --project my-study` (add `--all` for decided ones); `uv run qualia codebook decide PROPOSAL_ID accept --actor researcher --project my-study` (or `reject --note "..."`; `--values edits.json` to edit before accepting) |
 | Code a whole segment | `uv run qualia code SEGMENT_ID CODE_ID --project my-study --actor researcher` |
 | Code/remove a span | Add `--start START --end END`; add `--remove` for a removal of that code/span |
 | Create a memo | `uv run qualia memo "Title" "Memo text" --project my-study --kind reflexive --source SOURCE_ID` (also `--segment`, `--code`, `--case`; with `--memo-id` only the options given change) |
-| Create/link a case | `uv run qualia case "Participant 1" --project my-study --source SOURCE_ID` |
+| Create/link a case | `uv run qualia case "Participant 1" --project my-study --source SOURCE_ID`; add attributes as JSON, written in Windows PowerShell as `--attributes '{\"group\":\"urban\"}'` |
 | Retrieve by code/case | `uv run qualia retrieve --project my-study --code CODE_ID --case CASE_ID` |
 | Code-by-case counts | `uv run qualia matrix --project my-study` |
 | Read-only analysis | `uv run qualia analyze --project my-study --group-by group --numeric age --numeric wellbeing` |

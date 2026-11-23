@@ -3,14 +3,19 @@ import type { FormEvent } from 'react'
 import type { components } from '../api/schema'
 import { readOnly, request } from './client'
 import type { DemoSnapshot } from './demo'
+type MatrixTotalsResult = components['schemas']['MatrixTotals']
 import { useMatrix } from './matrix'
-import { codeDepth, eventCodeName, exampleList, frozenCodes, hydrateWorkspace, isEditingTarget, orderedCodes, segmentText, shortcut } from './entities'
+import { codeDepth, counted, eventCodeName, exampleList, frozenCodes, hydrateWorkspace, isEditingTarget, orderedCodes, segmentText, shortcut } from './entities'
 import type { Case, Code, Coding, MatrixCell, Memo, MemoKind, Project, Retrieval, Span, View, Workspace } from './entities'
 
 const field = (form: FormData, name: string) => String(form.get(name) ?? '').trim()
 const idField = (form: FormData, name: string) => Number(form.get(name)) || null
 const lines = (value: string) => value.split(/\r?\n/).map(item => item.trim()).filter(Boolean)
+// Offsets and the server count characters (code points), so the example cap does too.
+export const inVivoExample = (quote: string, keep: boolean) => keep && quote && Array.from(quote).length <= 500 ? [quote] : []
 export const exampleLines = (value: unknown) => exampleList(value).join('\n')
+// Stable ref callback: moves focus to a panel heading once, when the panel opens.
+export const focusOnOpen = (node: HTMLElement | null) => node?.focus()
 export const focusCodeEditor = () => requestAnimationFrame(() => document.querySelector<HTMLInputElement>('#code-editor input[name="name"]')?.focus())
 export const codeFormValues = (form: FormData): components['schemas']['CodeInput'] => ({ name: field(form, 'name'), parent_id: idField(form, 'parent_id'), definition: field(form, 'definition'), include: field(form, 'include'), exclude: field(form, 'exclude'), examples_pos: lines(field(form, 'examples_pos')), examples_neg: lines(field(form, 'examples_neg')), status: field(form, 'status') as 'active' | 'archived' })
 
@@ -29,7 +34,9 @@ export function useWorkspace() {
   const [activeId, setActiveId] = useState<number | null>(null)
   const [span, setSpan] = useState<Span | null>(null)
   const [versionId, setVersionId] = useState<number | null>(null)
-  const [actor, setActor] = useState('researcher')
+  // The coder's name is provenance: remember it across reloads (per browser; nothing else is stored).
+  const [actor, setActorState] = useState(() => { try { return localStorage.getItem('qualia-actor') || 'researcher' } catch { return 'researcher' } })
+  const setActor = (value: string) => { setActorState(value); try { localStorage.setItem('qualia-actor', value) } catch { /* storage unavailable */ } }
   const [panel, setPanel] = useState<'import' | 'case' | 'export' | null>(null)
   const [editCode, setEditCode] = useState<Code | null>(null)
   // Bumped after each save so uncontrolled "new" forms clear instead of resubmitting old text.
@@ -40,6 +47,7 @@ export function useWorkspace() {
   const [retrievalCode, setRetrievalCode] = useState<number | null>(null)
   const [retrievalCase, setRetrievalCase] = useState<number | null>(null)
   const [retrieval, setRetrieval] = useState<Retrieval[]>([])
+  const [matrixTotals, setMatrixTotals] = useState<MatrixTotalsResult | null>(null)
   const [queryLoading, setQueryLoading] = useState(false)
   const [matrix, setMatrix] = useState<MatrixCell[]>([])
   const mutationLock = useRef(false)
@@ -50,7 +58,7 @@ export function useWorkspace() {
     if (scope.current === value) { setView('workspace'); return }
     setSlug(value); setData(null); setSourceId(null); setCaseId(null); setActiveId(null); setSpan(null); setVersionId(null)
     setEditCode(null); setEditMemo(null); setEditCase(null); setPanel(null); setView('workspace'); setError(''); setNotice('')
-    setRetrievalCode(null); setRetrievalCase(null); setRetrieval([]); setMatrix([]); setQueryLoading(false)
+    setRetrievalCode(null); setRetrievalCase(null); setRetrieval([]); setMatrix([]); setMatrixTotals(null); setQueryLoading(false)
     const url = new URL(location.href)
     url.searchParams.set('project', value)
     history.replaceState(null, '', url)
@@ -137,12 +145,13 @@ export function useWorkspace() {
       if (!active) throw new Error('Choose a segment before creating a code from it.')
       const points = Array.from(activeText)
       const quote = (currentSpan ? points.slice(currentSpan.start, currentSpan.end).join('') : activeText).trim()
-      const input: components['schemas']['CodeInput'] = { name: field(form, 'name'), parent_id: null, definition: field(form, 'definition'), include: '', exclude: '', examples_pos: form.get('example') === 'on' && quote && quote.length <= 500 ? [quote] : [], examples_neg: [], status: 'active' }
+      const input: components['schemas']['CodeInput'] = { name: field(form, 'name'), parent_id: null, definition: field(form, 'definition'), include: '', exclude: '', examples_pos: inVivoExample(quote, form.get('example') === 'on'), examples_neg: [], status: 'active' }
       const code = await mutate('codes', input)
       const frozen = await mutate('codebook/freeze')
       const coding: components['schemas']['CodingInput'] = { segment_id: active.id, code_id: code.id, span_start: currentSpan?.start ?? 0, span_end: currentSpan?.end ?? points.length, codebook_version_id: frozen.id, action: 'assign', actor }
       await mutate('coding', coding); await reload(); setVersionId(frozen.id); target.reset()
-      setNotice(`Created “${input.name}”, froze codebook version ${frozen.id} and assigned the code.`)
+      const skipped = form.get('example') === 'on' && quote && !input.examples_pos?.length ? ' The selection is longer than 500 characters, so it was not kept as an example.' : ''
+      setNotice(`Created “${input.name}”, froze codebook version ${frozen.id} and assigned the code.${skipped}`)
     })
   }
 
@@ -175,19 +184,21 @@ export function useWorkspace() {
     if (retrievalCode !== null) query.set('code_id', String(retrievalCode))
     if (retrievalCase !== null) query.set('case_id', String(retrievalCase))
     const route = view === 'matrix' ? 'matrix' : `retrieval?${query}`
-    request<MatrixCell[] | Retrieval[]>(`projects/${encodeURIComponent(slug)}/${route}`, { signal: controller.signal }).then(value => {
+    // Cells and totals are fetched together so they always describe the same coding.
+    const totalsRequest = view === 'matrix' ? request<MatrixTotalsResult>(`projects/${encodeURIComponent(slug)}/matrix/totals`, { signal: controller.signal }) : Promise.resolve(null)
+    Promise.all([request<MatrixCell[] | Retrieval[]>(`projects/${encodeURIComponent(slug)}/${route}`, { signal: controller.signal }), totalsRequest]).then(([value, totals]) => {
       if (controller.signal.aborted) return
-      if (view === 'matrix') setMatrix(value as MatrixCell[])
+      if (view === 'matrix') { setMatrix(value as MatrixCell[]); setMatrixTotals(totals) }
       else setRetrieval(value as Retrieval[])
     }).catch(reason => { if (!controller.signal.aborted) setError(reason.message) }).finally(() => { if (!controller.signal.aborted) setQueryLoading(false) })
     return () => controller.abort()
   }, [slug, data, view, retrievalCode, retrievalCase])
 
   const createProject = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); const form = new FormData(event.currentTarget)
+    event.preventDefault(); const form = new FormData(event.currentTarget); const popover = event.currentTarget.closest('details')
     void run(async () => {
       const project = await request<Project>('projects', { method: 'POST', body: JSON.stringify({ name: field(form, 'name') }) })
-      const all = await request<Project[]>('projects'); setProjects(all); chooseProject(project.slug)
+      const all = await request<Project[]>('projects'); setProjects(all); chooseProject(project.slug); if (popover) popover.open = false
     })
   }
 
@@ -198,7 +209,7 @@ export function useWorkspace() {
       const content = file?.size ? await file.text() : String(form.get('content') ?? '')
       const input: components['schemas']['ImportInput'] = { name: field(form, 'name') || file?.name || 'Untitled transcript', content, format: field(form, 'format') as 'txt' | 'md' | 'csv', text_column: field(form, 'text_column') || 'text', case_column: field(form, 'case_column') || 'case', speaker_column: field(form, 'speaker_column') || 'speaker', attribute_columns: field(form, 'attribute_columns').split(',').map(item => item.trim()).filter(Boolean), version_of: idField(form, 'version_of') }
       const result = await request<components['schemas']['ImportResult']>(`projects/${encodeURIComponent(slug)}/import`, { method: 'POST', body: JSON.stringify(input) })
-      await reload(); setNotice(`${result.new_sources} new sources · ${result.new_segments} new segments`)
+      await reload(); setNotice(`${counted(result.new_sources, 'new source')} · ${counted(result.new_segments, 'new segment')}`)
       setPanel(null); setCaseId(null); if (result.source_ids[0]) selectSource(result.source_ids[0])
     })
   }
@@ -215,7 +226,7 @@ export function useWorkspace() {
   const saveMemo = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault(); const form = new FormData(event.currentTarget)
     void run(async () => {
-      const input: components['schemas']['MemoInput'] = { title: field(form, 'title'), text: String(form.get('text') ?? ''), kind: (field(form, 'kind') || 'analytic') as MemoKind, segment_id: idField(form, 'segment_id'), code_id: idField(form, 'code_id'), case_id: idField(form, 'case_id'), source_id: idField(form, 'source_id') }
+      const input: components['schemas']['MemoInput'] = { title: field(form, 'title'), text: String(form.get('text') ?? ''), kind: (field(form, 'kind') || 'analytic') as MemoKind, segment_id: idField(form, 'segment_id'), code_id: idField(form, 'code_id'), case_id: idField(form, 'case_id'), source_id: idField(form, 'source_id'), author: actor.trim() || null }
       await mutate(editMemo ? `memos/${editMemo.id}` : 'memos', input, editMemo ? 'PUT' : 'POST'); await reload(); setEditMemo(null); setFormNonce(value => value + 1); setNotice('Memo saved.')
     })
   }
@@ -253,7 +264,7 @@ export function useWorkspace() {
   }
   const matrixView = useMatrix(codeViews, data?.cases ?? [], matrix, drillDown)
 
-  return { projects, slug, data, loading, busy, error, notice, view, setView, chooseProject, createProject, run, reload, readOnly, attribution,
+  return { projects, slug, data, loading, busy, error, notice, view, setView: (next: View) => { setNotice(''); setView(next) }, chooseProject, createProject, run, reload, readOnly, attribution,
     sources, source, segments: segmentViews, active, activeText, currentSpan, activate, receiveSpan, selectSource, caseId, setCaseId,
     codes: codeViews, codingCodes, version, setVersionId, activeCodings, activeEvents, actor, setActor, assign, remove,
     clearSpan: () => setSpan(null), panel, setPanel, editCode, setEditCode, editMemo, setEditMemo, editCase, setEditCase, formNonce, setNotice,
@@ -264,6 +275,7 @@ export function useWorkspace() {
     sourceName: (id: number) => data?.sources.find(item => item.id === id)?.name ?? `Source ${id}`,
     caseName: (id: number) => data?.cases.find(item => item.id === id)?.name ?? `Case ${id}`, saveCase, exportData, retrieval, retrievalCode, setRetrievalCode, retrievalCase, setRetrievalCase,
     queryLoading, matrix, matrixView, drillDown, openSegment,
+    matrixTotals,
     retrievalSegmentCount: new Set(retrieval.map(item => item.segment_id)).size,
     caseAttributes: data?.attributes.filter(item => item.case_id === editCase?.id).map(item => `${item.key}=${item.value}`).join('\n') ?? '',
     caseSources: data?.source_cases.filter(item => item.case_id === editCase?.id).map(item => item.source_id) ?? [],

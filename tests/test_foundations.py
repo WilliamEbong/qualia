@@ -27,12 +27,58 @@ def test_migration_is_idempotent_and_settings(project):
     with Store(project / 'project.db') as db:
         db.migrate()
         db.migrate()
-        assert db.connection.execute('PRAGMA user_version').fetchone()[0] == 5
+        assert db.connection.execute('PRAGMA user_version').fetchone()[0] == 6
         assert db.connection.execute('PRAGMA journal_mode').fetchone()[0] == 'wal'
         assert db.connection.execute('PRAGMA busy_timeout').fetchone()[0] == 5000
         event = seed(db)
         db.add('coding_events', event)
         assert len(db.rows('SELECT * FROM current_codings')) == 1
+
+
+def test_concurrent_open_of_an_older_database_upgrades_once(project, monkeypatch):
+    """A second process that upgraded first must not make this open re-run its migration."""
+    import builtins
+
+    import qualia.store.db as store_module
+
+    path = project / 'race.db'
+    monkeypatch.setattr(store_module, 'sorted', lambda files: [
+        file for file in builtins.sorted(files) if file.name < '005'], raising=False)
+    Store(path).connection.close()
+
+    def other_process_upgrades_first(files):
+        # Runs after this open has read the old user_version, as in two parallel requests.
+        monkeypatch.setattr(store_module, 'sorted', builtins.sorted, raising=False)
+        Store(path).connection.close()
+        return builtins.sorted(files)
+
+    monkeypatch.setattr(store_module, 'sorted', other_process_upgrades_first, raising=False)
+    with Store(path) as db:
+        assert db.connection.execute('PRAGMA user_version').fetchone()[0] == 6
+    with sqlite3.connect(project / 'race.db.v4.bak') as backup:
+        assert backup.execute('PRAGMA user_version').fetchone()[0] == 4
+
+    # Parallel requests opening an older database: every open succeeds.
+    import threading
+    parallel = project / 'parallel.db'
+    monkeypatch.setattr(store_module, 'sorted', lambda files: [
+        file for file in builtins.sorted(files) if file.name < '005'], raising=False)
+    Store(parallel).connection.close()
+    monkeypatch.setattr(store_module, 'sorted', builtins.sorted, raising=False)
+    errors = []
+
+    def open_store():
+        try:
+            Store(parallel).connection.close()
+        except Exception as error:
+            errors.append(repr(error))
+
+    threads = [threading.Thread(target=open_store) for _ in range(4)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    assert errors == []
 
 
 def test_every_append_only_table_rejects_update_delete(project):
@@ -113,6 +159,9 @@ def test_server_security_and_offline_workspace(project, tmp_path):
     assert client.get('/api/projects', headers={'host': 'evil.example'}).status_code == 403
     assert client.get('/api/projects').status_code == 401
     assert client.get('/api/projects', headers={'x-qualia-token': 'wrong'}).status_code == 401
+    # A non-ASCII token is still a rejected token, with the security headers, not a crash.
+    rejected = client.get('/api/projects', headers=[(b'x-qualia-token', 'café'.encode('latin-1'))])
+    assert rejected.status_code == 401 and rejected.headers['x-frame-options'] == 'DENY'
     headers = {'x-qualia-token': 'test-token'}
     assert client.get('/api/projects', headers={**headers, 'origin': 'https://evil.example'}).status_code == 403
     response = client.get('/api/projects/study', headers=headers)
@@ -134,3 +183,13 @@ def test_read_boundary_and_model_provenance(project):
         event.update(actor_type='model', backend='', model='')
         with pytest.raises(sqlite3.IntegrityError):
             db.add('coding_events', event)
+
+
+def test_an_older_app_refuses_a_database_from_a_newer_version_and_releases_it(tmp_path):
+    path = tmp_path / 'project.db'
+    with Store(path) as db:
+        db.save_code({'name': 'Kept'})
+        db.connection.execute('PRAGMA user_version=99')
+    with pytest.raises(ValueError, match='newer version of Qualia'):
+        Store(path)
+    path.unlink()  # a refused open must not keep the file locked

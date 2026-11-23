@@ -92,6 +92,7 @@ class MemoInput(Record):
     code_id: int | None = None
     case_id: int | None = None
     source_id: int | None = None
+    author: str | None = Field(default=None, min_length=1, max_length=200)
 
 
 class CaseInput(Record):
@@ -162,6 +163,28 @@ class ReviewInput(Record):
 class EvaluateInput(Record):
     backend: str | None = None
     model: str | None = None
+
+
+class MatrixTotals(Record):
+    by_code: dict[str, int]
+    by_case: dict[str, int]
+    all: int
+
+
+class BenchmarkImportInput(Record):
+    split: Literal['dev', 'validation']
+    version: int | None = Field(default=None, gt=0)
+    content: str = Field(min_length=1, max_length=20_000_000)
+
+
+class BenchmarkSplit(Record):
+    records: int
+    codebook_version_id: int
+
+
+class BenchmarkStatus(Record):
+    dev: BenchmarkSplit | None
+    validation: BenchmarkSplit | None
 
 
 class ModelExperimentInput(Record):

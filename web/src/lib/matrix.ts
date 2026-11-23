@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { tableFeatures, useTable } from '@tanstack/react-table'
 import type { ColumnDef } from '@tanstack/react-table'
 import type { Case, Code, MatrixCell } from './entities'
+import { counted } from './entities'
 
 const features = tableFeatures({})
 type MatrixRow = { codeId: number; codeName: string; counts: Record<string, number> }
@@ -14,5 +15,6 @@ export function useMatrix(codes: Code[], cases: Case[], cells: MatrixCell[], sel
   ], [cases])
   const table = useTable({ features, columns, data: rows })
   const maximum = Math.max(1, ...cells.map(cell => cell.count))
-  return { table, rows: table.getRowModel().rows.map(row => ({ id: row.id, cells: row.getAllCells().map(cell => ({ id: cell.id, cell, label: `${row.original.codeName} · ${cell.column.columnDef.header} · ${cell.getValue()} segments`, isCode: cell.column.id === 'code', style: { '--heat': Number(cell.getValue()) / maximum * 0.6 }, select: () => select(row.original.codeId, Number(cell.column.id)) })) })) }
+  return { table, rows: table.getRowModel().rows.map(row => ({ id: row.id, cells: row.getAllCells().map(cell => ({ id: cell.id, cell, label: `${row.original.codeName} · ${cell.column.columnDef.header} · ${counted(Number(cell.getValue()), 'segment')}`, isCode: cell.column.id === 'code', style: { '--heat': Number(cell.getValue()) / maximum * 0.6 }, select: () => select(row.original.codeId, Number(cell.column.id)) })) })) }
 }
+

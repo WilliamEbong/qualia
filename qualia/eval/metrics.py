@@ -156,7 +156,8 @@ def evaluate_metrics(records, predictions, code_ids, *, calls=0, latency_ms=0, e
 def tune_thresholds(records, candidates, code_ids, current):
     """Per-code score cutoff maximising that code's F1 on tuning data (ties toward 0.5).
 
-    Codes without reference positives, or that no cutoff can find, keep their current value.
+    Codes without reference positives, or that no cutoff can find, keep their current value,
+    as does an explicit current cutoff that scores at least as well as the best grid value.
     ponytail: a small dev split can overfit; validation KEEP/REVERT is the guard.
     """
     ids = [record['segment_id'] for record in records]
@@ -175,6 +176,9 @@ def tune_thresholds(records, candidates, code_ids, current):
             return f1_score(truth, [int(score >= threshold) for score in scores], zero_division=0)
 
         best = max(THRESHOLD_GRID, key=lambda threshold: (f1_at(threshold), -abs(threshold - .5)))
+        explicit = current.get(str(code_id))
+        if explicit is not None and f1_at(explicit) >= f1_at(best):
+            continue
         if f1_at(best) > 0:
             tuned[str(code_id)] = best
     return tuned
@@ -191,7 +195,7 @@ def run_agreement(first: list[dict], second: list[dict], code_ids: list[int]) ->
         right = [int(code_id in two[identity]) for identity in shared]
         agreement = sum(a == b for a, b in zip(left, right, strict=True)) / len(shared) if shared else None
         kappa = None
-        if shared and len(set(left) | set(right)) > 1:
+        if shared and (len(set(left)) > 1 or len(set(right)) > 1):
             value = float(cohen_kappa_score(left, right))
             kappa = value if math.isfinite(value) else None
         per_code.append({'code_id': code_id, 'agreement': agreement, 'kappa': kappa,

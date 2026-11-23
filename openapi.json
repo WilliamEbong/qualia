@@ -647,6 +647,45 @@
         }
       }
     },
+    "/api/projects/{slug}/matrix/totals": {
+      "get": {
+        "summary": "Matrix Totals",
+        "operationId": "matrix_totals_api_projects__slug__matrix_totals_get",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatrixTotals"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/projects/{slug}/matrix": {
       "get": {
         "summary": "Matrix",
@@ -884,6 +923,92 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/IdResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/projects/{slug}/benchmarks": {
+      "get": {
+        "summary": "Benchmarks",
+        "operationId": "benchmarks_api_projects__slug__benchmarks_get",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BenchmarkStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Import Benchmark",
+        "operationId": "import_benchmark_api_projects__slug__benchmarks_post",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BenchmarkImportInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BenchmarkStatus"
                 }
               }
             }
@@ -2240,6 +2365,93 @@
         ],
         "title": "BackendAvailability"
       },
+      "BenchmarkImportInput": {
+        "properties": {
+          "split": {
+            "type": "string",
+            "enum": [
+              "dev",
+              "validation"
+            ],
+            "title": "Split"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          },
+          "content": {
+            "type": "string",
+            "maxLength": 20000000,
+            "minLength": 1,
+            "title": "Content"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "split",
+          "content"
+        ],
+        "title": "BenchmarkImportInput"
+      },
+      "BenchmarkSplit": {
+        "properties": {
+          "records": {
+            "type": "integer",
+            "title": "Records"
+          },
+          "codebook_version_id": {
+            "type": "integer",
+            "title": "Codebook Version Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "records",
+          "codebook_version_id"
+        ],
+        "title": "BenchmarkSplit"
+      },
+      "BenchmarkStatus": {
+        "properties": {
+          "dev": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BenchmarkSplit"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "validation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BenchmarkSplit"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "dev",
+          "validation"
+        ],
+        "title": "BenchmarkStatus"
+      },
       "CaseInput": {
         "properties": {
           "name": {
@@ -2860,6 +3072,36 @@
         ],
         "title": "ImportResult"
       },
+      "MatrixTotals": {
+        "properties": {
+          "by_code": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "By Code"
+          },
+          "by_case": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "By Case"
+          },
+          "all": {
+            "type": "integer",
+            "title": "All"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "by_code",
+          "by_case",
+          "all"
+        ],
+        "title": "MatrixTotals"
+      },
       "MemoInput": {
         "properties": {
           "title": {
@@ -2927,6 +3169,19 @@
               }
             ],
             "title": "Source Id"
+          },
+          "author": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author"
           }
         },
         "additionalProperties": false,

@@ -17,6 +17,12 @@ def _decimal(value):
     return Decimal(str(value))
 
 
+def _measured(value):
+    # Computed metrics carry binary float noise (sum([.05] * 3) / 3 == 0.05000000000000001);
+    # twelve places keep an exact boundary gain inclusive without blurring real differences.
+    return Decimal(str(round(value, 12)))
+
+
 def _priority(metrics, code_id):
     rows = metrics.get('per_code')
     if not isinstance(rows, list):
@@ -52,13 +58,13 @@ def decide(baseline: dict, candidate: dict, policy: dict, *, tests_passed: bool,
     old, new = baseline.get('macro_f1'), candidate.get('macro_f1')
     if not _number(old, maximum=1) or not _number(new, maximum=1):
         reasons.append('macro_f1 is missing, nonfinite or outside [0,1]')
-    elif _decimal(new) - _decimal(old) < _decimal(policy['min_delta']):
+    elif _measured(new) - _measured(old) < _decimal(policy['min_delta']):
         reasons.append('validation macro_f1 gain is below min_delta')
     for code_id in priorities:
         before, after = _priority(baseline, code_id), _priority(candidate, code_id)
         if before is None or after is None:
             reasons.append(f'priority code {code_id} F1 is missing, invalid or ambiguous')
-        elif _decimal(before) - _decimal(after) > _decimal(policy['priority_tolerance']):
+        elif _measured(before) - _measured(after) > _decimal(policy['priority_tolerance']):
             reasons.append(f'priority code {code_id} regression exceeds tolerance')
     before_calls, after_calls = baseline.get('calls'), candidate.get('calls')
     if not _number(before_calls, integer=True) or not _number(after_calls, integer=True):

@@ -61,3 +61,91 @@ describe('workspace controls and counts', () => {
     expect(orderedCodes(codes).map(code => code.id)).toEqual([3, 1, 2])
   })
 })
+
+describe('in-vivo example', () => {
+  it('counts characters, not UTF-16 units, and keeps only a requested nonblank quote', async () => {
+    const { inVivoExample } = await import('./workspace')
+    const emoji = '😀'.repeat(500)
+    expect(inVivoExample(emoji, true)).toEqual([emoji])
+    expect(inVivoExample(emoji + 'a', true)).toEqual([])
+    expect(inVivoExample('Waiting.', false)).toEqual([])
+    expect(inVivoExample('', true)).toEqual([])
+  })
+})
+
+describe('counted', () => {
+  it('uses the singular only for exactly one', async () => {
+    const { counted } = await import('./entities')
+    expect([0, 1, 2].map(count => counted(count, 'segment'))).toEqual(['0 segments', '1 segment', '2 segments'])
+    expect(counted(1, 'cache hit')).toBe('1 cache hit')
+    expect(counted(3, 'pending suggestion')).toBe('3 pending suggestions')
+  })
+})
+
+describe('study status and next step', () => {
+  it('counts the study and picks one next step in order', async () => {
+    const { studyStatus } = await import('./entities')
+    const base = { sources: [], segments: [], codes: [], codebook_versions: [], current_codings: [], suggestions: [] }
+    const step = (extra: object) => studyStatus({ ...base, ...extra } as never).next
+    expect(step({})).toEqual({ label: 'Import your first source', view: 'workspace', panel: 'import' })
+    const sources = [{ id: 1 }], segments = [{ id: 1 }, { id: 2 }]
+    expect(step({ sources, segments }).label).toBe('Create your first codes')
+    expect(step({ sources, segments, codes: [{ id: 1 }] }).label).toBe('Freeze the codebook')
+    const frozen = { codebook_versions: [{ id: 1, frozen_at: '2026-11-23T17:02:40Z' }] }
+    expect(step({ sources, segments, codes: [{ id: 1 }], ...frozen }).label).toBe('Code a passage')
+    const coded = { current_codings: [{ segment_id: 1 }, { segment_id: 1 }] }
+    expect(step({ sources, segments, codes: [{ id: 1 }], ...frozen, ...coded, suggestions: [{}, {}] }))
+      .toEqual({ label: 'Review 2 pending suggestions', view: 'review' })
+    const done = studyStatus({ ...base, sources, segments, codes: [{ id: 1 }], ...frozen, ...coded } as never)
+    expect(done.next.label).toBe('Explore the analysis')
+    expect([done.sources, done.passages, done.coded, done.pending, done.latestVersion]).toEqual([1, 2, 1, 0, 'cb_v1 · 2026-11-23'])
+  })
+})
+
+describe('matrix totals and retrieval grouping', () => {
+  it('totals count distinct segments, so a segment in two cases counts once overall', async () => {
+    const { matrixTotals } = await import('./entities')
+    const data = { segments: [{ id: 1, source_id: 10 }, { id: 2, source_id: 20 }, { id: 3, source_id: 30 }],
+      source_cases: [{ source_id: 10, case_id: 100 }, { source_id: 10, case_id: 200 }, { source_id: 20, case_id: 200 }],
+      current_codings: [{ segment_id: 1, code_id: 5 }, { segment_id: 1, code_id: 6 }, { segment_id: 2, code_id: 5 }, { segment_id: 3, code_id: 5 }] }
+    const totals = matrixTotals(data as never)
+    // Segment 3's source has no case, so it is outside the matrix, as in the cells.
+    expect(totals.byCode).toEqual({ 5: 2, 6: 1 })
+    expect(totals.byCase).toEqual({ 100: 1, 200: 2 })
+    expect(totals.all).toBe(2)
+  })
+  it('groups excerpts under their code in codebook order', async () => {
+    const { groupByCode } = await import('./entities')
+    const items: Array<{ code_id: number; segment_id: number }> = [{ code_id: 2, segment_id: 1 }, { code_id: 1, segment_id: 2 }, { code_id: 2, segment_id: 3 }]
+    const groups = groupByCode(items, [1, 2], id => `Code ${id}`)
+    expect(groups.map(group => [group.name, group.items.map(item => item.segment_id)])).toEqual([['Code 1', [2]], ['Code 2', [1, 3]]])
+  })
+})
+
+describe('memo metadata line', () => {
+  it('shows kind, date, author when known and the last edit date', async () => {
+    const { memoMeta } = await import('./entities')
+    expect(memoMeta({ kind: 'reflexive', created_at: '2026-11-23T17:02:40.774Z', author: 'AK' } as never, [])).toBe('reflexive memo · 2026-11-23 · AK')
+    expect(memoMeta({ created_at: '2026-11-20T09:00:00Z' } as never, [{ replaced_at: '2026-11-21T10:00:00Z' }, { replaced_at: '2026-11-22T10:00:00Z' }] as never)).toBe('analytic memo · 2026-11-20 · edited 2026-11-22')
+  })
+})
+
+describe('draft changes since the latest frozen codebook', () => {
+  it('counts added, edited and removed codes', async () => {
+    const { draftChanges } = await import('./entities')
+    const code = (id: number, extra = {}) => ({ id, parent_id: null, name: `C${id}`, status: 'active', definition: '', include: '', exclude: '', examples_pos: '[]', examples_neg: '[]', ...extra })
+    const frozen = { id: 1, hash: 'h', frozen_at: '2026-11-23', snapshot_json: JSON.stringify([code(1), code(2), code(3)]) }
+    expect(draftChanges([code(1), code(2), code(3)] as never, frozen)).toBe(0)
+    expect(draftChanges([code(1, { definition: 'new' }), code(2), code(4)] as never, frozen)).toBe(3)
+    expect(draftChanges([code(1)] as never, undefined)).toBe(1)
+  })
+})
+
+describe('codes changed since the latest frozen version', () => {
+  it('lists the ids that are new or edited', async () => {
+    const { changedCodeIds } = await import('./entities')
+    const code = (id: number, extra = {}) => ({ id, parent_id: null, name: `C${id}`, status: 'active', definition: '', include: '', exclude: '', examples_pos: '[]', examples_neg: '[]', ...extra })
+    const frozen = { id: 1, hash: 'h', frozen_at: '2026-11-23', snapshot_json: JSON.stringify([code(1), code(2)]) }
+    expect([...changedCodeIds([code(1, { name: 'Renamed' }), code(2), code(3)] as never, frozen)]).toEqual([1, 3])
+  })
+})

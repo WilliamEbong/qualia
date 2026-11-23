@@ -13,10 +13,15 @@ function download(content: string, mediaType: string, filename: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
+// One job per view: an overview first, then each analysis on its own.
+export const ANALYSIS_SECTIONS = [['overview', 'Overview'], ['frequencies', 'Code frequencies'], ['groups', 'Case groups'], ['cooccurrence', 'Co-occurrence'], ['words', 'Words'], ['numeric', 'Numeric attributes'], ['evidence', 'Source evidence']] as const
+export type AnalysisSection = typeof ANALYSIS_SECTIONS[number][0]
+
 export function useAnalysis(w: WorkspaceController) {
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const report = currentAnalysis(result, w.slug, w.data, w.view)
   const [loading, setLoading] = useState(false), [error, setError] = useState(''), [notice, setNotice] = useState('')
+  const [section, setSection] = useState<AnalysisSection>('overview')
   const [drill, setDrill] = useState<{ label: string; ids: number[] } | null>(null)
   const [page, setPage] = useState(0), [correlationIndex, setCorrelationIndex] = useState(0)
   const scope = useRef({ slug: w.slug, data: w.data }), generation = useRef(0)
@@ -75,7 +80,7 @@ export function useAnalysis(w: WorkspaceController) {
   }, [w.view, w.slug, w.data, workspaceRevision])
   const submit = (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); void refresh(analysisOptions(new FormData(event.currentTarget))) }
   const fields = useMemo(() => [...new Set(w.data?.attributes.filter(item => item.case_id !== null).map(item => item.key))].sort(), [w.data])
-  const select = (label: string, ids: number[]) => { setDrill({ label, ids }); setPage(0); setTimeout(() => document.getElementById('analysis-evidence')?.scrollIntoView({ block: 'start' }), 0) }
+  const select = (label: string, ids: number[]) => { setDrill({ label, ids }); setPage(0); setSection('evidence'); setTimeout(() => document.getElementById('analysis-evidence')?.scrollIntoView({ block: 'start' }), 0) }
   const evidence = useMemo(() => w.data && report ? analysisExcerpts(w.data, report, drill?.ids ?? report.selected_segment_ids) : [], [w.data, report, drill])
   const correlation = report?.correlations[correlationIndex]
   const scatter = scatterPoints(correlation?.points ?? [])
@@ -119,7 +124,7 @@ export function useAnalysis(w: WorkspaceController) {
     download(new XMLSerializer().serializeToString(copy), 'image/svg+xml', `qualia-${title}.svg`)
     setNotice(`Downloaded ${title} chart.`)
   }
-  return { report, appliedOptions: applied.current, loading, error, notice, submit, reload: () => void refresh(), fields, select, selectCase, drill,
+  return { section, setSection, report, appliedOptions: applied.current, loading, error, notice, submit, reload: () => void refresh(), fields, select, selectCase, drill,
     evidence: evidence.slice(page * 25, (page + 1) * 25), evidenceCount: evidence.length, page, setPage,
     correlation, correlationIndex, setCorrelationIndex, scatter, exportReport, exportChart, number: analysisNumber,
     criteria: report ? analysisCriteria(report.options) : '',

@@ -89,3 +89,22 @@ describe('remembered theme preference', () => {
     expect(nextTheme(nextTheme('light'))).toBe('light')
   })
 })
+
+describe('benchmark gating and experiment prerequisites', () => {
+  it('names the missing benchmark in plain words', async () => {
+    const { benchmarkReason } = await import('./evaluation-state')
+    const imported = { records: 5, codebook_version_id: 1 }
+    expect(benchmarkReason(null, ['validation'])).toBe('Checking benchmarks…')
+    expect(benchmarkReason({ dev: null, validation: null }, ['validation'])).toBe('Import a validation benchmark first.')
+    expect(benchmarkReason({ dev: null, validation: null }, ['dev', 'validation'])).toBe('Import dev and validation benchmarks first.')
+    expect(benchmarkReason({ dev: imported, validation: null }, ['dev', 'validation'])).toBe('Import a validation benchmark first.')
+    expect(benchmarkReason({ dev: imported, validation: imported }, ['dev', 'validation'])).toBe('')
+  })
+  it('lists each experiment prerequisite as met or not', async () => {
+    const { experimentPrerequisites } = await import('./evaluation-state')
+    const rows = experimentPrerequisites({ frozen: true, status: { dev: null, validation: { records: 3, codebook_version_id: 1 } }, classifierReady: false })
+    expect(rows.map(row => [row.label, row.met])).toEqual([
+      ['A frozen codebook', true], ['A dev benchmark (for tuning)', false],
+      ['A validation benchmark', true], ['An available classifier', false]])
+  })
+})

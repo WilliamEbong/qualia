@@ -22,9 +22,13 @@ from qualia.store.db import canonical
 from qualia.workspace import pipeline_hash, read_config
 
 RETRYABLE = {'timeout', 'transient', 'process_failed', 'transport_error', 'rate_limit'}
+# Seconds before retry n (doubling), so a rate limit or transient fault is not hit again at once.
+RETRY_DELAY_SECONDS = 1.0
+_pause = time.sleep
 SAFE_FAILURES = RETRYABLE | {'invalid_model', 'unavailable', 'input_limit', 'output_limit',
                             'unsupported_version', 'invalid_input', 'tool_call', 'invalid_response',
-                            'subscription_auth_required', 'quota', 'unsupported_flag'}
+                            'subscription_auth_required', 'quota', 'unsupported_flag',
+                            'authentication', 'containment_unavailable'}
 
 
 def safe_failure(exc) -> str:
@@ -226,8 +230,9 @@ def classify_segments(db, segments, codebook, config, *, prompt, codebook_versio
                 try:
                     reserved_usd = provider.estimate_cost(batch, context) if hasattr(provider, 'estimate_cost') else 0.0
                 except Exception:
+                    # A batch shrinks to one segment before this fails, so skip only that segment.
                     failures.append(('error', f"segment {batch[0]['id']}: cost estimate unavailable"))
-                    return collected
+                    break
                 try:
                     reservation = ledger.reserve(db, backend=provider, model=model_name, run_id=run_id,
                                                  segments=batch, config=config, purpose=task,
@@ -251,6 +256,7 @@ def classify_segments(db, segments, codebook, config, *, prompt, codebook_versio
                                   reserved_usd=reserved_usd)
                     retryable = getattr(exc, 'code', None) in RETRYABLE
                     if retryable and attempt < retries:
+                        _pause(RETRY_DELAY_SECONDS * 2 ** attempt)
                         continue
                     identity = (exc.segment_id if isinstance(exc, ResponseValidationError) and
                                 exc.segment_id in {segment['id'] for segment in batch} else batch[0]['id'])
@@ -276,8 +282,14 @@ def classify_segments(db, segments, codebook, config, *, prompt, codebook_versio
     threshold = config['escalate_below']
     strong = config['tiers'].get('strong')
     if threshold is not None and strong and (strong['backend'], strong['model']) != (name, selected_model):
+        def confidence(outcome):
+            # Thresholded codes decide; if a threshold removed them all, their raw scores do.
+            # An answer with no candidate code at all is a decision, not uncertainty.
+            codes = outcome[0]['codes'] or outcome[4]['codes']
+            return min((code['score'] for code in codes), default=1.0)
+
         uncertain = [segment for segment in segments if segment['id'] in outcomes and
-                     min((code['score'] for code in outcomes[segment['id']][0]['codes']), default=0.0) < threshold]
+                     confidence(outcomes[segment['id']]) < threshold]
         if uncertain:
             additional = classify_batch_inputs(uncertain, strong['backend'], strong['model'])
             result['escalated_segments'] = len(additional)
@@ -323,7 +335,17 @@ def classify_segments(db, segments, codebook, config, *, prompt, codebook_versio
                                'action': 'suggest', 'review_status': 'pending',
                                'review_trigger': canonical(triggers), 'codebook_version_id': codebook_version_id,
                                'pipeline_version': pipeline_version, 'prompt_hash': prompt_hash})
-        result['suggestion_ids'] = db.record_suggestions(events)
+        # A suggestion identical to one already recorded (pending or decided) is not queued again,
+        # so re-running over the whole project does not re-ask decided or waiting questions.
+        fields = ('segment_id', 'code_id', 'span_start', 'span_end', 'codebook_version_id',
+                  'backend', 'model', 'model_version', 'prompt_hash', 'pipeline_version')
+        ids = {event['segment_id'] for event in events}
+        # One scan of recorded suggestions: no per-segment SQL parameters, so any run size works.
+        recorded = {tuple(row[field] for field in fields) for row in db.rows(
+            f"SELECT {','.join(fields)} FROM coding_events WHERE action='suggest'")
+            if row['segment_id'] in ids}
+        events = [event for event in events if tuple(event[field] for field in fields) not in recorded]
+        result['suggestion_ids'] = db.record_suggestions(events) if events else []
     return result
 
 

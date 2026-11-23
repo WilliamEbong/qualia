@@ -21,6 +21,15 @@ def test_inclusive_boundaries_pass_without_binary_float_rounding_rejections():
     assert result['reasons']
 
 
+def test_inclusive_boundaries_survive_float_noise_in_measured_metrics():
+    # evaluate_metrics gives sum([.05, .05, .05]) / 3 == 0.05000000000000001: an exact 0.01 gain.
+    measured = sum([.05, .05, .05]) / 3
+    assert decide(metrics(measured, .70), metrics(.06, .70), POLICY, tests_passed=True)['keep']
+    # A priority drop of exactly the tolerance, from a baseline F1 carrying the same noise.
+    assert decide(metrics(.60, .7000000000000001), metrics(.61, .68), POLICY,
+                  tests_passed=True)['keep']
+
+
 @pytest.mark.parametrize('candidate,phrase', [
     (metrics(.609999999, .70, 10), 'gain'),
     (metrics(.70, .679999999, 10), 'priority'),

@@ -421,7 +421,7 @@ input[type=checkbox]:disabled { cursor: not-allowed; }
 /* Codebook proposals: an unreviewed proposal uses the dashed suggestion stripe. */
 .proposals { margin-bottom: 32px; }
 .proposal { --code-color: var(--accent); }
-.proposal h4 { margin: 0; font-family: var(--font-display); font-size: var(--type-small-heading); font-weight: 400; }
+.proposal h3 { margin: 0; font-family: var(--font-display); font-size: var(--type-small-heading); font-weight: 400; }
 .proposal-request { margin: 16px 0 24px; }
 .proposal-request > button { margin-top: 16px; }
 .proposal-request .editor { margin-top: 16px; }
@@ -432,3 +432,349 @@ input[type=checkbox]:disabled { cursor: not-allowed; }
 .model-picker > .caption { margin-top: 0; overflow-wrap: anywhere; }
 .model-picker > .caption:empty { display: none; }
 .repeatability { margin-top: 24px; }
+
+/* Design pass 2026-11-23. */
+/* The always-mounted alert region draws no stripe of its own; its error paragraph carries the rule. */
+.messages > [role=alert] { border: 0; padding: 0; }
+/* Save and error messages stay in view wherever the action was taken. */
+.messages { position: sticky; top: 0; z-index: 5; background: var(--background); }
+.messages:has(p) { border-bottom: 1px solid var(--border); }
+/* A long empty state keeps its text above the horizon rule. */
+.empty:has(> :nth-child(3)) { min-height: 360px; }
+.tune-form .button + .caption { margin-top: 12px; }
+@media (min-width: 901px) {
+  .review-controls { position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; }
+}
+@media (max-width: 500px) {
+  .workspace-nav { flex-wrap: nowrap; overflow-x: auto; }
+  .workspace-nav .button { padding: 12px 10px; white-space: nowrap; flex: none; }
+}
+/* Field outlines meet 3:1 non-text contrast; --border stays for decorative rules. */
+input, select, textarea { border-color: var(--caption); }
+/* An ivory inset keeps the focus ring visible on the strongest heat fill (a ring, not a depth shadow). */
+.matrix-cell:focus-visible { box-shadow: inset 0 0 0 5px var(--background); }
+.project-drawer .button.primary { background: var(--accent); border-color: var(--accent); }
+/* Review cards: one rule between cards, actions closer to the decision. */
+.review-page .suggestion { margin: 0 0 12px; }
+.review-page .suggestion .actions { border-top: 0; padding-top: 8px; }
+/* Count cells read as one clickable figure, not a small boxed input. */
+td > .button:not(.matrix-cell) { width: 100%; justify-content: flex-start; font-variant-numeric: tabular-nums; }
+/* The home intro line sits on a flat plate ground so it stays legible over the contour lines. */
+.home-lede { background: var(--plate-ground); padding: 4px 8px; width: fit-content; }
+@media (max-width: 900px) {
+  /* On a phone the queue comes before the classification form. */
+  .review-page .two-column > :last-child { order: -1; }
+}
+@media (max-width: 900px) {
+  /* One page scroll on phones: the Sources rail is no longer its own 480px scroller. */
+  .source-panel { max-height: none; overflow-y: visible; }
+}
+td > .button:not(.matrix-cell) { border-color: transparent; background: transparent; text-decoration: underline; text-underline-offset: 3px; }
+/* Lining figures in headings: participant IDs like P01 must not read as "Po1". */
+h1, h2, h3, h4 { font-variant-numeric: lining-nums; }
+@media (max-width: 900px) {
+  /* Phone workspace: the transcript first, the code buttons kept within reach at the bottom. */
+  .transcript-panel { order: -1; }
+  .coding-panel { position: sticky; bottom: 0; z-index: 4; max-height: 40vh; overflow-y: auto; border-top: 1px solid var(--foreground); }
+}
+@media (max-width: 900px) {
+  /* In the pinned phone panel the code buttons come right after the title. */
+  .coding-panel { display: flex; flex-direction: column; }
+  .coding-panel > .rail-title { order: -3; margin-bottom: 12px; }
+  .coding-panel > .selection-note { order: -2; }
+  .coding-panel > .code-shortcuts { order: -1; }
+}
+/* While a message shows, top-pinned panels start below the sticky message strip. */
+@media (min-width: 901px) {
+  .messages:has(p) ~ main :is(.source-panel, .coding-panel, .review-controls) { top: var(--messages-height, 58px); max-height: calc(100vh - var(--messages-height, 58px)); }
+}
+
+/* Design cycle 2 (scored review). */
+/* Analysis tables keep whole words and scroll sideways like the matrix. */
+.analysis-page table { overflow-wrap: normal; }
+.analysis-page .table-scroll table { width: max-content; min-width: 100%; }
+.analysis-page td { vertical-align: middle; }
+.analysis-page > details + .caption { margin-top: 12px; }
+/* Empty states: no dead band below the horizon, text clear of the rule. */
+.empty:has(> :nth-child(3)) { min-height: 300px; padding-bottom: 120px; }
+@media (min-width: 901px) {
+  /* Review: decision buttons beside the card, not below it. */
+  .review-page .suggestion { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 24px; }
+  .review-page .suggestion > * { grid-column: 1; }
+  .review-page .suggestion > .actions { grid-column: 2; grid-row: 1 / span 8; align-self: start; display: flex; flex-direction: column; gap: 8px; padding-top: 0; }
+  /* Experiments: the two forms side by side so the history rises. */
+  .experiments-page { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; }
+  .experiments-page > :not(.tune-form) { grid-column: 1 / -1; }
+  .experiments-page > .tune-form { max-width: none; margin: 24px 0 32px; }
+}
+@media (max-width: 500px) {
+  .brand .caption { display: none; }
+  .suggestion .actions .button { padding-left: 12px; padding-right: 12px; }
+}
+label > .caption { display: block; margin: 2px 0 6px; }
+@media (min-width: 901px) { .review-page .suggestion > .actions { align-items: stretch; } }
+.code-card .section-heading { flex-wrap: nowrap; align-items: baseline; }
+.code-card .section-heading .caption { flex: none; }
+@media (max-width: 900px) {
+  /* A tall empty state on a phone keeps its horizon below the text. */
+  .empty:has(> :nth-child(3))::after { top: auto; bottom: 88px; }
+}
+@media (max-width: 500px) {
+  .matrix-page th:first-child { min-width: 128px; }
+  .matrix-page thead th { min-width: 72px; }
+}
+/* A tall empty state ends just below its text, with the horizon rule under the last line. */
+.empty:has(> :nth-child(3)) { min-height: 0; padding-bottom: 56px; }
+.empty:has(> :nth-child(3))::after { top: auto; bottom: 28px; }
+.editor .button + .caption, form .button + .caption { margin-top: 8px; }
+@media (max-width: 600px) {
+  .review-page .suggestion .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .review-page .suggestion .actions > :last-child { grid-column: 1 / -1; }
+}
+
+/* Round 5: content before controls. */
+@media (max-width: 500px) {
+  /* Compact phone header: brand and theme on one row, project picker, then the status line. */
+  .app-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; padding: 12px 16px; align-items: center; }
+  .app-header > .button { grid-column: 2; grid-row: 1; min-height: 40px; padding: 0 10px; font-size: var(--type-caption); }
+  .brand { grid-column: 1; grid-row: 1; width: auto; padding-left: 12px; }
+  .brand h1 { font-size: var(--type-heading); }
+  .project-controls { grid-column: 1 / -1; width: 100%; flex-wrap: nowrap; }
+  .project-controls > label { font-size: 0; flex: 1; }
+  .project-controls > label select { font-size: var(--type-body); }
+  .local-status { grid-column: 1 / -1; border-left: 0; padding-left: 0; }
+}
+/* Analysis: a section index under the counts. */
+.analysis-index { display: flex; flex-wrap: wrap; gap: 4px 20px; margin: 0 0 16px; font-size: var(--type-caption); }
+.analysis-index a { color: var(--foreground); text-underline-offset: 3px; min-height: 40px; display: inline-flex; align-items: center; }
+.memo-kinds { margin: 0 0 16px; }
+.memo-kinds summary { font-size: var(--type-caption); color: var(--secondary); min-height: 40px; display: flex; align-items: center; cursor: pointer; }
+.experiments-start { grid-column: 1 / -1; margin: 32px 0 0; font-size: var(--type-small-heading); }
+/* Home: a shorter plate so the project catalogue reaches the first screen. */
+.home-introduction { aspect-ratio: auto; height: clamp(340px, 46vh, 520px); min-height: 0; }
+@media (max-width: 900px) { .home-introduction { height: 380px; min-height: 0; } }
+/* Review: the classification form folds once there are suggestions to decide. */
+/* Retrieval: open-in-transcript is a quiet link, not a heavy button. */
+.button.text-link { border-color: transparent; background: transparent; padding-left: 0; padding-right: 0; text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 900px) {
+  /* Phone workspace: a slimmer pinned panel leaves room for the passage. */
+  .coding-panel { max-height: 34vh; }
+  .coding-panel > .rail-title { font-size: var(--type-subtitle); margin: 0 0 8px; }
+}
+.run-classification > summary { cursor: pointer; min-height: 40px; }
+.run-classification > summary h3 { display: inline; margin: 0; }
+@media (max-width: 500px) {
+  /* Keyboard shortcuts do not apply on touch screens; the line only took reading space. */
+  .transcript-heading + .caption { display: none; }
+}
+
+/* Round 5, pass 2. */
+.app-shell { display: flex; flex-direction: column; }
+.app-shell > main { flex: 1 0 auto; }
+.home-introduction { height: clamp(260px, 32vh, 340px); }
+@media (max-width: 900px) { .home-introduction { height: 260px; } .home-introduction h2 { font-size: var(--type-small-heading); } }
+.app-shell:has(.home-page) .brand .caption { display: none; }
+/* Tall empty states end with their text: no rule band below. */
+.empty:has(> :nth-child(3)) { padding-bottom: 28px; }
+.empty:has(> :nth-child(3))::after { display: none; }
+.terminal-hint summary, .memo-kinds summary { display: list-item; cursor: pointer; font-size: var(--type-caption); color: var(--secondary); min-height: 0; padding: 8px 0; }
+.latest-version { margin: -8px 0 12px; }
+/* Review: the run disclosure is a quiet summary row, not a second page title. */
+.run-classification > summary h3 { font-family: var(--font-body); font-size: var(--type-body); font-weight: 500; }
+.run-classification:not([open]) { padding-top: 12px; padding-bottom: 12px; }
+@media (max-width: 900px) {
+  /* Phone workspace: the pinned panel opens on one row of code buttons; the rest of the panel
+     (version, removal, suggestions with their trust captions, provenance) scrolls beneath it. */
+  .coding-panel { max-height: 30vh; padding: 0 12px 8px; }
+  .coding-panel > * { flex: none; }
+  .coding-panel > .code-shortcuts { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 8px; position: sticky; top: 0; z-index: 1; background: var(--surface); padding: 8px 0; }
+  .coding-panel > .code-shortcuts > .button { flex: none; white-space: nowrap; }
+}
+/* Analysis: the counts and section index read as one ruled navigation row. */
+.analysis-index { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 4px 0; margin: 8px 0 16px; font-family: var(--font-mono); }
+.analysis-page > details + p, .analysis-page > details + .caption { margin-top: 16px; }
+@media (max-width: 900px) {
+  .coding-panel.needs-actor > label:first-of-type, .coding-panel.needs-actor > label:first-of-type + .caption { display: block; }
+}
+
+/* Round 5, pass 3: density and one type voice. */
+@media (max-width: 500px) {
+  /* The tab strip shows it scrolls: a fixed chevron sits on the cut edge. */
+  .workspace-nav::after { content: '›'; position: sticky; right: 0; flex: none; display: flex; align-items: center; padding: 0 10px; background: var(--surface); color: var(--secondary); border-left: 1px solid var(--border); }
+  .analysis-index { flex-wrap: nowrap; overflow-x: auto; }
+  .analysis-index a { flex: none; }
+}
+/* Codebook: compact code entries so the codebook reads as a catalogue, not a stack of panels. */
+.code-card { padding: 16px 20px; margin-bottom: 12px; }
+.code-card .section-heading { margin-bottom: 8px; padding-bottom: 8px; }
+.code-card .section-heading h3 { font-size: var(--type-small-heading); }
+.code-definition { margin: 0 0 12px; }
+.code-fields { padding: 4px 16px 12px; margin-bottom: 12px; }
+.codebook-page #code-editor { border-top-width: 1px; border-top-color: var(--border); }
+/* Review: the code name uses the display face like every other heading. */
+.review-page .suggestion-select { font-family: var(--font-display); font-weight: 400; font-size: var(--type-small-heading); }
+/* Workspace desktop: the code buttons lead the coding rail; actor and version follow. */
+@media (min-width: 901px) {
+  .coding-panel { display: flex; flex-direction: column; }
+  .coding-panel > .rail-title { order: -3; }
+  .coding-panel > .selection-note { order: -2; }
+  .coding-panel > .code-shortcuts { order: -1; margin-bottom: 16px; }
+  /* The rail already has Import source; the reading header copy is for phones. */
+  .transcript-heading > .button { display: none; }
+}
+/* Experiments: the section heading outranks the two option cards. */
+.experiments-start { font-size: var(--type-heading); }
+.experiments-page > .tune-form { align-self: start; }
+/* Evaluation: on phones the result or empty state leads, the run form follows. */
+@media (max-width: 900px) { .evaluation-page .two-column > :first-child { order: 1; } }
+/* Matrix: zero cells recede so the counts read as a pattern. */
+.matrix-cell.zero { color: var(--caption); }
+.matrix-page th:first-child { max-width: 260px; }
+.memo-links { margin: 8px 0 16px; }
+.memo-links > summary { cursor: pointer; font-size: var(--type-caption); color: var(--secondary); padding: 8px 0; }
+@media (max-width: 500px) { .workspace-nav { padding-right: 0; } }
+/* Review desktop: decision buttons sit at the end of the card, after the trust captions. */
+@media (min-width: 901px) { .review-page .suggestion > .actions { align-self: end; } }
+/* Phones only: switch transcript without scrolling to the sources rail. */
+.source-switch { display: none; }
+@media (max-width: 900px) { .source-switch { display: block; margin: 12px 0 0; } }
+/* Trust captions always precede the decision: the actions return to the end of the card's flow. */
+@media (min-width: 901px) {
+  .review-page .suggestion { display: block; }
+  .review-page .suggestion > .actions { display: flex; flex-direction: row; align-items: center; gap: 8px; padding-top: 8px; }
+}
+
+/* Feature 019: benchmark import and experiment prerequisites. */
+.benchmark-import { margin-bottom: 24px; }
+.benchmark-import input[type=file] { padding: 6px; }
+.prerequisites { grid-column: 1 / -1; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 8px 0 12px; }
+.prerequisites ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 4px 24px; }
+.prerequisites li { display: flex; align-items: baseline; gap: 8px; min-height: 32px; }
+.prerequisite-mark { font-family: var(--font-mono); width: 1ch; }
+.prerequisites li[data-met=true] .prerequisite-mark { color: var(--decision-keep); }
+.prerequisites li[data-met=false] { color: var(--secondary); }
+/* Feature 019: Home study status. */
+.study-status { border: 1px solid var(--border); background: var(--surface); padding: 20px 24px; margin: 24px 0 32px; }
+.study-status .section-heading { margin-bottom: 12px; }
+.study-status h3 { font-size: var(--type-heading); margin: 0; }
+.study-counts { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px 24px; margin: 0; }
+.study-counts dt { font-family: var(--font-mono); font-size: var(--type-caption); color: var(--caption); }
+.study-counts dd { margin: 4px 0 0; font-size: var(--type-subtitle); font-variant-numeric: tabular-nums lining-nums; }
+/* Feature 019: matrix totals and grouped retrieval. */
+.matrix-total { text-align: center; font-family: var(--font-mono); font-size: var(--type-caption); border-left: 1px solid var(--foreground); }
+.matrix-page tfoot th, .matrix-page tfoot td { border-top: 1px solid var(--foreground); }
+.retrieval-group { margin: 24px 0; }
+.retrieval-group > h3 { border-bottom: 1px solid var(--foreground); padding-bottom: 8px; margin: 0; }
+.retrieval-meta { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 16px; }
+.retrieval-meta .caption { margin: 0; }
+.retrieval-card { padding: 12px 0; }
+.retrieval-card blockquote { margin: 8px 0 0; }
+/* Feature 019: Analysis view switcher, styled like the main tabs. */
+.analysis-index { font-family: var(--font-body); gap: 0; padding: 0; }
+.analysis-index .button { border: 0; border-bottom: 3px solid transparent; min-height: 44px; padding: 8px 14px; background: transparent; }
+.analysis-index .button[aria-current=page] { border-bottom-color: var(--accent); background: var(--surface); }
+.analysis-top { margin: 12px 0 20px; }
+/* Feature 019: the read-only demo hides what it cannot do and says so once. */
+.demo-notice { margin: 0; padding: 10px 32px; background: var(--surface); border-bottom: 1px solid var(--border); font-size: var(--type-caption); }
+.read-only fieldset:disabled, .read-only .button:disabled, .read-only button:disabled,
+.read-only label:has(> input:disabled), .read-only label:has(> select:disabled), .read-only label:has(> textarea:disabled),
+.read-only .run-classification, .read-only .prerequisites { display: none; }
+@media (max-width: 500px) { .demo-notice { padding: 10px 16px; } }
+.read-only form:has(> fieldset:disabled), .read-only .editor:not(:has(:enabled, a, p:not(.caption))) { display: none; }
+.read-only .repeatability, .read-only label:has(> input:disabled) + .caption, .read-only .coding-panel > .rail-title, .read-only .coding-panel > .selection-note { display: none; }
+/* Round 6 fixes from fresh scoring. */
+.analysis-index { flex-wrap: wrap; }
+.analysis-index .button { flex: none; white-space: nowrap; }
+@media (max-width: 500px) { .analysis-index { flex-wrap: nowrap; overflow-x: auto; } }
+.memo-card .section-heading .caption { white-space: nowrap; }
+.code-mark .caption { margin-left: 6px; }
+.prerequisites ul { grid-template-columns: minmax(0, 1fr); }
+.prerequisites li .text-link { margin-left: 8px; min-height: 32px; }
+.retrieval-group > h3 { border-bottom: 3px solid var(--code-color, var(--foreground)); }
+.retrieval-group blockquote { border-left-color: var(--code-color, var(--border)); }
+/* Round 6b: the read-only demo drops start headings and editing columns; empty states end at their text. */
+.read-only .experiments-start, .read-only .terminal-hint, .read-only .review-controls { display: none; }
+.read-only .review-page .two-column, .read-only .evaluation-page .two-column { grid-template-columns: minmax(0, 1fr); }
+.read-only .evaluation-page .two-column > :first-child { display: none; }
+.empty { min-height: 0; padding-bottom: 56px; }
+.empty::after { top: auto; bottom: 28px; }
+/* Evaluation: once a validation benchmark exists, the run form leads and Benchmarks follows. */
+.evaluation-page .two-column > :first-child { display: flex; flex-direction: column; }
+.benchmark-import[data-ready=true] { order: 3; margin-top: 24px; margin-bottom: 0; }
+.matrix-page .table-scroll + .caption { margin-top: 12px; }
+.latest-version { max-width: none; }
+
+/* Round 7, batch 1. */
+.code-card { border-left: 3px solid var(--code-color, var(--border)); }
+@media (max-width: 500px) {
+  /* Codebook on phones: the explanation and version status come before the Freeze button. */
+  .codebook-page > .section-heading { flex-direction: column; align-items: flex-start; }
+}
+/* Analysis overview: the most frequent codes as a small ruled bar list. */
+.analysis-top { margin: 16px 0 24px; border-top: 1px solid var(--border); padding-top: 12px; }
+.analysis-top h3 { font-size: var(--type-subtitle); margin: 0 0 8px; }
+.analysis-top ol { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 6px; }
+.analysis-top li { display: grid; grid-template-columns: minmax(8rem, 14rem) minmax(0, 1fr) auto; align-items: center; gap: 12px; }
+.analysis-top-bar { height: 12px; background: var(--accent); width: calc(var(--share) * 100%); }
+.analysis-top-count { font-family: var(--font-mono); font-size: var(--type-caption); color: var(--secondary); }
+@media (max-width: 500px) { .analysis-top li { grid-template-columns: minmax(0, 1fr) 30% auto; } }
+.analysis-page > details + p { margin-top: 16px; }
+@media (max-width: 900px) {
+  /* The pinned code row shows it scrolls: a fixed chevron on its cut edge. */
+  .coding-panel > .code-shortcuts::after { content: '›'; position: sticky; right: 0; flex: none; display: flex; align-items: center; padding: 0 8px; background: var(--surface); color: var(--secondary); border-left: 1px solid var(--border); }
+}
+.matrix-page thead .matrix-total { font-family: var(--font-body); font-size: inherit; text-align: left; }
+.scroll-hint { display: none; }
+@media (max-width: 500px) {
+  .matrix-page .scroll-hint { display: block; margin: 0 0 8px; }
+  .experiments-start { font-size: var(--type-small-heading); }
+}
+.evaluation-page:has(.empty .button.primary) #evaluate-form .button[type=submit] { display: none; }
+/* Phones: the view list is one native menu instead of a clipped tab strip. */
+.nav-compact { display: none; }
+@media (max-width: 500px) {
+  .nav-compact { display: flex; align-items: flex-end; gap: 8px; padding: 8px 16px; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .nav-compact label { flex: 1; margin: 0; font-size: var(--type-caption); }
+  .nav-compact .export-action { margin-left: 0; }
+  .workspace-nav { display: none; }
+}
+/* Round 7 batch 2. */
+.draft-mark { font-weight: 500; color: var(--accent); }
+.next-step { margin: 4px 0 8px; }
+.analysis-top-bar { background: var(--code-color, var(--accent)); }
+.analysis-chart .chart-bar { fill: var(--code-color, var(--accent)); }
+.retrieval-card blockquote { margin: 0 0 6px; }
+@media (max-width: 900px) {
+  /* Phone code row: every code visible in up to two wrapped rows, no hidden scroller. */
+  /* Round 7 batch 3: one scrolling row (scorers preferred it to a wrapped grid that covered text). */
+  .coding-panel > .code-shortcuts > .button { min-height: 44px; padding: 4px 10px; }
+  .transcript-panel { padding-bottom: 96px; }
+}
+@media (max-width: 900px) {
+  .transcript-heading > .button { border-color: transparent; background: transparent; padding-left: 0; text-decoration: underline; text-underline-offset: 3px; min-height: 40px; }
+  .transcript-heading { margin-bottom: 12px; }
+}
+
+/* Round 7 batch 3. */
+@media (max-width: 500px) {
+  /* Slimmer view row: the 'View' label stays for screen readers but takes no line. */
+  .nav-compact { padding: 6px 16px; align-items: center; }
+  .nav-compact label { font-size: 0; }
+  .nav-compact label select { font-size: var(--type-body); }
+  .study-counts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.analysis-page > div[aria-live] + p { margin-top: 16px; }
+/* Codebook: the create form waits behind 'New code', so the codes take the width. */
+@media (min-width: 901px) { .codebook-page .two-column:has(> details.code-editor-toggle:not([open])) { grid-template-columns: minmax(0, 1fr) max-content; } }
+.code-editor-toggle > summary { cursor: pointer; display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border: 1px solid var(--foreground); background: var(--background); }
+.code-editor-toggle[open] > summary { margin-bottom: 12px; }
+/* Evaluation: repeatability is an advanced check. */
+.evaluation-page details.advanced { margin-top: 16px; }
+.evaluation-page details.advanced > summary { cursor: pointer; min-height: 40px; display: flex; align-items: center; font-size: var(--type-caption); color: var(--secondary); }
+/* Experiments: start actions lead; an empty history is one short note at the end. */
+.experiments-page > .empty { order: 2; min-height: 0; padding: 16px 20px 20px; margin-top: 24px; }
+.experiments-page > .empty::after, .experiments-page > .empty::before { display: none; }
+.suggestion-position { margin: 0 0 4px; }
+@media (max-width: 900px) { .experiments-page { display: flex; flex-direction: column; } }
+.experiments-start { padding-bottom: 8px; margin-bottom: 12px; }
+@media (max-width: 500px) { .prerequisites li { flex-wrap: wrap; } .prerequisites li .caption { flex-basis: 100%; padding-left: calc(1ch + 8px); } }

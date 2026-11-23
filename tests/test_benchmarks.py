@@ -117,3 +117,10 @@ def test_malformed_bytes_name_line_and_publish_nothing(tmp_path, raw):
     with pytest.raises(ValueError, match='validation.jsonl: line 1'):
         import_benchmark(project, raw, 'validation', 1, [1])
     assert not (project/'benchmarks/validation/records.jsonl').exists()
+
+
+def test_text_with_unicode_line_separators_stays_one_record(tmp_path):
+    project = init_project('study', tmp_path)
+    separated = record(text='First line\u2028second\u0085third')
+    import_benchmark(project, [separated], 'validation', 1, [1, 2])
+    assert load_benchmark(project)[0] == [separated]

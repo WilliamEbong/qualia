@@ -1,5 +1,5 @@
 import type { Workspace } from './entities'
-import { segmentText, uniqueSegmentCount } from './entities'
+import { matrixTotals, segmentText, uniqueSegmentCount } from './entities'
 import type { components } from '../api/schema'
 import { defaultAnalysisOptions, isDefaultAnalysisOptions } from './analysis-state'
 import type { AnalysisFormat, AnalysisReport } from './analysis-state'
@@ -78,6 +78,7 @@ export function demoResponse(snapshot: DemoSnapshot, path: string, method = 'GET
   if (route === 'demo/export' && !query) return { filename: 'qualia-public-snapshot.json', media_type: 'application/json', content: JSON.stringify(snapshot) }
   if (route === prefix && !query) return structuredClone(data)
   if (route === `${prefix}/ai/availability` && !query) return { allow_external: false, backends: [] }
+  if (route === `${prefix}/matrix/totals` && !query) { const totals = matrixTotals(data); return { by_code: totals.byCode, by_case: totals.byCase, all: totals.all } }
   if (route === `${prefix}/matrix` && !query) return data.codes.flatMap(code => data.cases.flatMap(case_ => {
     const sources = new Set(data.source_cases.filter(link => link.case_id === case_.id).map(link => link.source_id))
     const count = uniqueSegmentCount(data.current_codings, code.id, sources, data.segments)
