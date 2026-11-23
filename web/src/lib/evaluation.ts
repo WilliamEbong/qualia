@@ -20,13 +20,14 @@ async function utf8(file: File): Promise<string> {
 export function useBenchmarks(w: WorkspaceController) {
   const [status, setStatus] = useState<BenchmarkStatus | null>(null)
   const url = `projects/${encodeURIComponent(w.slug)}/benchmarks`
+  useEffect(() => setStatus(null), [url])
+  // Re-read on every view change too: benchmarks may arrive through the CLI or another tab.
   useEffect(() => {
-    setStatus(null)
     if (!w.slug || w.readOnly) return
     let current = true
     request<BenchmarkStatus>(url).then(value => { if (current) setStatus(value) }).catch(() => { if (current) setStatus({ dev: null, validation: null }) })
     return () => { current = false }
-  }, [w.slug, w.readOnly, url])
+  }, [w.slug, w.readOnly, url, w.view])
   const importBenchmark = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault(); const target = event.currentTarget; const form = new FormData(target)
     void w.run(async () => {
