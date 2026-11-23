@@ -237,13 +237,11 @@ def validate_proposals(raw, mode: str, segments: list[dict], codes: list[dict],
         names[proposal['name'].strip().casefold()] = target if target is not None else -index
         if any(identity not in texts for identity in proposal['evidence_segment_ids']):
             fail('evidence names a segment that was not supplied')
-        # A revision may keep the researcher's existing examples; anything new must be quoted.
-        kept = set()
-        for code in codes:
-            if code['id'] == target:
-                kept = {*json.loads(code['examples_pos']), *json.loads(code['examples_neg'])}
+        # A revision may keep the researcher's existing examples on the same side; anything new must be quoted.
+        current = next((code for code in codes if code['id'] == target), None)
         removed = 0
         for field in ('examples_pos', 'examples_neg'):
+            kept = set(json.loads(current[field])) if current else set()
             grounded = []
             for example in proposal[field]:
                 quote = example if example in kept else quote_in(example, texts.values())
