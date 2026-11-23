@@ -103,3 +103,14 @@ def test_cli_export_output_file_keeps_stored_newlines(tmp_path, monkeypatch):
     assert result.exit_code == 0, result.output
     assert b'\r\n' not in output.read_bytes()
     assert b'line one\nline two\n\nsecond para' in output.read_bytes()
+
+
+def test_cli_reports_bad_input_as_usage_errors_not_tracebacks(tmp_path, monkeypatch):
+    monkeypatch.setenv('QUALIA_HOME', str(tmp_path / 'home'))
+    runner = CliRunner()
+    assert runner.invoke(app, ['init', 'study']).exit_code == 0
+    for args in (['codebook', 'list', '--project', 'Bad_Name'],
+                 ['export', '--project', 'study', '--format', 'xlsx'],
+                 ['code', '1', '1', '--project', 'study', '--start', '-1']):
+        result = runner.invoke(app, args)
+        assert result.exit_code == 2 and isinstance(result.exception, SystemExit), (args, result.output)

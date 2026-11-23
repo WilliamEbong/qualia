@@ -24,7 +24,10 @@ app.add_typer(jev_app, name='jev')
 
 
 def resolve_project(slug: str) -> Path:
-    path = project_dir(slug)
+    try:
+        path = project_dir(slug)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
     if not (path / 'project.db').is_file():
         raise typer.BadParameter(f'Project {slug} does not exist; run qualia init {slug}')
     return path
@@ -191,8 +194,12 @@ def code_command(segment: int, code: int, project: str = 'demo', start: int = 0,
     from qualia.server.api_models import CodingInput
 
     path = resolve_project(project)
-    record = CodingInput(segment_id=segment, code_id=code, span_start=start, span_end=end,
-                         codebook_version_id=version, action='remove' if remove else 'assign', actor=actor)
+    try:
+        record = CodingInput(segment_id=segment, code_id=code, span_start=start, span_end=end,
+                             codebook_version_id=version, action='remove' if remove else 'assign',
+                             actor=actor)
+    except ValueError as exc:
+        raise typer.BadParameter('Invalid coding values: IDs must be positive, offsets nonnegative, actor nonblank') from exc
     with Store(path / 'project.db') as db:
         selected = db.one('SELECT * FROM segments WHERE id=?', (segment,))
         frozen = db.one('SELECT id FROM codebook_versions ORDER BY id DESC LIMIT 1')
@@ -265,7 +272,10 @@ def export_command(project: str = 'demo', format: str = 'json',
 
     path = resolve_project(project)
     with Store(path / 'project.db') as db:
-        content = export_data(db, path, format=format, no_text=no_text, bundle=bundle)
+        try:
+            content = export_data(db, path, format=format, no_text=no_text, bundle=bundle)
+        except ValueError as exc:
+            raise typer.BadParameter(str(exc)) from exc
     if output:
         output.write_text(content, encoding='utf-8', newline='')
         typer.echo(str(output))
