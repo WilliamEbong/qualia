@@ -764,7 +764,7 @@ label > .caption { display: block; margin: 2px 0 6px; }
 }
 .analysis-page > div[aria-live] + p { margin-top: 16px; }
 /* Codebook: the create form waits behind 'New code', so the codes take the width. */
-.codebook-page .two-column:has(> details.code-editor-toggle:not([open])) { grid-template-columns: minmax(0, 1fr) max-content; }
+@media (min-width: 901px) { .codebook-page .two-column:has(> details.code-editor-toggle:not([open])) { grid-template-columns: minmax(0, 1fr) max-content; } }
 .code-editor-toggle > summary { cursor: pointer; display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border: 1px solid var(--foreground); background: var(--background); }
 .code-editor-toggle[open] > summary { margin-bottom: 12px; }
 /* Evaluation: repeatability is an advanced check. */
