@@ -138,6 +138,10 @@ Save as `.env`, not `.env.txt`, then restart Qualia. An already-set environment 
 
 The vault is an application access boundary, not encrypted storage. Your operating-system access controls and backup arrangements still matter. The local application is not a hosted collaboration service.
 
+### Home: where your study stands
+
+When a project is open, **Home** shows its sources, passages, coded passages, pending suggestions and latest frozen codebook, with one button for the next step: import a source, create codes, freeze the codebook, code a passage, review pending suggestions or explore the analysis.
+
 ## 3. Try a small practice study
 
 Video tutorial: [First project in 5 minutes](https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/02-first-project.mp4) (silent, captioned).
@@ -344,7 +348,7 @@ Video tutorial: [Memos, themes, reflexivity](https://cdn.jsdelivr.net/gh/William
 | Theme | A pattern you are building across codes (see below). |
 | Method | Decisions about sampling, units, coding and analysis. |
 
-Use **Show** to list one kind. **Edit memo** keeps the previous version: each card shows **Earlier versions** with the time each was replaced, and exports include them. Saving without changes adds no version.
+Each memo card shows its kind, the date it was written, the name of whoever saved it (from **Human actor**, when recorded) and the date of its last edit. Use **Show** to list one kind. **Edit memo** keeps the previous version: each card shows **Earlier versions** with the time each was replaced, and exports include them. Saving without changes adds no version.
 
 ![A reflexive memo linked to its source, with its earlier version kept](../design-review/final/features/memo-history.png)
 
@@ -366,7 +370,7 @@ Write **Reflexive** memos as you go, link them to the source or case they concer
 
 1. Open **Retrieval**.
 2. Select a **Code**, a **Case**, or both. Leave them at **All codes**/**All cases** for a broader view.
-3. Read the matching coded excerpts and their frozen codebook versions.
+3. Read the matching coded excerpts, grouped under each code with a count, and their frozen codebook versions.
 4. Choose **Open in transcript** to inspect context.
 
 Retrieval lists current coded spans. Several spans in one segment can produce several excerpt cards. Segment-frequency analyses and the matrix deduplicate those spans when counting presence.
@@ -380,7 +384,7 @@ Video tutorial: [Matrix and Analysis workbench](https://cdn.jsdelivr.net/gh/Will
 3. Read each code-by-case cell as the number of distinct currently coded segments carrying that code and linked to that case.
 4. Select a cell to open the corresponding retrieval view.
 
-Repeated spans of the same code on one segment count once in a cell. Multi-case source links contribute to each applicable case. An empty matrix can mean no case links, not necessarily no coding.
+Repeated spans of the same code on one segment count once in a cell. Multi-case source links contribute to each applicable case. The **Total** column and row use the same definition, distinct coded segments, so a segment linked to two cases counts once in its code's total. An empty matrix can mean no case links, not necessarily no coding.
 
 ![Code-by-case matrix](../design-review/final/features/matrix.png)
 
@@ -389,6 +393,8 @@ Use a cell as a route back to the supporting coded excerpts, not as a standalone
 ## 10. Use the Analysis workbench
 
 Video tutorial: [Matrix and Analysis workbench](https://cdn.jsdelivr.net/gh/WilliamEbong/qualia@main/docs/media/tutorials/12-matrix-and-analysis.mp4) (silent, captioned).
+
+Analysis opens on an **Overview**: the counts for your current criteria, the most frequent codes, exports and the methods note. The tabs under the counts open one analysis at a time: **Code frequencies**, **Case groups**, **Co-occurrence**, **Words**, **Numeric attributes** and **Source evidence**. Selecting a bar, cell or count in any view opens **Source evidence** for that selection.
 
 Analysis reads visible workspace data. It does not write coding, call AI or read the protected benchmark vault. It describes the data and decisions selected by your criteria; it does not establish statistical significance or causation.
 
@@ -738,6 +744,10 @@ This is an advanced workflow. Prepare UTF-8 JSONL, one record per line, bound to
 ```json
 {"segment_id":"validation-001","text":"A synthetic example passage.","codes":[1],"transcript_id":"interview-001"}
 ```
+
+**In the app:** open **Evaluation**, and under **Benchmarks** choose the JSONL file, the split (**Validation** to measure the classifier, **Dev** for tuning) and the frozen codebook version (the latest by default), then **Import benchmark**. The card shows which splits are imported and their record counts. **Run validation evaluation** stays disabled, with the reason shown, until a validation benchmark exists. The protected split can only be imported from the command line.
+
+**From a terminal:** the same rules apply.
 
 Code IDs must exist in the selected frozen codebook. Segment IDs must be unique; transcripts cannot overlap splits. Optional `coders` arrays can contain coder code-ID lists or missing ratings. Choose gold labels through your research process rather than generating them from the classifier you are evaluating.
 
