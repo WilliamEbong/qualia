@@ -297,7 +297,8 @@ graphify explain "classify_segments()"
 38. **Re-running classification no longer re-queues decided suggestions.** `35c8546`
     - **Who notices:** anyone who re-runs classification, which by default covers the whole project. Every accepted or rejected suggestion used to come back as a new pending copy.
     - **Evidence:** `tests/test_ai_router.py::test_rerunning_classification_does_not_requeue_recorded_suggestions`. One existing test relied on that duplicate. It now fills the cache first, so it still proves that the model version survives cache reuse.
-    - **To undo:** `git revert 35c8546` re-queues repeats.
+    - **Codex review fix (`c08d354`):** after the Codex review, the duplicate check also compares the exact model version, so a newer model snapshot still gets its own suggestions. It also no longer uses one SQL parameter per segment, which failed past SQLite's limit on very large runs.
+    - **To undo:** run `git revert c08d354 35c8546`. This re-queues repeats.
 39. **A review note is no longer lost.** `4d30128`
     - **Who notices:** reviewers who type a note and then click another card's Accept or Reject.
     - **Checked live:** the feedback row now holds the note.
@@ -327,6 +328,8 @@ graphify explain "classify_segments()"
 - **Final scores:** every main screen is 8–9 on desktop and 7–8 on phone.
 - **Remaining phone gap:** mainly the header height and the long Review and Analysis pages, which are not worth a redesign.
 - **Screenshots:** in `design-review/overnight/final/`.
+
+**Codex review of round 4:** two real findings, both fixed in `c08d354`: the model-version identity and the SQL parameter limit. Nothing else was found.
 
 **Merge rehearsal.**
 - **Clean merge:** `main` has not moved since the branch point `2978c5d`, and `git merge-tree --write-tree main HEAD` reports a clean merge. So the merged result is exactly this branch, and the checks below are checks of the merge.
