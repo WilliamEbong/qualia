@@ -444,6 +444,11 @@ The orchestrator relayed your delegation and lifted the presentation-only limit 
     - Home listed the study that is already open.
     - On Evaluation, Run now leads once a benchmark is ready.
 
+**Codex review of round 6:** three real findings, all fixed in `10de67c`.
+- **Repeatability:** the benchmark gate also blocked the repeatability check, which needs no benchmark.
+- **Matrix totals:** they could disagree with fresh cells after edits made elsewhere. They now come from a new `GET /matrix/totals`, fetched together with the cells.
+- **Benchmark upload:** an invalid UTF-8 file would have been silently altered and then published write-once. It is now refused with a plain message.
+
 **Not built: your decision.** Item 4 of the request was not built; see `OWNER-NEEDED.md` (gitignored, in this worktree):
 - **Trust captions:** collapse the per-card trust captions behind a marker.
 - **Highlight:** change the code-colour highlight.
