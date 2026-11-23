@@ -65,51 +65,92 @@ Each entry says what changed, why, the evidence and the commit. To undo any one 
 
 Codex reviewed the branch diff against `main` through the installed codex plugin (`review --base main --scope branch`). Its verdict: "No actionable regressions were found in the diff or affected callers." It ran 33 policy, agreement and error-sanitization tests, and they passed. Its sandbox is read-only, so it could not run the tests that need to write files; this session ran the full suite instead.
 
+## Round 2: 2026-11-23
+
+You approved fixing the items from "Found, not changed" and asked for continuing rounds. Where an item was your decision, the commit message says what was chosen, why, and how to revert it.
+
+12. **Codex 0.170 wire probes pass again.** `0e43357`
+    - **Who notices:** anyone running the suite on a PC with the current Codex CLI, every run; 8 false failures gone.
+    - **Problem:** 4 probes failed and 4 fixtures errored because Codex 0.170 no longer sends an empty `additional_tools` item.
+    - **Fix:** the assertion now checks the safety property directly: no top-level `tools`, and no input item of any type carrying a tool definition.
+    - **Evidence:** the 9 installed-Codex tests pass against the local recorder.
+13. **Threshold tuning keeps a current cutoff the grid cannot beat.** `26b40e2`
+    - **Who notices:** anyone who runs threshold tuning a second time; an already better cutoff is no longer replaced with a worse one.
+    - **Evidence:** `tests/test_metrics.py::test_tune_thresholds_keeps_a_current_cutoff_the_grid_cannot_beat` (current 0.73 at F1 1.0 was replaced by 0.70 at F1 0.8).
+14. **Workspace CSV exports name the cells they escaped** (your decision). `7367780`
+    - **Who notices:** researchers re-analysing a text export whose passages begin with "-", "=", "+" or "@" (common in transcripts); the original text is now recoverable.
+    - **Chosen:** a trailing `escaped_columns` column listing the escaped cells per row, as the analysis export already flags its cells. Escaping itself is unchanged, so spreadsheets stay safe, and the stored text is now recoverable. The user guide explains it.
+    - **Evidence:** `tests/test_export.py::test_csv_flags_escaped_cells_so_the_original_text_is_recoverable`.
+15. **A segment with no proposed code is no longer escalated** (your decision). `cbbc7d6`
+    - **Who notices:** anyone with escalation on, every run; most no-code segments no longer go to the most expensive model.
+    - **Chosen:** an answer with no candidate code is treated as a decision, not uncertainty, so it is not sent to the expensive tier. Segments whose candidates were all removed by a threshold still escalate on their raw scores.
+    - **Evidence:** `tests/test_ai_router.py::test_a_confident_no_code_answer_is_not_escalated`.
+16. **`daily_calls` and `run_segments` keep their current counting, and the guide now says so** (your decision). `2c7ad04`
+    - **Who notices:** anyone setting a small `daily_calls` for a first trial; the guide now says offline runs count too.
+    - **Chosen:** no code change. Spec 003 FR-005 enforces the limits before every attempted call, including retries, and the build doc's acceptance check expects `daily_calls: 0` to stop even offline runs. Counting every call and every sent segment is also the cautious reading for spend.
+17. **One segment Jev cannot accept no longer stops the rest of the run.** `5fb691c`
+    - **Who notices:** Jev users with an unusually long passage and long code definitions (rare); the rest of the run is still classified. One-line change, no added code.
+    - **Evidence:** `tests/test_ai_router.py::test_one_segment_the_provider_cannot_admit_does_not_stop_the_rest_of_the_run` (only 1 of 4 segments was classified before the fix, 3 of 4 after).
+18. **Retries wait 1 s, then 2 s.** `16d242f`
+    - **Who notices:** Jev users who set `max_retries` and hit a rate limit; the retry has a chance to succeed instead of failing the same way.
+    - **Problem:** a 429 or transient failure was retried at once and usually failed again while still using a daily call and a cost reservation. Only Jev retries; native CLIs never do.
+    - **Evidence:** `tests/test_ai_router.py::test_retries_back_off_before_resending`.
+19. **The in-vivo example cap counts characters, and says when it applies.** `47cd16e`
+    - **Who notices:** anyone creating a code from a long selection with "keep as example" checked; they are told why no example was kept.
+    - **Problem:** a selection over 500 UTF-16 units was silently dropped as an example.
+    - **Evidence:** a new vitest case in `web/src/lib/workspace.test.ts`.
+20. **Counts of one use the singular** in the web UI (`4b7fd79`, `07f083f`) and in `qualia import` (`16a39c1`).
+    - **Who notices:** every user, on every screen showing a count of one.
+    - **Evidence:** a vitest case for the new `counted()` helper. In the built app with Playwright, Review showed "1 pending suggestion" and "1 suggestion · 1 segment · 1 call · 0 cache hits", with no console errors.
+
+### Round 2 audit
+
+Three read-only Opus auditors covered: storage and migrations; AI routing, budgets, evaluation and the improvement loop; and server, web and docs. Each finding was confirmed, then kept only if it passed your "tangible improvement" bar.
+
+21. **Refining a code can no longer flip a negative example to positive.** `f9cc19c`
+    - **Who notices:** researchers using **Refine codes**. Before, the model could move their negative example into the positive list without quoting any passage.
+    - **Evidence:** `tests/test_code_proposal_ai.py::test_refine_cannot_turn_a_researcher_negative_example_into_a_positive_one`.
+22. **An older copy of the app refuses a project saved by a newer one.** `595b154`
+    - **Who notices:** anyone who keeps the previous install folder and opens a project with it after an update. It used to write into a schema it did not know, with no backup.
+    - **Also:** a failed open no longer leaves the database file locked.
+    - **Evidence:** `tests/test_foundations.py::test_an_older_app_refuses_a_database_from_a_newer_version_and_releases_it`.
+23. **Benchmarks whose text contains U+2028 or U+0085 load again.** `0e5a27d`
+    - **Who notices:** anyone whose benchmark text contains these characters, which come from some pasted web and PDF text. Before, the split published fine but could never be read back.
+    - **Evidence:** `tests/test_benchmarks.py::test_text_with_unicode_line_separators_stays_one_record`.
+24. **CSV sources are named by spreadsheet row.** `6005e79`
+    - **Who notices:** anyone importing a CSV with multi-paragraph cells. After the first such cell, every later source was named with the wrong row.
+    - **Evidence:** `tests/test_import.py::test_csv_sources_are_named_by_spreadsheet_row_even_with_multiline_cells`.
+25. **Opening Import, Case or Export moves keyboard focus into the panel.** `d280474`
+    - **Who notices:** keyboard and screen-reader users, every time they open a panel (WCAG 2.4.3).
+    - **Evidence:** in the built app with Playwright, focus landed on each panel heading and typing in a field kept focus. There is no focus ring on a mouse click.
+
+**Audited and not changed, because they fall below the bar.** Each is one line, with the reason:
+- **Large imports are quadratic.** A 1 MB source takes 4 s and 2.4 MB takes 20 s, because the segment trigger re-measures the whole source. Typical interviews are far smaller, and the fix needs a migration.
+- **Unhandled 500s lack security headers.** This needs an unrelated crash first, on a loopback-only server.
+- **Error text and status codes.** Raw constraint text appears only for spans the UI never sends, and missing records return 400 rather than 404. The UI handles both.
+- **Manual codes can share a name.** Real, but it is a methodology rule for you to decide, and existing projects may already contain such names.
+- **`a`/`r` review shortcuts act on the first suggestion when none is selected.** This is the documented design.
+- **Experiment REVERT with a read-only file.** Neither real operator can change file modes.
+- **Jev cost above 64k input tokens.** Jev's context is 64k.
+- **Smaller items.** Bare CR or U+2029 paragraph breaks, missing request-size caps, live-region timing, and duplicate evidence IDs.
+- **Flaky tests under load.** The installed-CLI probes and the launcher idle-timing test each failed once while other sessions loaded the PC, and passed when re-run alone.
+
 ## Found, not changed
 
-These are listed with evidence and a recommendation. Each one either fell below the confidence bar or needs a decision from you.
+Reverted under your "tangible improvements only" bar: the round-2 `QUALIA_PORT` range check in the double-click launcher (`62dbad0`, reverted). It only helped a hand-edited `.env` value outside 1024–65535.
 
-1. **Installed Codex CLI 0.170.0 changed its request format, which fails 8 local-only tests on this PC.**
-   - **Affected tests:** `test_installed_codex_advertises_no_tools_to_localhost` (4 cases) and the `native_proposal_wire` teardown in `test_codex_operator.py` (4 errors). They run only when Codex is installed, so CI does not run them.
-   - **What changed:** a local probe of the real request shows Codex 0.170.0 no longer sends an `additional_tools` input item at all. It also sends no `tools` key, so the safety property (no tools offered) still holds.
-   - **Why not changed:** the tests insist the item exists, and fixing them means editing test assertions.
-   - **Recommendation:** accept either "no `additional_tools` item" or "every `additional_tools` item is empty", and keep the `not body.get('tools')` check.
-2. **Text-inclusive workspace CSV exports add an apostrophe to any value that starts with `= + - @`** (`qualia/io/exporters.py` `_csv_cell`).
-   - **Effect:** this guards against spreadsheet formula injection, but the change can't be undone. Unlike the analysis export, there is no escape-flag column. A transcript that starts with "- I waited…" exports with a leading `'`, so its segment offsets no longer match.
-   - **Recommendation:** add an `_escaped` flag column as the analysis export does. This changes the export format, so it is your call.
-3. **A transient Jev failure that is retried counts its segments twice against `run_segments`** (`qualia/ai/router.py` retry loop → `reserve_attempt`).
-   - **Effect:** with `run_segments` equal to the run size and `max_retries=1`, one transient error ends the run with "budget reached".
-   - **Why not changed:** spec 003 FR-005 enforces limits "before each attempted backend call, including retries", so counting re-sent segments is one valid reading.
-   - **Recommendation:** decide whether `run_segments` means distinct segments or segments sent.
-4. **Escalation re-sends every segment where the model found no code** (`router.py:280`, `min(..., default=0.0)`).
-   - **Effect:** with `escalate_below` set, "no code" counts as uncertain, so most of a typical corpus goes to the strong tier.
-   - **Recommendation:** decide whether an empty answer should escalate. If not, change the default to `1.0`.
-5. **The offline `rules` backend uses up `daily_calls`.**
-   - **Effect:** 301 rules runs block the 302nd. The guide's suggested first-trial `daily_calls: 10` would then block offline work too.
-   - **Why not changed:** the spec applies the daily-call limit to every backend call.
-   - **Recommendation:** exempt backends with `external=False` from `daily_calls` if you agree.
-6. **`tune_thresholds` can replace a better current threshold with a worse grid value** (`qualia/eval/metrics.py`).
-   - **Effect:** in one example, current 0.73 gives dev F1 1.0, and the tuner picks 0.5 with F1 0.667.
-   - **Why not changed:** it matches the specs/011 plan (`{**current, **tuned}`), and validation KEEP/REVERT guards the result.
-   - **Recommendation:** compare against the current value and keep the better one.
-7. **Some counts read "1 segments" or "1 pending suggestions" in the UI** (Review, Evaluation, Codebook, matrix labels).
-   - **Status:** already known from the previous handoff, and a separate task was offered.
-   - **Why not changed:** it changes visible copy across components and needs a browser check, and no browser was allowed tonight.
-8. **`test_real_cli_policy_confirmation_and_read_only_history_api` failed once and then passed.**
-   - **What happened:** it failed during one full run while other overnight sessions were loading the PC; that run took 39 minutes, against the usual 9. It passed on its own (in 7 min 50 s) and in the final full run.
-   - **Likely cause:** the improvement loop's internal test subprocess has a 120-second timeout (`qualia/improve/experiment.py` `_run_tests`).
-   - **Why not changed:** the cause was not proven.
-9. **Suspicions with no demonstration:**
-   - CSV exports have no UTF-8 BOM, so Excel may garble accented text.
-   - `launcher.py` does not range-check `QUALIA_PORT`.
-   - Jev retries have no backoff.
-   - One oversized Jev segment stops a whole run with "cost estimate unavailable".
-   - `workspace.ts` caps example quotes at 500 UTF-16 units, not code points.
-   - `split_transcripts` gives uneven splits for strata under about 10. The pinned demo is unaffected, and changing this would move its splits.
+1. **CSV exports still have no UTF-8 BOM.**
+   - **Why not:** a BOM would rename the first column (`﻿record_type`) for Python's `csv` module and R's `read.csv`, which the analysis starter scripts and existing readers depend on.
+   - **Workaround:** in Excel, open the file through **Data > From Text/CSV** and pick UTF-8.
+2. **`split_transcripts` gives uneven splits for strata under about 10.**
+   - **Why not:** changing it would move the pinned demo's dev, validation and protected splits, which are fixed evidence.
+3. **`test_real_cli_policy_confirmation_and_read_only_history_api` failed once under load.**
+   - **Investigated:** the improvement loop's trusted tests take about 13 s, against a 120 s limit. A timeout makes the experiment REVERT, which is the safe outcome.
+   - **Why not:** this is not a product defect, so no change.
 
 ## Needs a browser check
 
-None of the changes above alter the UI. The only one you could see there is #4: a request with an impossible ID now shows a 400 message rather than a server error. No browser was used tonight.
+Round 1 made no UI changes. The visible changes in round 2 are #19 (one extra sentence in the confirmation after creating a code from a selection) and #20 (singular counts). #20 was checked in Review with Playwright. The Analysis, Evaluation, Codebook and Matrix labels use the same helper but were not opened.
 
 ## How to merge
 
