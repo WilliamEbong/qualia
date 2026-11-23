@@ -2,9 +2,11 @@
 
 ## Landed 2026-11-23
 
-The branch was merged into `main` as `e5b035c` and pushed. On the merge, 707 Python and 73 web tests passed and CI is green. The public demo was redeployed: the first Pages run failed on an artifact timing glitch and the re-run passed. Two design-contract changes, collapsing the trust captions and changing the code highlight, were not made, because they conflict with the protected docs 04 and 05; they wait for your decision in the gitignored `OWNER-NEEDED.md`.
+The branch was merged into `main` as `e5b035c` and pushed. On the merge, 707 Python and 73 web tests passed and CI is green. The public demo was redeployed: the first Pages run failed on an artifact timing glitch and the re-run passed. Two design-contract changes, collapsing the trust captions and changing the code highlight, were held back at first because they conflict with the protected docs 04 and 05. You then approved both in the session, and they are made in the design root-cause pass (docs 04 and 05, commit `70a89eb`).
 
 **Update (same day):** you approved both changes in the session. They are made on branch `claude/design-root-cause`; see "Design root-cause pass" below.
+
+- 2026-11-23: the design root-cause pass landed on `main` as merge `d38ed6e` and was pushed. On the merge, 707 Python tests passed (5 skipped), 76 web tests passed, the type check, build and static-demo e2e test pass.
 
 ## What changed for you
 
