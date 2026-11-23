@@ -199,3 +199,9 @@ export function searchExcerpts<T extends { speaker?: string | null; excerpt: str
   const needle = folded(query.trim())
   return rows.filter(row => (!speaker || speakerOf(row) === speaker) && (!needle || folded(`${row.excerpt}\n${row.segment_text}`).includes(needle)))
 }
+
+// Design root-cause pass: the small logic behind causes 4, 6 and 7, kept pure so it is tested.
+export const actorFieldOpen = (stored: string | null) => !stored
+export const unfrozenReason = (frozenVersions: number) =>
+  frozenVersions ? '' : 'Freeze a codebook version first (Codebook > Freeze); experiments measure one frozen version.'
+export const heatMaximum = (counts: number[]) => Math.max(1, ...counts)

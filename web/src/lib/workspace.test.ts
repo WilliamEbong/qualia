@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { codeStyle, eventCodeName, orderedCodes, searchExcerpts, shortcut, speakerOf, splitSuggestions, uniqueSegmentCount } from './entities'
+import { actorFieldOpen, codeStyle, eventCodeName, heatMaximum, orderedCodes, searchExcerpts, shortcut, speakerOf, splitSuggestions, unfrozenReason, uniqueSegmentCount } from './entities'
 import { annotationSpan, codingAnnotation, highlightStyle } from './annotation-offsets'
 import type { Code, Coding, Retrieval, Segment, Version } from './entities'
 
@@ -189,5 +189,22 @@ describe('retrieval search', () => {
     expect(searchExcerpts(rows, '', 'Interviewer').map(row => row.id)).toEqual([3])
     expect(searchExcerpts(rows, '  ', '').length).toBe(3)
     expect(searchExcerpts(rows, 'zebra', '')).toEqual([])
+  })
+})
+
+describe('design-pass logic (causes 4, 6, 7)', () => {
+  it('opens the name field only when no name was saved', () => {
+    expect(actorFieldOpen(null)).toBe(true)
+    expect(actorFieldOpen('')).toBe(true)
+    expect(actorFieldOpen('W. Ebong')).toBe(false)
+  })
+  it('names an unfrozen codebook as the reason experiments cannot start', () => {
+    expect(unfrozenReason(0)).toMatch(/^Freeze a codebook version first/)
+    expect(unfrozenReason(2)).toBe('')
+  })
+  it('scales matrix heat to the largest cell, never below one', () => {
+    expect(heatMaximum([0, 3, 2])).toBe(3)
+    expect(heatMaximum([])).toBe(1)
+    expect(heatMaximum([0])).toBe(1)
   })
 })

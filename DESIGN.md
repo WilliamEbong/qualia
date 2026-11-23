@@ -19,7 +19,8 @@ Self-hosted Fontsource 5.3 fonts: Cormorant Garamond 400 for sentence-case displ
 ## Structure and component states
 
 - Source and coding rails are 280px and 340px on wide screens; the reading column gets the remaining space. Narrow screens stack in reading order without page overflow.
-- Human decisions have solid 3px stripes. Suggestions retain dashed stripes and their exact model-reported score, calibration, and trigger captions. Accepted model decisions retain solid stripes plus the mono `m`. Historical decisions remain in provenance.
+- Human decisions have solid 3px stripes. Suggestions retain dashed stripes and their exact model-reported score, calibration, and trigger captions. In the review queue only, each card shows the model-reported score, and its calibration (ECE) caption, trigger reason, rationale and provenance sit one click away behind that card's disclosure, with a key above the queue explaining them once. This follows the doc 04–05 exception William approved on 2026-11-23. Workspace shows every caption on every suggestion.
+- Coded text is marked with a 2px underline in the code colour over a 10% tint of it, so it never reads as a browser selection. Doc 04 §3 records this; William approved it on 2026-11-23, replacing the 22% fill. Accepted model decisions retain solid stripes plus the mono `m`. Historical decisions remain in provenance.
 - Codebook drawers use ruled boundaries and cream field-note slips. Frozen versions keep their IDs and timestamps visible.
 - Experiments use a horizontal ruled timeline with 16px decision dots. Selection opens the hypothesis, measurements, changed files, and decision provenance.
 - Home uses the original seed-3 title-dome plate, a horizon at 63.3%, and project drawers. Empty states borrow the original star-chart plate and horizon without obscuring instructions.
@@ -28,7 +29,7 @@ Self-hosted Fontsource 5.3 fonts: Cormorant Garamond 400 for sentence-case displ
 
 ## Motion and restraint
 
-Square corners, no shadows, one-pixel keylines, and a four-point spacing rhythm. UI transitions are 150ms; media fades are 300ms with the prescribed easing. Reduced-motion preferences remove transitions and animations. No extra animation dependency, ornamental status badges, fabricated metrics, or hidden trust captions.
+Square corners, no shadows, one-pixel keylines, and a four-point spacing rhythm. UI transitions are 150ms; media fades are 300ms with the prescribed easing. Reduced-motion preferences remove transitions and animations. No extra animation dependency, ornamental status badges, fabricated metrics, or hidden trust captions. The single exception is the approved review-queue disclosure above, which keeps the score on every card and the full captions one click away.
 
 ## Preservation
 

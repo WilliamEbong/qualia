@@ -5,7 +5,7 @@ import { readOnly, request } from './client'
 import type { DemoSnapshot } from './demo'
 type MatrixTotalsResult = components['schemas']['MatrixTotals']
 import { useMatrix } from './matrix'
-import { codeDepth, counted, eventCodeName, exampleList, frozenCodes, hydrateWorkspace, isEditingTarget, orderedCodes, searchExcerpts, segmentText, shortcut, speakerOf } from './entities'
+import { codeDepth, counted, eventCodeName, exampleList, frozenCodes, hydrateWorkspace, isEditingTarget, orderedCodes, actorFieldOpen, searchExcerpts, segmentText, shortcut, speakerOf } from './entities'
 import type { Case, Code, Coding, MatrixCell, Memo, MemoKind, Project, Retrieval, Span, View, Workspace } from './entities'
 
 const field = (form: FormData, name: string) => String(form.get(name) ?? '').trim()
@@ -37,7 +37,7 @@ export function useWorkspace() {
   // The coder's name is provenance: remember it across reloads (per browser; nothing else is stored).
   const [actor, setActorState] = useState(() => { try { return localStorage.getItem('qualia-actor') || 'researcher' } catch { return 'researcher' } })
   // The name is set once and then shown as a line; first visit (nothing saved yet) opens the field.
-  const [actorOpen, setActorOpen] = useState(() => { try { return !localStorage.getItem('qualia-actor') } catch { return true } })
+  const [actorOpen, setActorOpen] = useState(() => { try { return actorFieldOpen(localStorage.getItem('qualia-actor')) } catch { return true } })
   const setActor = (value: string) => { setActorState(value); try { localStorage.setItem('qualia-actor', value) } catch { /* storage unavailable */ } }
   const [panel, setPanel] = useState<'import' | 'case' | 'export' | null>(null)
   const [editCode, setEditCode] = useState<Code | null>(null)
