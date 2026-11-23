@@ -8,7 +8,7 @@ import { Button } from './ui/button'
 
 export function Suggestion({ item, w, review }: { item: Coding; w: WorkspaceController; review: ReviewController }) {
   return <article className={`suggestion ${review.selected?.id === item.id ? 'selected-suggestion' : ''}`} style={codeStyle(w.codeIndex(item.code_id)) as CSSProperties} aria-label={`Suggestion ${item.id}`} onFocus={() => review.select(item.id)}>
-    <Button className="suggestion-select" aria-pressed={review.selected?.id === item.id} onClick={() => review.select(item.id)}>{review.codeName(item)}</Button>
+    <p className="caption suggestion-position">Suggestion {review.suggestions.findIndex(entry => entry.id === item.id) + 1} of {review.suggestions.length}</p><Button className="suggestion-select" aria-pressed={review.selected?.id === item.id} onClick={() => review.select(item.id)}>{review.codeName(item)}</Button>
     <blockquote>{review.excerpt(item)}</blockquote>
     <p className="caption">suggested · {review.modelScore(item.score)}</p><p className="caption">{review.eceCaption(item)}</p>
     <p className="caption">{review.reasonCaption(item.review_trigger)} · segment {item.segment_id}</p>
