@@ -63,3 +63,17 @@ def test_explicit_text_export_and_formula_safety(tmp_path):
         assert memo['text'] == "'@SUM(1,2)"
         with pytest.raises(ValueError, match='format'):
             export_data(db, project, 'pdf')
+
+
+def test_csv_flags_escaped_cells_so_the_original_text_is_recoverable(tmp_path):
+    project = init_project('study', tmp_path)
+    with Store(project / 'project.db') as db:
+        db.save_memo({'title': "'quoted already", 'text': '- I waited for the bus.'})
+        rows = list(csv.DictReader(io.StringIO(export_data(db, project, 'csv', no_text=False))))
+    memo = next(row for row in rows if row['record_type'] == 'memos')
+    # The leading apostrophe on the title is real text; only the text cell was escaped.
+    assert memo['escaped_columns'] == 'text'
+    restored = {column: memo[column][1:] if column in memo['escaped_columns'].split(';') else memo[column]
+                for column in ('title', 'text')}
+    assert restored == {'title': "'quoted already", 'text': '- I waited for the bus.'}
+    assert all(row['escaped_columns'] == '' for row in rows if row['record_type'] == 'metadata')

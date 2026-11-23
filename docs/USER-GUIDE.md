@@ -868,6 +868,8 @@ Video tutorial: [Export, Python/R, backup](https://cdn.jsdelivr.net/gh/WilliamEb
 | Analysis JSON/CSV/starters | Excludes source transcripts, but retains case metadata, selected query criteria and explicit attribute values for analysis. |
 | Static demo export | Contains the approved public snapshot and its attribution, including that snapshot's public excerpts. |
 
+In a workspace CSV, a value that starts with `=`, `+`, `-` or `@` gets a leading apostrophe so spreadsheets do not run it as a formula. The last column, `escaped_columns`, names the cells on that row that were escaped (separated by `;`); remove the first character of exactly those cells to recover the stored text, for example before checking segment offsets.
+
 A no-text frozen-codebook snapshot retains its original hash and is marked redacted; the hash identifies the original version, not the shortened copy. Include text when you intentionally need textual code definitions for reproduction. Even a text-inclusive bundle is not a full workspace backup or an automatically restorable project; there is no general bundle-import command.
 
 CLI example:
