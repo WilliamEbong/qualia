@@ -335,7 +335,16 @@ def classify_segments(db, segments, codebook, config, *, prompt, codebook_versio
                                'action': 'suggest', 'review_status': 'pending',
                                'review_trigger': canonical(triggers), 'codebook_version_id': codebook_version_id,
                                'pipeline_version': pipeline_version, 'prompt_hash': prompt_hash})
-        result['suggestion_ids'] = db.record_suggestions(events)
+        # A suggestion identical to one already recorded (pending or decided) is not queued again,
+        # so re-running over the whole project does not re-ask decided or waiting questions.
+        fields = ('segment_id', 'code_id', 'span_start', 'span_end', 'codebook_version_id',
+                  'backend', 'model', 'prompt_hash', 'pipeline_version')
+        ids = sorted({event['segment_id'] for event in events})
+        recorded = {tuple(row[field] for field in fields) for row in db.rows(
+            f"SELECT {','.join(fields)} FROM coding_events WHERE action='suggest' "
+            f"AND segment_id IN ({','.join('?' * len(ids))})", tuple(ids))} if ids else set()
+        events = [event for event in events if tuple(event[field] for field in fields) not in recorded]
+        result['suggestion_ids'] = db.record_suggestions(events) if events else []
     return result
 
 

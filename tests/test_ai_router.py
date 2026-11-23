@@ -515,17 +515,18 @@ def test_reported_model_version_is_stored_and_survives_cache_reuse():
         db.save_code({'name': 'Synthetic'})
         db.freeze_codebook()
 
-        def run_once(run_id):
+        def run_once(run_id, persist=True):
             return classify_segments(db, [{'id': '1', 'text': 'Synthetic.'}],
                                      [{'id': 1, 'name': 'Synthetic', 'status': 'active'}], ROUTING,
                                      prompt='p', codebook_version_id=1, pipeline_version='pipeline',
-                                     backend='fixture', model='haiku', run_id=run_id, persist=True,
+                                     backend='fixture', model='haiku', run_id=run_id, persist=persist,
                                      registry={'fixture': backend})
-        run_once('first')
+        # The first run only fills the cache (as an evaluation does); the cached run records it.
+        run_once('first', persist=False)
         run_once('second')
         assert backend.calls == 1
         versions = [row['model_version'] for row in db.rows('SELECT model_version FROM coding_events')]
-        assert versions == ['claude-haiku-4-5-20251001'] * 2
+        assert versions == ['claude-haiku-4-5-20251001']
 
 
 def test_a_confident_no_code_answer_is_not_escalated():
@@ -573,3 +574,19 @@ def test_retries_back_off_before_resending(monkeypatch):
         result = run(db, backend, config={'max_retries': 2})
     assert result['status'] == 'completed' and backend.calls == 3
     assert pauses == [1.0, 2.0]
+
+
+def test_rerunning_classification_does_not_requeue_recorded_suggestions(tmp_path):
+    project = init_project('rerun', tmp_path)
+    with Store(project/'project.db') as db:
+        import_text(db, project, 'synthetic', 'First.\n\nSecond.', 'txt')
+        db.save_code({'name': 'Only'})
+        db.freeze_codebook()
+        first = classify_project(db, project, backend='fake')
+        assert len(first['suggestion_ids']) == 2
+        db.review(first['suggestion_ids'][0], 'reject', 'researcher', 'pipeline')
+        import_text(db, project, 'later', 'Third.', 'txt')
+        second = classify_project(db, project, backend='fake')
+        # Only the new passage gets a suggestion; the rejected and the pending ones are not repeated.
+        assert len(second['suggestion_ids']) == 1
+        assert len(db.rows('SELECT id FROM pending_suggestions')) == 2
