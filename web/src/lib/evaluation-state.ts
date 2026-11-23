@@ -1,4 +1,5 @@
 import type { Coding } from './entities'
+import { counted } from './entities'
 
 export type EvaluationRecord = { id: number; split: string; backend: string; model: string; codebook_version_id: number; pipeline_version: string; metrics_json: string; created_at: string }
 export type Interval = [number, number]
@@ -36,7 +37,7 @@ export function matchingCalibration(event: Coding, runs: Evaluation[]): Evaluati
 
 export function calibrationCaption(event: Coding, runs: Evaluation[]): string {
   const match = matchingCalibration(event, runs)
-  return match ? `Validation ECE ${formatMetric(match.metrics?.ece)} · ${match.metrics?.scored_prediction_count} scored code assignments · evaluation #${match.id} · ${match.created_at}`
+  return match ? `Validation ECE ${formatMetric(match.metrics?.ece)} · ${counted(match.metrics?.scored_prediction_count ?? 0, 'scored code assignment')} · evaluation #${match.id} · ${match.created_at}`
     : 'Validation ECE unavailable — no scored validation result matches this suggestion’s backend, model, frozen codebook, pipeline and prompt.'
 }
 

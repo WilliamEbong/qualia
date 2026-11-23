@@ -25,6 +25,8 @@ export type Retrieval = Coding & { source_id: number; segment_text: string; exce
 export type View = 'home' | 'workspace' | 'codebook' | 'memos' | 'retrieval' | 'matrix' | 'review' | 'evaluation' | 'experiments' | 'analysis'
 
 const codePoints = new WeakMap<Source, string[]>()
+export const counted = (count: number, noun: string, plural = `${noun}s`) => `${count} ${count === 1 ? noun : plural}`
+
 export function sourceCodePoints(source: Source): string[] {
   let points = codePoints.get(source)
   if (!points) { points = Array.from(source.text); codePoints.set(source, points) }

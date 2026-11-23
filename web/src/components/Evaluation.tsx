@@ -1,3 +1,4 @@
+import { counted } from '../lib/entities'
 import type { WorkspaceController } from '../lib/workspace'
 import type { ReviewController } from '../lib/review'
 import type { EvaluationController } from '../lib/evaluation'
@@ -18,7 +19,7 @@ export function Evaluation({ w, review, evaluation: e }: { w: WorkspaceControlle
       <label>Passages in the sample (1–200)<input type="number" min={1} max={200} value={e.sample} onChange={event => e.setSample(Number(event.target.value))} disabled={w.readOnly || w.busy} /></label>
       <Button disabled={w.readOnly || w.busy || !!e.blockedReason || !w.data?.codebook_versions.length || !w.data.segments.length} onClick={() => void e.checkRepeatability()}>Check repeatability</Button>
       <p className="caption">Uses two runs' worth of calls. The sample is the same each time for this project, so models can be compared fairly.</p>
-      {e.repeat && <div role="status"><p className="review-budget">Identical code sets on {e.repeat.identicalText} of {e.repeat.segments} passages · {e.repeat.backend} / {e.repeat.model} · {e.repeat.calls} calls</p>
+      {e.repeat && <div role="status"><p className="review-budget">Identical code sets on {e.repeat.identicalText} of {counted(e.repeat.segments, 'passage')} · {e.repeat.backend} / {e.repeat.model} · {counted(e.repeat.calls, 'call')}</p>
         <div className="table-scroll" role="region" tabIndex={0} aria-label="Run-to-run agreement by code (scrollable)"><table aria-label="Run-to-run agreement by code"><thead><tr><th scope="col">Code</th><th scope="col">Same decision</th><th scope="col">Kappa between runs</th></tr></thead><tbody>{e.repeat.rows.map(row => <tr key={row.code}><th scope="row">{row.code}</th><td>{row.agreement}</td><td>{row.kappa}</td></tr>)}</tbody></table></div>
         <p className="caption">Kappa is n/a when neither run varied for a code.</p></div>}
     </section></div><div><label>Recorded validation run<select value={e.selected?.id ?? ''} onChange={event => e.select(Number(event.target.value))}><option value="" disabled>No recorded validation runs</option>{e.runs.map(run => <option key={run.id} value={run.id}>#{run.id} · {run.backend} / {run.model} · {run.created_at}</option>)}</select></label>

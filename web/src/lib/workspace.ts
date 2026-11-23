@@ -4,7 +4,7 @@ import type { components } from '../api/schema'
 import { readOnly, request } from './client'
 import type { DemoSnapshot } from './demo'
 import { useMatrix } from './matrix'
-import { codeDepth, eventCodeName, exampleList, frozenCodes, hydrateWorkspace, isEditingTarget, orderedCodes, segmentText, shortcut } from './entities'
+import { codeDepth, counted, eventCodeName, exampleList, frozenCodes, hydrateWorkspace, isEditingTarget, orderedCodes, segmentText, shortcut } from './entities'
 import type { Case, Code, Coding, MatrixCell, Memo, MemoKind, Project, Retrieval, Span, View, Workspace } from './entities'
 
 const field = (form: FormData, name: string) => String(form.get(name) ?? '').trim()
@@ -201,7 +201,7 @@ export function useWorkspace() {
       const content = file?.size ? await file.text() : String(form.get('content') ?? '')
       const input: components['schemas']['ImportInput'] = { name: field(form, 'name') || file?.name || 'Untitled transcript', content, format: field(form, 'format') as 'txt' | 'md' | 'csv', text_column: field(form, 'text_column') || 'text', case_column: field(form, 'case_column') || 'case', speaker_column: field(form, 'speaker_column') || 'speaker', attribute_columns: field(form, 'attribute_columns').split(',').map(item => item.trim()).filter(Boolean), version_of: idField(form, 'version_of') }
       const result = await request<components['schemas']['ImportResult']>(`projects/${encodeURIComponent(slug)}/import`, { method: 'POST', body: JSON.stringify(input) })
-      await reload(); setNotice(`${result.new_sources} new sources · ${result.new_segments} new segments`)
+      await reload(); setNotice(`${counted(result.new_sources, 'new source')} · ${counted(result.new_segments, 'new segment')}`)
       setPanel(null); setCaseId(null); if (result.source_ids[0]) selectSource(result.source_ids[0])
     })
   }

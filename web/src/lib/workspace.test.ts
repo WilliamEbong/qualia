@@ -72,3 +72,12 @@ describe('in-vivo example', () => {
     expect(inVivoExample('', true)).toEqual([])
   })
 })
+
+describe('counted', () => {
+  it('uses the singular only for exactly one', async () => {
+    const { counted } = await import('./entities')
+    expect([0, 1, 2].map(count => counted(count, 'segment'))).toEqual(['0 segments', '1 segment', '2 segments'])
+    expect(counted(1, 'cache hit')).toBe('1 cache hit')
+    expect(counted(3, 'pending suggestion')).toBe('3 pending suggestions')
+  })
+})

@@ -2,7 +2,7 @@ import { Fragment } from 'react'
 import type { CSSProperties } from 'react'
 import type { WorkspaceController } from '../lib/workspace'
 import { exampleLines } from '../lib/workspace'
-import { descendantIds } from '../lib/entities'
+import { counted, descendantIds } from '../lib/entities'
 import { thresholdCaption } from '../lib/review-state'
 import type { ProposalsController } from '../lib/proposals'
 import type { ProposalView } from '../lib/proposals-state'
@@ -37,7 +37,7 @@ function Proposals({ w, p }: { w: WorkspaceController; p: ProposalsController })
           {p.mode === 'draft' ? <>
             <label>Source<select value={p.sourceId ?? ''} onChange={event => p.setSourceId(Number(event.target.value) || null)}>{w.data?.sources.map(source => <option key={source.id} value={source.id}>{source.name}</option>)}</select></label>
             <label>Passages to send (1–20)<input type="number" min={1} max={20} value={p.count} onChange={event => p.setCount(Number(event.target.value))} /></label>
-            <p className="caption">Sends the first {p.draftIds.length} segments of this source and your current code names, so proposals avoid duplicates.</p>
+            <p className="caption">Sends the first {counted(p.draftIds.length, 'segment')} of this source and your current code names, so proposals avoid duplicates.</p>
             <label>Focus (optional)<textarea rows={2} maxLength={500} value={p.focus} onChange={event => p.setFocus(event.target.value)} placeholder="For example: experiences of waiting for care" /></label>
           </> : <fieldset className="choices"><legend>Codes to refine (up to two)</legend>{w.codes.filter(code => code.status === 'active').map(code => <label key={code.id} className="checkbox"><input type="checkbox" checked={p.codeIds.includes(code.id)} onChange={() => p.toggleCode(code.id)} />{code.name}</label>)}<p className="caption">Sends each code with up to four coded and four rejected passages and your review notes.</p></fieldset>}
           {p.blockedReason && <p className="caption">{p.blockedReason}</p>}
