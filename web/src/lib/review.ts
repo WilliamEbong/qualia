@@ -5,7 +5,7 @@ import { request } from './client'
 import { counted, eventCodeName, isEditingTarget, segmentText } from './entities'
 import type { Coding } from './entities'
 import type { WorkspaceController } from './workspace'
-import { groupByCode, groupSuggestions, isAcceptedModel, modelScore, reasonCaption, reviewReasons, reviewShortcut } from './review-state'
+import { BATCH_LIMIT, batchOf, groupByCode, groupSuggestions, isAcceptedModel, modelScore, reasonCaption, reviewReasons, reviewShortcut } from './review-state'
 import { calibrationCaption, parseEvaluations } from './evaluation-state'
 import type { EvaluationRecord } from './evaluation-state'
 import { useModelChoice } from './models'
@@ -39,7 +39,8 @@ export function useReview(w: WorkspaceController) {
   const codeName = (item: Coding) => eventCodeName(item, w.data?.codebook_versions ?? [])
   const groups = useMemo(() => groupBy === 'code' ? groupByCode(suggestions, codeName) : groupSuggestions(suggestions), [suggestions, groupBy, w.data])
   // Feature 020: decide a whole code group; the server writes one audited record per suggestion.
-  const batch = (items: Coding[], decision: 'accept' | 'reject') => {
+  const batch = (group: Coding[], decision: 'accept' | 'reject') => {
+    const items = batchOf(group)
     if (!items.length) return
     const code = codeName(items[0])
     const question = decision === 'accept'
@@ -104,7 +105,7 @@ export function useReview(w: WorkspaceController) {
     model,
     suggestions, activeSuggestions, groups, note, setNote, result, review, classify, excerpt, modelScore, reviewReasons,
     reasonCaption: (value: string | null) => reasonCaption(value, w.data?.routing?.human_review_below), eceCaption: (item: Coding) => calibrationCaption(item, evaluations), isAcceptedModel,
-    codeName, groupBy, setGroupBy, batch, lastBatch, undoBatch,
+    codeName, groupBy, setGroupBy, batch, batchLabel: (verb: string, size: number) => size > BATCH_LIMIT ? `${verb} first ${BATCH_LIMIT} of ${size}` : `${verb} all ${size}`, lastBatch, undoBatch,
   }
 }
 export type ReviewController = ReturnType<typeof useReview>
