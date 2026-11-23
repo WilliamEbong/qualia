@@ -1,3 +1,4 @@
+import { counted } from '../lib/entities'
 import type { ExperimentsController } from '../lib/experiments'
 import type { ReviewController } from '../lib/review'
 import type { WorkspaceController } from '../lib/workspace'
@@ -5,7 +6,7 @@ import { ModelPicker } from './ModelPicker'
 import { Button } from './ui/button'
 
 export function Experiments({ w, review, experiments: e }: { w: WorkspaceController; review: ReviewController; experiments: ExperimentsController }) {
-  return <section className="content-page experiments-page" aria-label="Experiment history"><header className="section-heading"><div><p className="caption">Measured implementation changes</p><h2>Experiment history</h2></div><span className="caption">{e.history.length} recorded attempts</span></header><p>Decisions recorded by Qualia’s policy checks are shown with their validation measurements. Hypotheses are the operator’s proposed explanation.</p>
+  return <section className="content-page experiments-page" aria-label="Experiment history"><header className="section-heading"><div><p className="caption">Measured implementation changes</p><h2>Experiment history</h2></div><span className="caption">{counted(e.history.length, 'recorded attempt')}</span></header><p>Decisions recorded by Qualia’s policy checks are shown with their validation measurements. Hypotheses are the operator’s proposed explanation.</p>
     <form key={w.slug} className="editor tune-form" onSubmit={e.tune}><fieldset disabled={w.readOnly}><h3>Tune suggestion thresholds</h3><p>Finds the score each code needs before the AI suggests it, using up to 400 dev benchmark segments. Qualia then measures the change on the validation split and keeps it only if results improve.</p>
       <label>Classifier to tune<select value={e.backend} onChange={event => e.setBackend(event.target.value)} disabled={w.readOnly || w.busy}>{review.availability?.backends.map(provider => <option key={provider.name} value={provider.name}>{provider.name} · {provider.external ? 'external' : 'offline'}{provider.available ? '' : ' · unavailable'}</option>) ?? <option value={e.backend}>Checking availability…</option>}</select></label>
       <ModelPicker id="tuning-model" m={e.model} disabled={w.readOnly || w.busy} />

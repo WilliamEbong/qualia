@@ -1,9 +1,10 @@
+import { counted } from '../lib/entities'
 import type { CSSProperties } from 'react'
 import type { WorkspaceController } from '../lib/workspace'
 import { Button } from './ui/button'
 
 export function Retrieval({ w }: { w: WorkspaceController }) {
-  return <section className="content-page retrieval-page" aria-label="Retrieved excerpts"><header className="section-heading"><div><p className="caption">Evidence across sources</p><h2>Retrieval</h2></div><span className="caption">{w.retrievalSegmentCount} distinct segments · {w.retrieval.length} coded excerpts</span></header>
+  return <section className="content-page retrieval-page" aria-label="Retrieved excerpts"><header className="section-heading"><div><p className="caption">Evidence across sources</p><h2>Retrieval</h2></div><span className="caption">{counted(w.retrievalSegmentCount, 'distinct segment')} · {counted(w.retrieval.length, 'coded excerpt')}</span></header>
     <div className="filters"><label>Code<select value={w.retrievalCode ?? ''} onChange={event => w.setRetrievalCode(Number(event.target.value) || null)}><option value="">All codes</option>{w.codes.map(code => <option key={code.id} value={code.id}>{code.name}</option>)}</select></label><label>Case<select value={w.retrievalCase ?? ''} onChange={event => w.setRetrievalCase(Number(event.target.value) || null)}><option value="">All cases</option>{w.data?.cases.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label></div>
     {w.queryLoading ? <p role="status">Loading excerpts…</p> : !w.retrieval.length ? <div className="empty"><h3>No matching coded segments</h3><p>Assign a code to a transcript, or change the filters.</p></div> : w.retrieval.map((item, index) => <article className="retrieval-card" key={`${item.segment_id}-${index}`}><p className="caption">{item.source_name ?? `Source ${item.source_id ?? '—'}`} · segment {item.segment_id}</p><p><strong>{w.eventCodeName(item)}</strong> <span className="caption">· codebook version {item.codebook_version_id}</span></p><blockquote>{item.excerpt}</blockquote><Button onClick={() => w.openSegment(item.segment_id)}>Open in transcript</Button></article>)}
   </section>
