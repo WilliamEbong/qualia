@@ -14,7 +14,8 @@ bloat. Small commits, constantly. Doc 04 is the spec; this doc is the work.*
   DESIGN-NOTES.md instead of doing it.*
 - **Trust rendering is load-bearing:** provenance stripes, the `model-reported` label, ECE captions, KEEP/REVERT
   grammar, review-trigger reasons and egress notices may be *styled*, never removed, reworded, softened or made
-  conditional.
+  conditional. The one exception is doc 04's owner-approved review-queue disclosure (2026-11-23): the
+  `model-reported` score stays on every card; ECE caption and trigger reason may sit one click away on that card.
 - **Dependencies:** nothing beyond doc 04 §2 (three Fontsource packages, lucide-react) without an OWNER-NEEDED gate;
   prefer tokens/CSS over components, components over libraries. taste-skill is INSTALLED AND ACTIVE (gpt-taste variant
   under Codex) on a leash: doc 04 + DESIGN.md outrank it, dials exactly as doc 04 §3 (VARIANCE low · MOTION low ·
