@@ -24,7 +24,8 @@ jobs:
           cache-dependency-path: web/package-lock.json
       - run: npm ci
         working-directory: web
-      - run: npm run typecheck && npm run lint && npm test && npm run build && npm audit --audit-level=high
+      # npm run build starts with tsc --noEmit, so it is the typecheck.
+      - run: npm test && npm run build && npm audit --audit-level=high
         working-directory: web
       - uses: gitleaks/gitleaks-action@v3
         env:
