@@ -16,7 +16,7 @@ def test_cli_import_codebook_coding_export(tmp_path, monkeypatch):
     args = ['import', str(transcript), '--project', 'study']
     result = runner.invoke(app, args)
     assert result.exit_code == 0, result.output
-    assert '1 new sources' in result.output
+    assert '1 new source; 2 new segments' in result.output
     assert '0 new sources' in runner.invoke(app, args).output
     assert runner.invoke(app, ['codebook', 'add', 'Possibility', '--project', 'study']).exit_code == 0
     assert runner.invoke(app, ['codebook', 'freeze', '--project', 'study']).exit_code == 0

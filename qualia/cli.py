@@ -92,7 +92,8 @@ def import_command(file: Path, project: str = 'demo', text_column: str = 'text',
                                  speaker_column=speaker_column,
                                  attribute_columns=[x.strip() for x in attribute_columns.split(',') if x.strip()],
                                  version_of=version_of)
-        typer.echo(f"{result['new_sources']} new sources; {result['new_segments']} new segments")
+        sources, segments = result['new_sources'], result['new_segments']
+        typer.echo(f"{sources} new source{'s' * (sources != 1)}; {segments} new segment{'s' * (segments != 1)}")
     except (OSError, ValueError) as exc:
         raise typer.BadParameter(str(exc)) from exc
 
