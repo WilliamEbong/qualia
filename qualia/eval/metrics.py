@@ -191,7 +191,7 @@ def run_agreement(first: list[dict], second: list[dict], code_ids: list[int]) ->
         right = [int(code_id in two[identity]) for identity in shared]
         agreement = sum(a == b for a, b in zip(left, right, strict=True)) / len(shared) if shared else None
         kappa = None
-        if shared and len(set(left) | set(right)) > 1:
+        if shared and (len(set(left)) > 1 or len(set(right)) > 1):
             value = float(cohen_kappa_score(left, right))
             kappa = value if math.isfinite(value) else None
         per_code.append({'code_id': code_id, 'agreement': agreement, 'kappa': kappa,

@@ -29,6 +29,14 @@ def test_run_agreement_counts_identical_sets_and_per_code_kappa():
     assert three['agreement'] == 1.0 and three['kappa'] is None
 
 
+def test_run_agreement_kappa_is_null_when_neither_run_varies_even_if_they_differ():
+    # Per the published definition: no kappa when each run makes one decision throughout.
+    first = [prediction('a', 1), prediction('b', 1), prediction('c', 1)]
+    second = [prediction('a'), prediction('b'), prediction('c')]
+    row = run_agreement(first, second, [1])['per_code'][0]
+    assert row['agreement'] == 0.0 and row['kappa'] is None
+
+
 @pytest.fixture
 def project(tmp_path):
     path = init_project('study', tmp_path)
