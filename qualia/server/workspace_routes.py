@@ -109,5 +109,6 @@ def register_workspace_routes(app: FastAPI, home: Path | None):
         path = existing_project(slug, home)
         with Store(path / 'project.db') as db:
             content = export_data(db, path, format=format, no_text=no_text, bundle=bundle)
-        return {'filename': f'{slug}-{"reproducibility" if bundle else "coding"}.{format}',
+        kind = ('reproducibility' if bundle else 'coding') + ('' if no_text else '-with-text')
+        return {'filename': f'{slug}-{kind}.{format}',
                 'media_type': 'application/json' if format == 'json' else 'text/csv', 'content': content}

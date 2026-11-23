@@ -65,6 +65,10 @@ def test_human_workflow_and_exports(tmp_path):
     assert '😀' not in exported['content']
     parsed = json.loads(exported['content'])
     assert parsed
+    # A text-inclusive file must be distinguishable from the redacted one by name.
+    with_text = client.get(prefix + '/export?no_text=false').json()
+    assert exported['filename'].endswith('-coding.json')
+    assert with_text['filename'].endswith('-coding-with-text.json') and 'Hello' in with_text['content']
     bundle = client.get(prefix + '/export?bundle=reproducibility').json()
     assert 'vault' not in json.dumps(json.loads(bundle['content'])).lower()
     assert client.post(prefix + '/coding', json={**coding, 'action': 'remove'}).status_code == 200
