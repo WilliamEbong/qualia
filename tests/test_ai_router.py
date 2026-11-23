@@ -590,3 +590,30 @@ def test_rerunning_classification_does_not_requeue_recorded_suggestions(tmp_path
         # Only the new passage gets a suggestion; the rejected and the pending ones are not repeated.
         assert len(second['suggestion_ids']) == 1
         assert len(db.rows('SELECT id FROM pending_suggestions')) == 2
+
+
+def test_a_new_model_snapshot_still_records_its_own_suggestion():
+    class Snapshot(CountingBackend):
+        version = 'snapshot-1'
+
+        def classify(self, segments, schema, context):
+            self.calls += 1
+            return {**FakeBackend.classify(self, segments, schema, context), 'model_version': self.version}
+
+    backend = Snapshot()
+    with Store(':memory:') as db:
+        db.add('sources', {'name': 's', 'text': 'Synthetic.', 'content_hash': 'h'})
+        db.add('segments', {'source_id': 1, 'start': 0, 'end': 10, 'ordinal': 0})
+        db.save_code({'name': 'Synthetic'})
+        db.freeze_codebook()
+
+        def run_once(run_id):
+            return classify_segments(db, [{'id': '1', 'text': 'Synthetic.'}],
+                                     [{'id': 1, 'name': 'Synthetic', 'status': 'active'}], ROUTING,
+                                     prompt='p', codebook_version_id=1, pipeline_version='pipeline',
+                                     backend='fixture', model='haiku', run_id=run_id, persist=True,
+                                     use_cache=False, registry={'fixture': backend})
+        assert len(run_once('first')['suggestion_ids']) == 1
+        assert run_once('same')['suggestion_ids'] == []
+        backend.version = 'snapshot-2'  # the alias now answers with a newer model
+        assert len(run_once('newer')['suggestion_ids']) == 1
