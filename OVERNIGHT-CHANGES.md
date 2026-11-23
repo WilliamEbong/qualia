@@ -4,6 +4,8 @@
 
 The branch was merged into `main` as `e5b035c` and pushed. On the merge, 707 Python and 73 web tests passed and CI is green. The public demo was redeployed: the first Pages run failed on an artifact timing glitch and the re-run passed. Two design-contract changes, collapsing the trust captions and changing the code highlight, were not made, because they conflict with the protected docs 04 and 05; they wait for your decision in the gitignored `OWNER-NEEDED.md`.
 
+**Update (same day):** you approved both changes in the session. They are made on branch `claude/design-root-cause`; see "Design root-cause pass" below.
+
 ## What changed for you
 
 These are the effects you can see when you use Qualia. The details and evidence for each one follow further down.
@@ -554,6 +556,57 @@ Codex reviewed all 91 commits since `2978c5d`. I checked each finding against th
 - **"Hide it on phones" is risky.** The worst defect on the branch, found only by the final review, was a phone rule that hid controls with no way back to them. Prefer scrolling or folding over `display: none` for anything a researcher needs.
 - **The test machine gets slow under load.** One Python test, which runs the analysis starter script with a 10-second limit, and one web test failed once while Codex, pytest and vitest ran at the same time. Both pass when run alone. That is a test-timing limit, not a product defect.
 - **Some design scores cannot reach 9 without you.** The trust wording on every Review card and the 22% highlight are fixed by the design rules, and the scorers count both against Review and Workspace. `OWNER-NEEDED.md` sets out the two decisions.
+
+## Design root-cause pass (branch `claude/design-root-cause`, 2026-11-23)
+
+**In short:** instead of another fix-and-rescore loop, I listed why each screen scored under 9, traced each reason to its root cause, researched a tactic for each, and fixed 7 of the 12 causes. Fresh scorers confirmed each fixed cause gone or reduced. The overall scores stayed about where they were. The working table, with every source, is `design-review/ROOT-CAUSES.md`.
+
+**Contract changes.** William approved both in the session himself on 2026-11-23, in his own words: "you have explicit permission from me regarding Collapsing the trust captions and changing the code highlight". Commit `70a89eb` records both in docs 04 and 05:
+- **Review queue cards:** the `model-reported` score stays on every card. The ECE caption, the review reason, the rationale and the provenance sit behind one disclosure on each card. A key above the queue explains them once. Workspace still shows every caption.
+- **Coded text:** a 2px code-colour underline over a 10% tint, in place of the 22% fill.
+
+**The causes.** The research came from a read-only Opus agent. It read the William Web Design kit (`CRAFT.md`, `COPY.md`, its rules), impeccable, taste-skill, frontend-design and design-critique, and compared NVivo, ATLAS.ti, Dovetail, Linear and GitHub. The two "Final check" columns are the two fresh scorers, A and B, comparing before and after screenshots.
+
+| # | Screen | Root cause | Fix (commit) and tactic | How I checked it | Final check: A / B |
+|---|---|---|---|---|---|
+| 1 | Review | Every card repeated the full ECE caption, the group's own reason, the rationale and the provenance | `2e98c70`: one disclosure per card and a key above the queue (progressive disclosure; GitHub review threads) | Cards went from about 350 to 253 px. Browser check that `model-reported` is on all 16 cards | reduced / reduced (page 8089 → 4988 px) |
+| 2 | Workspace | The 22% fill read as a text selection | `3c5f00f`: code-colour underline over a tint | A unit test pins the style. Screenshot | reduced / gone |
+| 3 | Phones | The desktop header was stacked on phones | `2d52241`: one row with brand, project and a ⋯ menu; the status notice stays visible (impeccable `adapt.md`; Linear and GitHub mobile) | Content starts at 139 px, was 207. Demo e2e test has no overflow at 375 px | reduced / gone |
+| 4 | Review, Workspace, Codebook | A once-only setting (your name) was drawn as a form field on every visit | `fc398fd`: a field until a name is saved, then "Recording decisions as X · Change" (GitHub and Linear identity; NVivo asks for initials once) | Browser check across views and after a reload | not fixed / reduced. Both captures used a fresh browser with no saved name, so they show the first-visit field |
+| 5 | Workspace | A suggestion for a code already applied was drawn as a second full mark | `4973f76`: it joins the applied code's line with its own dashed stripe and caption (GitHub inline suggestions; ATLAS.ti AI coding) | A unit test covers the split. Browser check that every suggestion keeps its caption | gone / gone |
+| 6 | Experiments | Reasons for disabled buttons sat away from the buttons, and an unfrozen codebook gave no reason at all | `762d3c4`: the reason sits under its button with `aria-describedby` (GitHub merge box) | Browser check of both buttons | gone / gone |
+| 7 | Matrix | The frozen code column had no edge, and the shading had no key | `1f7497d`: a keyline plus a key from 0 to the largest cell (NVivo and ATLAS.ti matrix legends) | Screenshot | gone / gone |
+
+**Not done, with the tactic I would apply:**
+
+| # | Screen | Root cause | Tactic |
+|---|---|---|---|
+| 8 | Analysis | Native fold-out sections are styled per screen | One shared `.disclosure` style: a mono +/− marker, a bottom keyline only, a 44 px target, and the per-screen rules deleted (taste-skill minimalist accordions) |
+| 9 | Retrieval | No text search or speaker filter | A search box filtering the excerpts already loaded, plus a speaker filter (Dovetail, NVivo text search) |
+| 10 | Memos | The compose form always takes half the page | A "New memo" button that opens the form in place; it starts open only when there are no memos yet (Notion and Linear "+ New") |
+| 11 | Home | The progress view is counts only | A coded-versus-uncoded bar for each source, plus recent activity |
+| 12 | Demo | No recorded evaluation or experiment | Needs new demo data. `demo/data` is protected, so this is your call |
+
+**New causes named in the final round:**
+- **Review (both scorers):** 15 near-identical cards with no group-by-code or "accept all n". The queue is grouped by reason, not by code, and building that is a feature with a server-side batch decision.
+- **Evaluation:** the Run button sits apart from its settings.
+- **Phones:** the coding sheet covers part of the passage, and the Experiments checklist wraps badly.
+- **Analysis on phones:** the tab strip has no scroll cue.
+- **Labels:** the name field is labelled "Human actor" on Workspace and "Reviewer" on Review.
+
+**Final scores (desktop / phone):** scorer A 7.6 / 6.8, scorer B 7.3 / 6.6. Round 7's last scorers gave 8.3 / 7.6 and 7.7 / 6.7.
+
+**Why the score stayed flat although each fixed cause was confirmed gone.** My honest reading is that the scores measure the scorer as much as the screens:
+- **Scorers anchor around 7 to 8.** Every recorded desktop mean, from the baseline through round 7 and this pass, falls between 7.1 and 8.3, whatever had changed. Each round used new scorers.
+- **The same screenshots get different scores.** In round 7, scorers Q and R rated identical screenshots 0.6 apart on desktop and 0.9 apart on phone. That spread is as large as any gain I measured.
+- **Fixing a reason does not lift the score.** Both scorers in this pass said 5 of the 7 targeted causes were gone. Yet Review stayed at 6 / 5, and the reason simply moved from "repeated text on every card" to "15 cards for one code". Every round named new reasons for the same screens.
+- **The capture flatters nothing.** It always uses a fresh browser with an unsaved name and one synthetic study, so first-visit states (such as cause 4) are what scorers see.
+
+**Codex review of this branch** (against `origin/main`) found one real defect, now fixed. A renamed code keeps its ID across frozen versions. Cause 5's grouping could therefore place a newer suggestion under an older assignment that shows a different name or definition. Grouping now also requires the same frozen version. A unit test covers this; it failed before the fix.
+
+**Checks:** Python 707 passed (5 skipped), web 76 passed, the type check and build pass, and the demo e2e test passes.
+
+**What would move the number:** fewer, larger workflow changes that a researcher feels: grouping by code with batch review, and search in Retrieval. More polish of what is already there would not. Scoring the same scorer before and after would also give a cleaner measure.
 
 ## Found, not changed
 

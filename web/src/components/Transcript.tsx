@@ -1,10 +1,12 @@
+import { Fragment } from 'react'
 import type { CSSProperties } from 'react'
 import { Annotorious } from '@annotorious/react'
 import { TextAnnotator } from '@recogito/react-text-annotator'
 import { AnnotationSync, annotationStyle } from '../lib/annotations'
-import { codeStyle } from '../lib/entities'
+import { codeStyle, splitSuggestions } from '../lib/entities'
 import type { WorkspaceController } from '../lib/workspace'
 import { Button } from './ui/button'
+import { ActorField } from './ActorField'
 import type { ReviewController } from '../lib/review'
 import { Suggestion } from './Review'
 
@@ -20,8 +22,8 @@ export function Transcript({ w, review }: { w: WorkspaceController; review: Revi
           <p className="segment-text" data-testid={`segment-text-${segment.id}`}>{segment.text}</p>
           <AnnotationSync segmentId={segment.id} text={segment.text} codings={segment.codings} onSpan={w.receiveSpan} />
         </TextAnnotator></Annotorious>
-        <div className="segment-codes" role="group" aria-label="Current codes">{segment.codings.map(coding => <span key={coding.id} className={`code-mark ${review.isAcceptedModel(coding) ? 'accepted-model' : 'human'}`} style={codeStyle(w.codeIndex(coding.code_id)) as CSSProperties}>{w.eventCodeName(coding)}{review.isAcceptedModel(coding) && <span className="caption"> · m</span>}{(coding.span_start > 0 || coding.span_end < Array.from(segment.text).length) && <span className="caption"> · characters {coding.span_start}–{coding.span_end}</span>}</span>)}</div>
-        <div className="segment-codes" role="group" aria-label="Suggested codes">{segment.suggestions.map(item => <span key={item.id} className="code-mark suggested" style={codeStyle(w.codeIndex(item.code_id)) as CSSProperties}>{review.codeName(item)} <span className="caption">suggested · {review.modelScore(item.score)}</span></span>)}</div>
+        <div className="segment-codes" role="group" aria-label="Current codes">{segment.codings.map(coding => <Fragment key={coding.id}><span className={`code-mark ${review.isAcceptedModel(coding) ? 'accepted-model' : 'human'}`} style={codeStyle(w.codeIndex(coding.code_id)) as CSSProperties}>{w.eventCodeName(coding)}{review.isAcceptedModel(coding) && <span className="caption"> · m</span>}{(coding.span_start > 0 || coding.span_end < Array.from(segment.text).length) && <span className="caption"> · characters {coding.span_start}–{coding.span_end}</span>}</span>{splitSuggestions(segment.codings, segment.suggestions).agreeing(coding).map(item => <span key={item.id} className="code-mark suggested agreeing" style={codeStyle(w.codeIndex(item.code_id)) as CSSProperties}><span className="assistive">{review.codeName(item)} </span><span className="caption">suggested · {review.modelScore(item.score)}</span></span>)}</Fragment>)}</div>
+        <div className="segment-codes" role="group" aria-label="Suggested codes">{splitSuggestions(segment.codings, segment.suggestions).separate.map(item => <span key={item.id} className="code-mark suggested" style={codeStyle(w.codeIndex(item.code_id)) as CSSProperties}>{review.codeName(item)} <span className="caption">suggested · {review.modelScore(item.score)}</span></span>)}</div>
       </article>)}
     </div>
   </section>
@@ -30,7 +32,7 @@ export function Transcript({ w, review }: { w: WorkspaceController; review: Revi
 export function CodingPanel({ w, review }: { w: WorkspaceController; review: ReviewController }) {
   return <aside className={`coding-panel${w.actor.trim() ? "" : " needs-actor"}`} aria-label="Coding and provenance">
     <h2 className="rail-title">Code this passage</h2>
-    <label>Human actor<input disabled={w.readOnly} value={w.actor} onChange={event => w.setActor(event.target.value)} maxLength={200} /></label><p className="caption">{w.actor.trim() ? 'Your name or initials, saved with each coding decision.' : 'Enter your name or initials to start coding.'}</p>
+    <ActorField w={w} label="Human actor" />
     <label>Frozen codebook<select value={w.version?.id ?? ''} onChange={event => w.setVersionId(Number(event.target.value))}><option value="" disabled>No frozen version</option>{w.data?.codebook_versions.map(version => <option key={version.id} value={version.id}>Version {version.id} · {version.frozen_at.slice(0, 16).replace('T', ' ')} UTC</option>)}</select></label>
     {!w.version && <p className="empty-note">Create codes and freeze your codebook before assigning a code.</p>}
     <div className="selection-note"><p className="caption">{w.currentSpan ? `Selected span · characters ${w.currentSpan.start}–${w.currentSpan.end}` : 'Whole segment selected'}</p>{w.currentSpan && <><blockquote>{w.selectionText}</blockquote><Button onClick={w.clearSpan}>Use whole segment</Button></>}</div>

@@ -177,3 +177,15 @@ export function draftChanges(codes: Code[], latest: Version | undefined): number
   if (!frozen) return codes.length
   return changedCodeIds(codes, latest).size + frozen.filter(code => !codes.some(item => item.id === code.id)).length
 }
+
+// A suggestion for a code already applied to the passage, from the same frozen version (so the same
+// name and definition), sits under that code's first mark instead of repeating it; others stay separate.
+export function splitSuggestions(applied: Coding[], suggestions: Coding[]) {
+  const key = (item: Coding) => `${item.code_id}:${item.codebook_version_id}`
+  const first = new Map<string, number>()
+  for (const item of applied) if (!first.has(key(item))) first.set(key(item), item.id)
+  return {
+    agreeing: (coding: Coding) => first.get(key(coding)) === coding.id ? suggestions.filter(item => key(item) === key(coding)) : [],
+    separate: suggestions.filter(item => !first.has(key(item))),
+  }
+}

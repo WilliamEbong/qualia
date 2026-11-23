@@ -36,6 +36,8 @@ export function useWorkspace() {
   const [versionId, setVersionId] = useState<number | null>(null)
   // The coder's name is provenance: remember it across reloads (per browser; nothing else is stored).
   const [actor, setActorState] = useState(() => { try { return localStorage.getItem('qualia-actor') || 'researcher' } catch { return 'researcher' } })
+  // The name is set once and then shown as a line; first visit (nothing saved yet) opens the field.
+  const [actorOpen, setActorOpen] = useState(() => { try { return !localStorage.getItem('qualia-actor') } catch { return true } })
   const setActor = (value: string) => { setActorState(value); try { localStorage.setItem('qualia-actor', value) } catch { /* storage unavailable */ } }
   const [panel, setPanel] = useState<'import' | 'case' | 'export' | null>(null)
   const [editCode, setEditCode] = useState<Code | null>(null)
@@ -266,7 +268,7 @@ export function useWorkspace() {
 
   return { projects, slug, data, loading, busy, error, notice, view, setView: (next: View) => { setNotice(''); setView(next) }, chooseProject, createProject, run, reload, readOnly, attribution,
     sources, source, segments: segmentViews, active, activeText, currentSpan, activate, receiveSpan, selectSource, caseId, setCaseId,
-    codes: codeViews, codingCodes, version, setVersionId, activeCodings, activeEvents, actor, setActor, assign, remove,
+    codes: codeViews, codingCodes, version, setVersionId, activeCodings, activeEvents, actor, setActor, actorOpen, setActorOpen, assign, remove,
     clearSpan: () => setSpan(null), panel, setPanel, editCode, setEditCode, editMemo, setEditMemo, editCase, setEditCase, formNonce, setNotice,
     startEditCode: (code: Code | null) => { setEditCode(code); focusCodeEditor() },
     importSource, saveCode, freeze, saveMemo, codeInVivo, memoKind, setMemoKind,

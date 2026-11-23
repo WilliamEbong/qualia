@@ -778,3 +778,46 @@ label > .caption { display: block; margin: 2px 0 6px; }
 @media (max-width: 900px) { .experiments-page { display: flex; flex-direction: column; } }
 .experiments-start { padding-bottom: 8px; margin-bottom: 12px; }
 @media (max-width: 500px) { .prerequisites li { flex-wrap: wrap; } .prerequisites li .caption { flex-basis: 100%; padding-left: calc(1ch + 8px); } }
+
+/* Review queue: one key explains the score; each card keeps it and folds the rest (doc 04, 2026-11-23). */
+.queue-key { border-left: 3px solid var(--border); padding: 4px 0 4px 12px; margin: 0 0 16px; }
+.trust-detail > summary { display: list-item; cursor: pointer; font-size: var(--type-caption); color: var(--secondary); min-height: 0; padding: 4px 0; }
+.trust-detail[open] > summary { margin-bottom: 4px; }
+.review-page .suggestion { padding-top: 16px; padding-bottom: 16px; }
+.review-page .suggestion .suggestion-position { margin: 0 0 4px; }
+.review-page .suggestion blockquote { margin: 8px 0; }
+.review-page .suggestion .actions { margin-top: 8px; }
+/* A disabled action states why, directly under it, in the attention voice (doc 04 §3: ochre text + icon + word). */
+.blocked-reason { color: var(--foreground); margin-top: 6px; border-left: 3px solid var(--uncertain); padding-left: 8px; }
+/* The coder's name, once set, is one quiet line (cause 4 in design-review/ROOT-CAUSES.md). */
+.actor-line { font-size: var(--type-caption); color: var(--secondary); margin: 8px 0 12px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
+.actor-field > .button { margin: 4px 0 12px; }
+/* Matrix: the frozen code column has a visible edge, and the heat has a key (cause 7). */
+.matrix-page table { border-collapse: separate; border-spacing: 0; }
+.matrix-page tbody th:first-child, .matrix-page thead th:first-child { border-right: 1px solid var(--foreground); }
+.heat-legend { display: flex; align-items: center; gap: 8px; margin: 24px 0 0; }
+.heat-legend > span { display: inline-flex; border: 1px solid var(--border); }
+.heat-swatch { width: 20px; height: 14px; background: rgb(var(--heat-rgb) / var(--heat)); }
+.matrix-page .table-scroll { margin-top: 12px; }
+/* Phones: the header is one row (brand, project, ⋯) with the local-status notice under it (cause 3). */
+.header-more { display: none; }
+@media (max-width: 500px) {
+  .app-header { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px 8px; padding: 8px 12px; }
+  .app-header .brand { flex: none; }
+  .app-header .brand h1 { font-size: var(--type-heading); margin: 0; }
+  .app-header .project-controls { flex: 1; width: auto; min-width: 0; }
+  .app-header .project-controls > label { font-size: 0; gap: 0; }
+  .app-header .project-controls select { font-size: var(--type-body); min-height: 40px; }
+  .header-wide, .app-header .project-controls > .project-create { display: none; }
+  .header-more { display: block; position: relative; flex: none; }
+  .header-more > summary { list-style: none; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border: 1px solid var(--border); cursor: pointer; }
+  .header-more > summary::-webkit-details-marker { display: none; }
+  .header-more > div { position: absolute; right: 0; top: 44px; z-index: 10; width: min(300px, calc(100vw - 24px)); display: grid; gap: 8px; padding: 12px; background: var(--surface); border: 1px solid var(--foreground); }
+  .header-more .project-create form { position: static; max-width: none; }
+  .app-header .local-status { flex-basis: 100%; margin: 0; }
+}
+@media (max-width: 900px) { .coding-panel > .code-shortcuts { order: -4; } }
+/* A suggestion that agrees with an applied code sits under it, dashed, without repeating the name (cause 5). */
+.code-mark.agreeing { margin-left: 14px; }
+.code-mark.agreeing > .caption { margin-left: 0; }
+.assistive { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

@@ -3,7 +3,10 @@
 *Structure first, skin second: doc 02 Phases 1–6 build a working app on plain shadcn + these tokens; doc 05 then restyles
 it against §5. The one non-negotiable: design changes touch presentation only; computation and safety/trust rendering
 rules are immutable — provenance markers, the "model-reported" label and KEEP/REVERT grammar may be styled, never
-removed, reworded, softened or made conditional.*
+removed, reworded, softened or made conditional. One owner-approved exception (2026-11-23): in the review queue a
+suggestion's ECE caption and review-trigger reason may sit behind a one-click disclosure on that card, provided the
+`model-reported` score stays visible on every card and the queue explains once, in full, what the score and caption
+mean.*
 
 ## 1. Direction
 **Archival-instrument, light-first, evidence-forward** — the owner's approved "archive of looking" style applied to a
@@ -37,7 +40,9 @@ cream `#E9E1CD` / night `#1C2127` · text ink `#1D1C1A` / ivory · secondary gra
 **FIXED semantics (product grammar — the theme never overrides these):**
 - Code colours, in order: Prussian `#236292`, rust `#A2573B`, viridian `#2C9A88`, gamboge `#BA9232`, mineral green
   `#4E6A58`, dusty blue `#6E8496`, ochre `#B98A3E`, sage `#A5B096`; codes 9+ repeat with a hatched stripe. Text
-  highlights use the code colour at 22% so ink stays ≥ 4.5:1. The code name always accompanies the colour.
+  highlights use a 2px underline in the code colour over a 10% tint of it, so coded text never reads as a browser
+  selection and ink stays ≥ 4.5:1 (owner-approved 2026-11-23; was a 22% fill). The code name always accompanies the
+  colour.
 - Provenance stripes (3px, left of the segment): human = solid · unreviewed model suggestion = dashed + mono caption
   `suggested · model-reported 0.82` · accepted model code = solid + mono `m` · rejected = only in the provenance popover.
 - Decisions: KEEP = viridian rule + mono `KEEP` · REVERT = rust rule + mono `REVERT` · below threshold / disagreement

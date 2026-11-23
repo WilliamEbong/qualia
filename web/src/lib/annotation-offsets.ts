@@ -14,3 +14,6 @@ export function annotationSpan(annotation: TextAnnotation, segmentId: number, te
   if (!range || !Number.isInteger(range.start) || !Number.isInteger(range.end) || range.start < 0 || range.end <= range.start || range.end > text.length) return null
   return { segmentId, start: toCodePointOffset(text, range.start), end: toCodePointOffset(text, range.end) }
 }
+
+// Coded text: a code-colour underline over a light tint (doc 04 §3), never a selection-like fill.
+export const highlightStyle = (color: string) => ({ fill: color, fillOpacity: 0.1, underlineColor: color, underlineThickness: 2, underlineOffset: 2, underlineStyle: 'solid' })

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { codeStyle, eventCodeName, orderedCodes, shortcut, uniqueSegmentCount } from './entities'
-import { annotationSpan, codingAnnotation } from './annotation-offsets'
+import { codeStyle, eventCodeName, orderedCodes, shortcut, splitSuggestions, uniqueSegmentCount } from './entities'
+import { annotationSpan, codingAnnotation, highlightStyle } from './annotation-offsets'
 import type { Code, Coding, Segment, Version } from './entities'
 
 const coding = (id: number, segment: number, code: number, start = 0, end = 1) => ({ id, segment_id: segment, code_id: code, span_start: start, span_end: end }) as Coding
@@ -147,5 +147,29 @@ describe('codes changed since the latest frozen version', () => {
     const code = (id: number, extra = {}) => ({ id, parent_id: null, name: `C${id}`, status: 'active', definition: '', include: '', exclude: '', examples_pos: '[]', examples_neg: '[]', ...extra })
     const frozen = { id: 1, hash: 'h', frozen_at: '2026-11-23', snapshot_json: JSON.stringify([code(1), code(2)]) }
     expect([...changedCodeIds([code(1, { name: 'Renamed' }), code(2), code(3)] as never, frozen)]).toEqual([1, 3])
+  })
+})
+
+describe('coded-text highlight', () => {
+  it('underlines in the code colour over a light tint, so it never reads as a text selection', () => {
+    expect(highlightStyle('#236292')).toEqual({ fill: '#236292', fillOpacity: 0.1, underlineColor: '#236292', underlineThickness: 2, underlineOffset: 2, underlineStyle: 'solid' })
+  })
+})
+
+describe('suggestions beside applied codes', () => {
+  it('nests a suggestion under the code it agrees with and keeps the rest separate', () => {
+    const applied = [{ id: 1, code_id: 7 }, { id: 2, code_id: 7 }] as Coding[]
+    const suggestions = [{ id: 10, code_id: 7 }, { id: 11, code_id: 8 }] as Coding[]
+    const { agreeing, separate } = splitSuggestions(applied, suggestions)
+    expect(agreeing(applied[0]).map(item => item.id)).toEqual([10])
+    expect(agreeing(applied[1])).toEqual([]) // shown once, under the first mark for that code
+    expect(separate.map(item => item.id)).toEqual([11])
+  })
+  it('keeps a suggestion from another frozen version separate, since the code may have been renamed', () => {
+    const applied = [{ id: 1, code_id: 7, codebook_version_id: 1 }] as Coding[]
+    const suggestions = [{ id: 10, code_id: 7, codebook_version_id: 2 }] as Coding[]
+    const { agreeing, separate } = splitSuggestions(applied, suggestions)
+    expect(agreeing(applied[0])).toEqual([])
+    expect(separate.map(item => item.id)).toEqual([10])
   })
 })
