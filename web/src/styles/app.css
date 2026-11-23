@@ -463,7 +463,7 @@ td > .button:not(.matrix-cell) { width: 100%; justify-content: flex-start; font-
 .home-lede { background: var(--plate-ground); padding: 4px 8px; width: fit-content; }
 @media (max-width: 900px) {
   /* On a phone the queue comes before the classification form. */
-  /* Round 7: the run form folds once suggestions exist, so reviewer controls lead again on phones. */
+  .review-page .two-column > :last-child { order: -1; }
 }
 @media (max-width: 900px) {
   /* One page scroll on phones: the Sources rail is no longer its own 480px scroller. */
@@ -727,4 +727,13 @@ label > .caption { display: block; margin: 2px 0 6px; }
 @media (max-width: 500px) {
   .matrix-page .scroll-hint { display: block; margin: 0 0 8px; }
   .experiments-start { font-size: var(--type-small-heading); }
+}
+.evaluation-page:has(.empty .button.primary) #evaluate-form .button[type=submit] { display: none; }
+/* Phones: the view list is one native menu instead of a clipped tab strip. */
+.nav-compact { display: none; }
+@media (max-width: 500px) {
+  .nav-compact { display: flex; align-items: flex-end; gap: 8px; padding: 8px 16px; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .nav-compact label { flex: 1; margin: 0; font-size: var(--type-caption); }
+  .nav-compact .export-action { margin-left: 0; }
+  .workspace-nav { display: none; }
 }

@@ -22,7 +22,8 @@ test.describe('Read-only static demo', () => {
     expect(requests.filter(url => new URL(url).pathname.includes('/api/'))).toEqual([])
     await page.setViewportSize({ width: 375, height: 812 })
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
-    await page.getByRole('button', { name: 'Home', exact: true }).click()
+    // Phones choose views from the compact menu instead of the tab strip.
+    await page.getByRole('combobox', { name: 'View', exact: true }).selectOption('home')
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   })
 })
