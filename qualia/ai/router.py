@@ -277,8 +277,14 @@ def classify_segments(db, segments, codebook, config, *, prompt, codebook_versio
     threshold = config['escalate_below']
     strong = config['tiers'].get('strong')
     if threshold is not None and strong and (strong['backend'], strong['model']) != (name, selected_model):
+        def confidence(outcome):
+            # Thresholded codes decide; if a threshold removed them all, their raw scores do.
+            # An answer with no candidate code at all is a decision, not uncertainty.
+            codes = outcome[0]['codes'] or outcome[4]['codes']
+            return min((code['score'] for code in codes), default=1.0)
+
         uncertain = [segment for segment in segments if segment['id'] in outcomes and
-                     min((code['score'] for code in outcomes[segment['id']][0]['codes']), default=0.0) < threshold]
+                     confidence(outcomes[segment['id']]) < threshold]
         if uncertain:
             additional = classify_batch_inputs(uncertain, strong['backend'], strong['model'])
             result['escalated_segments'] = len(additional)

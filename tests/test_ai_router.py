@@ -526,3 +526,21 @@ def test_reported_model_version_is_stored_and_survives_cache_reuse():
         assert backend.calls == 1
         versions = [row['model_version'] for row in db.rows('SELECT model_version FROM coding_events')]
         assert versions == ['claude-haiku-4-5-20251001'] * 2
+
+
+def test_a_confident_no_code_answer_is_not_escalated():
+    tiers = {'escalate_below': .7, 'tiers': {'strong': {'backend': 'strong', 'model': 'strong-v1'}}}
+
+    class Unscored(Scored):
+        scores = {}
+
+    class Low(Scored):
+        scores = {2: .4}
+
+    # No candidate at all is an answer, not uncertainty; candidates all cut by a threshold still are.
+    for primary, escalated in ((Unscored(), 0), (Low(), 1)):
+        strong = CountingBackend()
+        with Store(':memory:') as db:
+            result = scored_run(db, {'fixture': primary, 'strong': strong},
+                                {**tiers, 'code_thresholds': {'2': .5}})
+        assert result['escalated_segments'] == strong.calls == escalated

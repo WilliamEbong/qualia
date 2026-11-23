@@ -679,7 +679,7 @@ A full tuning experiment on a large benchmark can exceed the default 300 daily c
 
 Sending text to Jev is a research-data disclosure decision. Review participant consent, your data-handling rules and TypeSafe's terms. TypeSafe hosts in the US. Its customer agreement says customer data is not used to change model weights without consent, but ordinary accounts do not get zero data retention; TypeSafe offers that to enterprise customers through sales ([legal](https://docs.typesafe.ai/legal), [privacy policy](https://typesafe.ai/legal/privacy-policy)). Prefer synthetic or de-identified material unless your approvals cover it. Every request appears in the project's egress log and usage ledger. Local budgets limit requests but do not change billing settings with TypeSafe.
 
-Jev can also take load off Claude or Codex: set it as the cheap tier and escalate only uncertain segments to a stronger model. Savings depend on your escalation rate, so measure them with **Evaluation**. Technical background and the wire contract are in [Jev setup notes](JEV-SETUP.md) and [Jev research](research/jev.md).
+Jev can also take load off Claude or Codex: set it as the cheap tier and escalate only uncertain segments to a stronger model. A segment is uncertain when its lowest kept score is below `escalate_below`; a segment where the model proposed no code at all is not escalated. Savings depend on your escalation rate, so measure them with **Evaluation**. Technical background and the wire contract are in [Jev setup notes](JEV-SETUP.md) and [Jev research](research/jev.md).
 
 ## 14. Evaluate a classifier against reference labels
 
