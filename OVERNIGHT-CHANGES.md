@@ -484,6 +484,45 @@ Both contradict the frozen rules in docs 04–05 and the project CLAUDE.md, and 
 
 **Checks:** 707 Python tests passed, 71 web tests passed, and typecheck, build and the static-demo e2e pass. OpenAPI and the generated types were regenerated.
 
+## Round 7: building the scorers' reasons, phone first
+
+Each batch takes the reasons fresh scorers gave and is then scored by two new scorers. Anything that lowered a score was reverted.
+
+**Batch 1** (`4d80848`, `ee64767`)
+- Codebook says whether the draft differs from the frozen version. Freeze is enabled and primary only when there is something to freeze, and code cards carry their colour.
+- The Analysis overview gets a bar list of the most frequent codes, and readable criteria.
+- Workspace drops the "characters" range on whole-passage codes.
+- Phones get scroll cues, and the Matrix Total header now matches the others.
+- **Scores:** 7.6 / 6.9 (desktop / phone).
+- **Reverted:** putting the reviewer form ahead of the review queue on phones dropped Review on phones to 5.5.
+
+**Batch 2** (`93784b8`, `d0a8e33`, `4c10806`)
+- Evaluation's empty state carries the Run button.
+- Phones pick views from one "View" menu. The demo e2e test now uses the menu at 375 px, with its overflow check unchanged.
+- Codebook marks each changed code.
+- Experiments shows the one next step.
+- Retrieval shows the quote first.
+- Analysis bars use each code's colour.
+- **Scores:** 7.7 / 6.9.
+- **Reverted in batch 3:** a wrapped phone code grid covered passage text and scored lower.
+
+**Batch 3** (`ed38198`)
+- Codebook's create form waits behind "New code".
+- Evaluation puts repeatability under "Advanced".
+- Experiments leads with its start actions, and an empty history becomes a one-line note.
+- Review cards show "Suggestion n of N".
+- Retrieval's count reads "13 excerpts from 12 passages".
+- The phone code row is a single scrolling row again, with room reserved under the transcript.
+- The phone View row is slimmer, and Home's counts sit in two columns on phones.
+
+**What the scorers keep naming** (none of it reached 9):
+- **Phones:** the stacked header.
+- **Review:** the card count and length. The trust wording on every card is fixed by the design rules.
+- **Home:** a fuller study-progress view.
+- **Retrieval:** text search.
+- **Memos:** a compose button in place of the always-open form.
+- **The demo:** it has no recorded evaluation or experiment.
+
 ## Found, not changed
 
 Reverted under your "tangible improvements only" bar: the round-2 `QUALIA_PORT` range check in the double-click launcher (`62dbad0`, reverted). It only helped a hand-edited `.env` value outside 1024–65535.
