@@ -5,7 +5,7 @@ const kinds = { analytic: 'Analytic', reflexive: 'Reflexive', theme: 'Theme', me
 
 export function Memos({ w }: { w: WorkspaceController }) {
   const memo = w.editMemo
-  return <section className="content-page memos-page" aria-label="Memos"><header className="section-heading"><div><p className="caption">Field notes</p><h2>Memos</h2></div><Button disabled={w.readOnly} onClick={() => w.setEditMemo(null)}>New memo</Button></header><div className="two-column"><div>
+  return <section className="content-page memos-page" aria-label="Memos"><header className="section-heading"><div><p className="caption">Field notes</p><h2>Memos</h2></div>{memo && <Button disabled={w.readOnly} onClick={() => w.setEditMemo(null)}>New memo</Button>}</header><div className="two-column"><div>
     <label>Show<select value={w.memoKind} onChange={event => w.setMemoKind(event.target.value as typeof w.memoKind)}><option value="">All memo kinds</option>{Object.entries(kinds).map(([value, label]) => <option key={value} value={value}>{label} memos</option>)}</select></label>
     <details className="memo-kinds"><summary>What the memo kinds mean</summary><p className="caption">Analytic: interpretations and questions. Reflexive: how your background and assumptions shape what you notice. Theme: a pattern you are building, usually linked to a parent code. Method: decisions about sampling, coding and analysis.</p></details>
     {!w.memos.length && <div className="empty"><h3>Keep your interpretation beside the evidence</h3><p>Write a memo and optionally link it to a segment, code, case or source.</p></div>}

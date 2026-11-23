@@ -59,6 +59,7 @@ export function Codebook({ w, proposals: p }: { w: WorkspaceController; proposal
   const blocked = editing?.id ? descendantIds(editing.id, w.codes) : new Set<number>()
   return <section className="content-page codebook-page" aria-label="Codebook">
     <header className="section-heading"><div><p className="caption">Researcher-controlled methodology</p><h2>Codebook</h2></div><Button className="primary" disabled={w.readOnly || w.busy || !w.codes.some(code => code.status === 'active')} onClick={() => void w.freeze()}>Freeze codebook</Button></header>
+    {w.data?.codebook_versions.length ? <p className="caption latest-version">Latest frozen version: cb_v{w.data.codebook_versions[w.data.codebook_versions.length - 1].id} · {w.data.codebook_versions[w.data.codebook_versions.length - 1].frozen_at.slice(0, 16).replace('T', ' ')} UTC · all versions are listed after the codes</p> : <p className="caption latest-version">No frozen version yet: freeze the codebook to start coding.</p>}
     <p>Edits stay in a draft until you choose Freeze codebook. Freezing saves a locked version you can code with. Codes you have already applied keep the version they were made with.</p>
     <div className="two-column"><div>
       {!w.codes.length && <div className="empty"><h3>No codes yet</h3><p>Describe the first idea you want to track, or ask for draft proposals below, then freeze a version to begin coding.</p></div>}

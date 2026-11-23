@@ -567,3 +567,35 @@ label > .caption { display: block; margin: 2px 0 6px; }
   /* Keyboard shortcuts do not apply on touch screens; the line only took reading space. */
   .transcript-heading + .caption { display: none; }
 }
+
+/* Round 5, pass 2. */
+.app-shell { display: flex; flex-direction: column; }
+.app-shell > main { flex: 1 0 auto; }
+.home-introduction { height: clamp(260px, 32vh, 340px); }
+@media (max-width: 900px) { .home-introduction { height: 260px; } .home-introduction h2 { font-size: var(--type-small-heading); } }
+.app-shell:has(.home-page) .brand .caption { display: none; }
+/* Tall empty states end with their text: no rule band below. */
+.empty:has(> :nth-child(3)) { padding-bottom: 28px; }
+.empty:has(> :nth-child(3))::after { display: none; }
+.terminal-hint summary, .memo-kinds summary { display: list-item; cursor: pointer; font-size: var(--type-caption); color: var(--secondary); min-height: 0; padding: 8px 0; }
+.latest-version { margin: -8px 0 12px; }
+/* Review: the run disclosure is a quiet summary row, not a second page title. */
+.run-classification > summary h3 { font-family: var(--font-body); font-size: var(--type-body); font-weight: 500; }
+.run-classification:not([open]) { padding-top: 12px; padding-bottom: 12px; }
+@media (max-width: 900px) {
+  .review-page .suggestion { display: flex; flex-direction: column; }
+  .review-page .suggestion > * { order: 2; }
+  .review-page .suggestion > .suggestion-select, .review-page .suggestion > blockquote { order: 0; }
+  .review-page .suggestion > .actions { order: 1; margin: 0 0 12px; }
+  /* Phone workspace: the pinned panel is one scrolling row of code buttons. */
+  .coding-panel { max-height: none; padding: 8px 12px; }
+  .coding-panel > :not(.code-shortcuts) { display: none; }
+  .coding-panel > .code-shortcuts { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 8px; }
+  .coding-panel > .code-shortcuts > .button { flex: none; white-space: nowrap; }
+}
+/* Analysis: the counts and section index read as one ruled navigation row. */
+.analysis-index { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 4px 0; margin: 8px 0 16px; font-family: var(--font-mono); }
+.analysis-page > details + p, .analysis-page > details + .caption { margin-top: 16px; }
+@media (max-width: 900px) {
+  .coding-panel.needs-actor > label:first-of-type, .coding-panel.needs-actor > label:first-of-type + .caption { display: block; }
+}
