@@ -61,3 +61,14 @@ describe('workspace controls and counts', () => {
     expect(orderedCodes(codes).map(code => code.id)).toEqual([3, 1, 2])
   })
 })
+
+describe('in-vivo example', () => {
+  it('counts characters, not UTF-16 units, and keeps only a requested nonblank quote', async () => {
+    const { inVivoExample } = await import('./workspace')
+    const emoji = '😀'.repeat(500)
+    expect(inVivoExample(emoji, true)).toEqual([emoji])
+    expect(inVivoExample(emoji + 'a', true)).toEqual([])
+    expect(inVivoExample('Waiting.', false)).toEqual([])
+    expect(inVivoExample('', true)).toEqual([])
+  })
+})

@@ -10,6 +10,8 @@ import type { Case, Code, Coding, MatrixCell, Memo, MemoKind, Project, Retrieval
 const field = (form: FormData, name: string) => String(form.get(name) ?? '').trim()
 const idField = (form: FormData, name: string) => Number(form.get(name)) || null
 const lines = (value: string) => value.split(/\r?\n/).map(item => item.trim()).filter(Boolean)
+// Offsets and the server count characters (code points), so the example cap does too.
+export const inVivoExample = (quote: string, keep: boolean) => keep && quote && Array.from(quote).length <= 500 ? [quote] : []
 export const exampleLines = (value: unknown) => exampleList(value).join('\n')
 export const focusCodeEditor = () => requestAnimationFrame(() => document.querySelector<HTMLInputElement>('#code-editor input[name="name"]')?.focus())
 export const codeFormValues = (form: FormData): components['schemas']['CodeInput'] => ({ name: field(form, 'name'), parent_id: idField(form, 'parent_id'), definition: field(form, 'definition'), include: field(form, 'include'), exclude: field(form, 'exclude'), examples_pos: lines(field(form, 'examples_pos')), examples_neg: lines(field(form, 'examples_neg')), status: field(form, 'status') as 'active' | 'archived' })
@@ -137,12 +139,13 @@ export function useWorkspace() {
       if (!active) throw new Error('Choose a segment before creating a code from it.')
       const points = Array.from(activeText)
       const quote = (currentSpan ? points.slice(currentSpan.start, currentSpan.end).join('') : activeText).trim()
-      const input: components['schemas']['CodeInput'] = { name: field(form, 'name'), parent_id: null, definition: field(form, 'definition'), include: '', exclude: '', examples_pos: form.get('example') === 'on' && quote && quote.length <= 500 ? [quote] : [], examples_neg: [], status: 'active' }
+      const input: components['schemas']['CodeInput'] = { name: field(form, 'name'), parent_id: null, definition: field(form, 'definition'), include: '', exclude: '', examples_pos: inVivoExample(quote, form.get('example') === 'on'), examples_neg: [], status: 'active' }
       const code = await mutate('codes', input)
       const frozen = await mutate('codebook/freeze')
       const coding: components['schemas']['CodingInput'] = { segment_id: active.id, code_id: code.id, span_start: currentSpan?.start ?? 0, span_end: currentSpan?.end ?? points.length, codebook_version_id: frozen.id, action: 'assign', actor }
       await mutate('coding', coding); await reload(); setVersionId(frozen.id); target.reset()
-      setNotice(`Created “${input.name}”, froze codebook version ${frozen.id} and assigned the code.`)
+      const skipped = form.get('example') === 'on' && quote && !input.examples_pos?.length ? ' The selection is longer than 500 characters, so it was not kept as an example.' : ''
+      setNotice(`Created “${input.name}”, froze codebook version ${frozen.id} and assigned the code.${skipped}`)
     })
   }
 
