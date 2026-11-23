@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { codeStyle, eventCodeName, orderedCodes, shortcut, uniqueSegmentCount } from './entities'
-import { annotationSpan, codingAnnotation } from './annotation-offsets'
+import { annotationSpan, codingAnnotation, highlightStyle } from './annotation-offsets'
 import type { Code, Coding, Segment, Version } from './entities'
 
 const coding = (id: number, segment: number, code: number, start = 0, end = 1) => ({ id, segment_id: segment, code_id: code, span_start: start, span_end: end }) as Coding
@@ -147,5 +147,11 @@ describe('codes changed since the latest frozen version', () => {
     const code = (id: number, extra = {}) => ({ id, parent_id: null, name: `C${id}`, status: 'active', definition: '', include: '', exclude: '', examples_pos: '[]', examples_neg: '[]', ...extra })
     const frozen = { id: 1, hash: 'h', frozen_at: '2026-11-23', snapshot_json: JSON.stringify([code(1), code(2)]) }
     expect([...changedCodeIds([code(1, { name: 'Renamed' }), code(2), code(3)] as never, frozen)]).toEqual([1, 3])
+  })
+})
+
+describe('coded-text highlight', () => {
+  it('underlines in the code colour over a light tint, so it never reads as a text selection', () => {
+    expect(highlightStyle('#236292')).toEqual({ fill: '#236292', fillOpacity: 0.1, underlineColor: '#236292', underlineThickness: 2, underlineOffset: 2, underlineStyle: 'solid' })
   })
 })

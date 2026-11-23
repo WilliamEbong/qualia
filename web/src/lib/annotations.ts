@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { useAnnotator } from '@annotorious/react'
 import type { RecogitoTextAnnotator, TextAnnotation } from '@recogito/react-text-annotator'
 import type { HighlightStyleExpression } from '@recogito/text-annotator'
-import { codingAnnotation, annotationSpan } from './annotation-offsets'
+import { codingAnnotation, annotationSpan, highlightStyle } from './annotation-offsets'
 import type { Coding, Span } from './entities'
 
 export function useAnnotationSync(segmentId: number, text: string, codings: Coding[], onSpan: (span: Span) => void) {
@@ -35,6 +35,6 @@ export function annotationStyle(codeIds: number[]): HighlightStyleExpression {
     const id = Number(annotation.bodies[0]?.value)
     const index = Math.max(0, codeIds.indexOf(id)) % 8 + 1
     const color = getComputedStyle(document.documentElement).getPropertyValue(`--code-${index}`).trim()
-    return { fill: color, fillOpacity: 0.22 }
+    return highlightStyle(color)
   }
 }
