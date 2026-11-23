@@ -272,8 +272,9 @@ def native_proposal_wire(tmp_path, monkeypatch, request):
         assert len(requests) <= 2
         for body in requests:
             assert body['model'] == model and not body.get('tools')
-            additional = [item for item in body['input'] if item.get('type') == 'additional_tools']
-            assert additional and all(not item['tools'] for item in additional)
+            # Codex 0.170 stopped sending an additional_tools item; older builds send it empty.
+            # Either way no input item may carry a tool definition.
+            assert all(not item.get('tools') for item in body['input'] if isinstance(item, dict))
             assert 'SYNTHETIC_PROTECTED_SENTINEL' not in json.dumps(body)
             assert 'SYNTHETIC_PROJECT_INSTRUCTIONS' not in json.dumps(body)
 
