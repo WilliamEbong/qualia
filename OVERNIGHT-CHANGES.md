@@ -29,8 +29,10 @@ These are the effects you can see when you use Qualia. The details and evidence 
 - **Keyboard and screen readers:** both work better. Fields have visible outlines, panels take focus when they open, and buttons say which suggestion they act on.
 
 **Design scores.**
-- Fresh reviewers rated the main screens about 7.2 out of 10 on desktop and 6.8 on phone, up from 7.1 and 5.9.
-- No screen reached 9. What stands in the way is mostly new features, rules in the design docs that only you can change, and splitting the long Analysis page. Round 5 below lists each one.
+- At the start, fresh reviewers rated the main screens 7.1 out of 10 on desktop and 5.9 on phone.
+- At the final scoring (round 7, batch 3), two new reviewers gave 8.3 / 7.6 and 7.7 / 6.7 (desktop / phone).
+- Home and Retrieval reached 9.0 on desktop with one reviewer. No screen is at 9 with both reviewers.
+- Their remaining reasons are listed under Round 7. Mostly these are new features, plus two design-rule changes that only you can make.
 
 **New in round 6.**
 - **Home:** shows where the study stands and the next step.
@@ -42,6 +44,10 @@ These are the effects you can see when you use Qualia. The details and evidence 
 - **The public demo:** hides what it cannot do.
 
 Two design-rule changes are waiting for your decision in `OWNER-NEEDED.md`.
+
+**Round 7 and the final review.**
+- **Round 7:** about fifteen smaller fixes that the scorers asked for. Among them: Codebook marks changed codes, Experiments names the next step, Review shows "Suggestion n of N", and phones pick views from one menu.
+- **Final review:** a whole-branch Codex review found three real defects, now fixed. The worst one hid Remove assignment and the AI suggestions on phones. Details are under "Final Codex review".
 
 **Faster and tidier.**
 - **Commands:** every `qualia` command except `open` starts about 3× faster, because it no longer loads the web server.
@@ -60,8 +66,8 @@ Branch `claude/overnight-fixes-3d262b`, based on `main` at `2978c5d`. Nothing wa
 
 | | Before | After |
 |---|---|---|
-| Python (`uv run pytest`) | 682 passed, 5 skipped, 4 failed, 4 errors | 707 passed, 5 skipped, 0 failed (full run after the last Python change, round 6) |
-| Web (`npm test`) | 63 passed | 71 passed |
+| Python (`uv run pytest`) | 682 passed, 5 skipped, 4 failed, 4 errors | 707 passed, 5 skipped, 0 failed (final full run, 2026-11-23) |
+| Web (`npm test`) | 63 passed | 73 passed |
 | Static-demo e2e (`tests/e2e/demo.spec.ts`) | not run | 1 passed |
 | `tsc --noEmit`, `ruff check` | clean | clean |
 | `pip-audit` / `npm audit` | 17 known vulnerabilities in 3 packages / 1 moderate | 0 / 0 |
@@ -529,6 +535,22 @@ Each batch takes the reasons fresh scorers gave and is then scored by two new sc
 - **Memos:** a compose button in place of the always-open form.
 - **The demo:** it has no recorded evaluation or experiment.
 
+## Final Codex review (whole branch against `main`)
+
+Codex reviewed all 91 commits since `2978c5d`. I checked each finding against the code.
+
+1. **Fixed (`cd70159`). On phones, the Workspace coding panel hid everything except the code buttons.** This came from round 5 (`1dfaee8`). On screens up to 900 px you could not remove an assignment, choose the frozen version, or see suggestions with their trust captions and provenance. That was a real regression, and it also broke the rule that trust captions are always shown. The panel now opens on the code row, which stays pinned, and the rest scrolls beneath it. The demo e2e test now checks this at 375 px. It failed before the fix.
+2. **Fixed (`b2c45e2`). The Switch source menu ignored the case filter.** With a case filter on, picking a source outside the case showed a different transcript. The menu now lists only the filtered sources. I type-checked the change and the build is green, but I did not try it in the browser with a case filter on.
+3. **Fixed (`c6acfa7`). Benchmark status was read only when a project opened.** A benchmark imported with the command line or in another tab left Run and the experiment checklist disabled until a reload. The app now re-reads the status on every view change. I confirmed this in the browser: four requests for load plus three view changes.
+4. **Not changed: Matrix cells and totals are read in two separate requests.** If coding changes in another tab or the command line during that moment, a total can disagree with its cells until the next load. This is a narrow timing case, and fixing it would change the server protocol. It is left as a known limit.
+
+## What I learned
+
+- **Fresh scorers catch regressions I introduce.** Three of my layout changes lowered a phone screen's score and were reverted. Scoring after every batch, and keeping only what scored higher, was worth the cost.
+- **"Hide it on phones" is risky.** The worst defect on the branch, found only by the final review, was a phone rule that hid controls with no way back to them. Prefer scrolling or folding over `display: none` for anything a researcher needs.
+- **The test machine gets slow under load.** One Python test, which runs the analysis starter script with a 10-second limit, and one web test failed once while Codex, pytest and vitest ran at the same time. Both pass when run alone. That is a test-timing limit, not a product defect.
+- **Some design scores cannot reach 9 without you.** The trust wording on every Review card and the 22% highlight are fixed by the design rules, and the scorers count both against Review and Workspace. `OWNER-NEEDED.md` sets out the two decisions.
+
 ## Found, not changed
 
 Reverted under your "tangible improvements only" bar: the round-2 `QUALIA_PORT` range check in the double-click launcher (`62dbad0`, reverted). It only helped a hand-edited `.env` value outside 1024–65535.
@@ -547,7 +569,7 @@ Reverted under your "tangible improvements only" bar: the round-2 `QUALIA_PORT` 
 
 ## Needs a browser check
 
-I checked every UI change in the built app with Playwright at 1280 and 375 px. The one gap is screen widths between 501 and 900 px (small tablets and narrow windows), which I did not capture.
+I checked every UI change in the built app with Playwright at 1280 and 375 px. The one gap is screen widths between 501 and 900 px (small tablets and narrow windows), which I did not capture. I also did not try the Switch source menu with a case filter on (fix `b2c45e2`). The mutation e2e test (`tests/e2e/mvp.spec.ts`) was not run either, because the guard hook blocks commands that name `demo/data`.
 
 ## How to merge
 
@@ -584,3 +606,5 @@ git revert -m 1 HEAD
 ```
 
 Each change can also be undone on its own with `git revert <hash>`, using the hashes listed above. Or open a pull request from the branch instead of merging locally.
+
+**Database note for rollback:** round 6 adds migration `006_memo_author.sql`, which adds a memo `author` column. The first time a project is opened with the merged code, it is upgraded to schema version 6, after a backup. If you roll the code back after that, the older code refuses to open that project. That is the safety guard described under "Your research data is safer". To use it with the older code, restore the backup Qualia made just before the upgrade (`project.db.v5.bak`, next to `project.db`).
