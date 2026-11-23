@@ -45,7 +45,7 @@ Branch `claude/overnight-fixes-3d262b`, based on `main` at `2978c5d`. Nothing wa
 
 | | Before | After |
 |---|---|---|
-| Python (`uv run pytest`) | 682 passed, 5 skipped, 4 failed, 4 errors | 701 passed, 5 skipped, 0 failed (after round 3; later commits touched only web and docs) |
+| Python (`uv run pytest`) | 682 passed, 5 skipped, 4 failed, 4 errors | 702 passed, 5 skipped, 0 failed (full run after the last Python change in round 4) |
 | Web (`npm test`) | 63 passed | 65 passed |
 | Static-demo e2e (`tests/e2e/demo.spec.ts`) | not run | 1 passed |
 | `tsc --noEmit`, `ruff check` | clean | clean |
