@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { codeStyle, eventCodeName, orderedCodes, shortcut, uniqueSegmentCount } from './entities'
+import { codeStyle, eventCodeName, orderedCodes, shortcut, splitSuggestions, uniqueSegmentCount } from './entities'
 import { annotationSpan, codingAnnotation, highlightStyle } from './annotation-offsets'
 import type { Code, Coding, Segment, Version } from './entities'
 
@@ -153,5 +153,16 @@ describe('codes changed since the latest frozen version', () => {
 describe('coded-text highlight', () => {
   it('underlines in the code colour over a light tint, so it never reads as a text selection', () => {
     expect(highlightStyle('#236292')).toEqual({ fill: '#236292', fillOpacity: 0.1, underlineColor: '#236292', underlineThickness: 2, underlineOffset: 2, underlineStyle: 'solid' })
+  })
+})
+
+describe('suggestions beside applied codes', () => {
+  it('nests a suggestion under the code it agrees with and keeps the rest separate', () => {
+    const applied = [{ id: 1, code_id: 7 }, { id: 2, code_id: 7 }] as Coding[]
+    const suggestions = [{ id: 10, code_id: 7 }, { id: 11, code_id: 8 }] as Coding[]
+    const { agreeing, separate } = splitSuggestions(applied, suggestions)
+    expect(agreeing(applied[0]).map(item => item.id)).toEqual([10])
+    expect(agreeing(applied[1])).toEqual([]) // shown once, under the first mark for that code
+    expect(separate.map(item => item.id)).toEqual([11])
   })
 })

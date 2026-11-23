@@ -177,3 +177,14 @@ export function draftChanges(codes: Code[], latest: Version | undefined): number
   if (!frozen) return codes.length
   return changedCodeIds(codes, latest).size + frozen.filter(code => !codes.some(item => item.id === code.id)).length
 }
+
+// A suggestion for a code already applied to the passage sits under that code's first mark
+// instead of repeating the code as a second line; other suggestions stay separate.
+export function splitSuggestions(applied: Coding[], suggestions: Coding[]) {
+  const first = new Map<number, number>()
+  for (const item of applied) if (!first.has(item.code_id)) first.set(item.code_id, item.id)
+  return {
+    agreeing: (coding: Coding) => first.get(coding.code_id) === coding.id ? suggestions.filter(item => item.code_id === coding.code_id) : [],
+    separate: suggestions.filter(item => !first.has(item.code_id)),
+  }
+}

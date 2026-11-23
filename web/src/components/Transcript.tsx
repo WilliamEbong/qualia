@@ -1,8 +1,9 @@
+import { Fragment } from 'react'
 import type { CSSProperties } from 'react'
 import { Annotorious } from '@annotorious/react'
 import { TextAnnotator } from '@recogito/react-text-annotator'
 import { AnnotationSync, annotationStyle } from '../lib/annotations'
-import { codeStyle } from '../lib/entities'
+import { codeStyle, splitSuggestions } from '../lib/entities'
 import type { WorkspaceController } from '../lib/workspace'
 import { Button } from './ui/button'
 import { ActorField } from './ActorField'
@@ -21,8 +22,8 @@ export function Transcript({ w, review }: { w: WorkspaceController; review: Revi
           <p className="segment-text" data-testid={`segment-text-${segment.id}`}>{segment.text}</p>
           <AnnotationSync segmentId={segment.id} text={segment.text} codings={segment.codings} onSpan={w.receiveSpan} />
         </TextAnnotator></Annotorious>
-        <div className="segment-codes" role="group" aria-label="Current codes">{segment.codings.map(coding => <span key={coding.id} className={`code-mark ${review.isAcceptedModel(coding) ? 'accepted-model' : 'human'}`} style={codeStyle(w.codeIndex(coding.code_id)) as CSSProperties}>{w.eventCodeName(coding)}{review.isAcceptedModel(coding) && <span className="caption"> · m</span>}{(coding.span_start > 0 || coding.span_end < Array.from(segment.text).length) && <span className="caption"> · characters {coding.span_start}–{coding.span_end}</span>}</span>)}</div>
-        <div className="segment-codes" role="group" aria-label="Suggested codes">{segment.suggestions.map(item => <span key={item.id} className="code-mark suggested" style={codeStyle(w.codeIndex(item.code_id)) as CSSProperties}>{review.codeName(item)} <span className="caption">suggested · {review.modelScore(item.score)}</span></span>)}</div>
+        <div className="segment-codes" role="group" aria-label="Current codes">{segment.codings.map(coding => <Fragment key={coding.id}><span className={`code-mark ${review.isAcceptedModel(coding) ? 'accepted-model' : 'human'}`} style={codeStyle(w.codeIndex(coding.code_id)) as CSSProperties}>{w.eventCodeName(coding)}{review.isAcceptedModel(coding) && <span className="caption"> · m</span>}{(coding.span_start > 0 || coding.span_end < Array.from(segment.text).length) && <span className="caption"> · characters {coding.span_start}–{coding.span_end}</span>}</span>{splitSuggestions(segment.codings, segment.suggestions).agreeing(coding).map(item => <span key={item.id} className="code-mark suggested agreeing" style={codeStyle(w.codeIndex(item.code_id)) as CSSProperties}><span className="assistive">{review.codeName(item)} </span><span className="caption">suggested · {review.modelScore(item.score)}</span></span>)}</Fragment>)}</div>
+        <div className="segment-codes" role="group" aria-label="Suggested codes">{splitSuggestions(segment.codings, segment.suggestions).separate.map(item => <span key={item.id} className="code-mark suggested" style={codeStyle(w.codeIndex(item.code_id)) as CSSProperties}>{review.codeName(item)} <span className="caption">suggested · {review.modelScore(item.score)}</span></span>)}</div>
       </article>)}
     </div>
   </section>
