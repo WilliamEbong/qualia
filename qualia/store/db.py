@@ -118,32 +118,44 @@ class Store:
         return digest.hexdigest()
 
     def migrate(self):
-        version = self.connection.execute('PRAGMA user_version').fetchone()[0]
         migrations = sorted((Path(__file__).parent / 'migrations').glob('*.sql'))
         for file in migrations:
             number = int(file.name.split('_')[0])
-            if number <= version:
+            if number <= self.connection.execute('PRAGMA user_version').fetchone()[0]:
                 continue
-            if version and str(self.path) != ':memory:':
-                backup = sqlite3.connect(str(self.path) + f'.v{version}.bak')
-                try:
-                    self.connection.backup(backup)
-                finally:
-                    backup.close()
-            sql = file.read_text(encoding='utf-8')
-            if number == 1:
-                for table in APPEND_ONLY_V1:
-                    for action in ('UPDATE', 'DELETE'):
-                        sql += (
-                            f'\nCREATE TRIGGER {table}_{action.lower()} BEFORE {action} ON {table}'
-                            f" BEGIN SELECT RAISE(ABORT,'{table} is append-only'); END;"
-                        )
+            # Manual transaction control so executescript keeps the write lock taken here.
+            self.connection.autocommit = True
             try:
-                self.connection.executescript(f'BEGIN IMMEDIATE;\n{sql}\nPRAGMA user_version={number};\nCOMMIT;')
+                self.connection.execute('BEGIN IMMEDIATE')
+                # Another connection may have upgraded while this one waited for the lock.
+                version = self.connection.execute('PRAGMA user_version').fetchone()[0]
+                if number <= version:
+                    self.connection.execute('COMMIT')
+                    continue
+                if version and str(self.path) != ':memory:':
+                    # A separate WAL reader: the lock held here keeps the copy at this version.
+                    reader = sqlite3.connect(self.path)
+                    backup = sqlite3.connect(str(self.path) + f'.v{version}.bak')
+                    try:
+                        reader.backup(backup)
+                    finally:
+                        backup.close()
+                        reader.close()
+                sql = file.read_text(encoding='utf-8')
+                if number == 1:
+                    for table in APPEND_ONLY_V1:
+                        for action in ('UPDATE', 'DELETE'):
+                            sql += (
+                                f'\nCREATE TRIGGER {table}_{action.lower()} BEFORE {action} ON {table}'
+                                f" BEGIN SELECT RAISE(ABORT,'{table} is append-only'); END;"
+                            )
+                self.connection.executescript(f'{sql}\nPRAGMA user_version={number};\nCOMMIT;')
             except Exception:
-                self.connection.rollback()
+                if self.connection.in_transaction:
+                    self.connection.execute('ROLLBACK')
                 raise
-            version = number
+            finally:
+                self.connection.autocommit = sqlite3.LEGACY_TRANSACTION_CONTROL
 
     @contextmanager
     def transaction(self):

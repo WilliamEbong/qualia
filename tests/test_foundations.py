@@ -35,6 +35,52 @@ def test_migration_is_idempotent_and_settings(project):
         assert len(db.rows('SELECT * FROM current_codings')) == 1
 
 
+def test_concurrent_open_of_an_older_database_upgrades_once(project, monkeypatch):
+    """A second process that upgraded first must not make this open re-run its migration."""
+    import builtins
+
+    import qualia.store.db as store_module
+
+    path = project / 'race.db'
+    monkeypatch.setattr(store_module, 'sorted', lambda files: [
+        file for file in builtins.sorted(files) if not file.name.startswith('005')], raising=False)
+    Store(path).connection.close()
+
+    def other_process_upgrades_first(files):
+        # Runs after this open has read the old user_version, as in two parallel requests.
+        monkeypatch.setattr(store_module, 'sorted', builtins.sorted, raising=False)
+        Store(path).connection.close()
+        return builtins.sorted(files)
+
+    monkeypatch.setattr(store_module, 'sorted', other_process_upgrades_first, raising=False)
+    with Store(path) as db:
+        assert db.connection.execute('PRAGMA user_version').fetchone()[0] == 5
+    with sqlite3.connect(project / 'race.db.v4.bak') as backup:
+        assert backup.execute('PRAGMA user_version').fetchone()[0] == 4
+
+    # Parallel requests opening an older database: every open succeeds.
+    import threading
+    parallel = project / 'parallel.db'
+    monkeypatch.setattr(store_module, 'sorted', lambda files: [
+        file for file in builtins.sorted(files) if not file.name.startswith('005')], raising=False)
+    Store(parallel).connection.close()
+    monkeypatch.setattr(store_module, 'sorted', builtins.sorted, raising=False)
+    errors = []
+
+    def open_store():
+        try:
+            Store(parallel).connection.close()
+        except Exception as error:
+            errors.append(repr(error))
+
+    threads = [threading.Thread(target=open_store) for _ in range(4)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    assert errors == []
+
+
 def test_every_append_only_table_rejects_update_delete(project):
     with Store(project / 'project.db') as db:
         event = seed(db)
