@@ -33,7 +33,9 @@ export function useWorkspace() {
   const [activeId, setActiveId] = useState<number | null>(null)
   const [span, setSpan] = useState<Span | null>(null)
   const [versionId, setVersionId] = useState<number | null>(null)
-  const [actor, setActor] = useState('researcher')
+  // The coder's name is provenance: remember it across reloads (per browser; nothing else is stored).
+  const [actor, setActorState] = useState(() => { try { return localStorage.getItem('qualia-actor') || 'researcher' } catch { return 'researcher' } })
+  const setActor = (value: string) => { setActorState(value); try { localStorage.setItem('qualia-actor', value) } catch { /* storage unavailable */ } }
   const [panel, setPanel] = useState<'import' | 'case' | 'export' | null>(null)
   const [editCode, setEditCode] = useState<Code | null>(null)
   // Bumped after each save so uncontrolled "new" forms clear instead of resubmitting old text.
@@ -189,10 +191,10 @@ export function useWorkspace() {
   }, [slug, data, view, retrievalCode, retrievalCase])
 
   const createProject = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); const form = new FormData(event.currentTarget)
+    event.preventDefault(); const form = new FormData(event.currentTarget); const popover = event.currentTarget.closest('details')
     void run(async () => {
       const project = await request<Project>('projects', { method: 'POST', body: JSON.stringify({ name: field(form, 'name') }) })
-      const all = await request<Project[]>('projects'); setProjects(all); chooseProject(project.slug)
+      const all = await request<Project[]>('projects'); setProjects(all); chooseProject(project.slug); if (popover) popover.open = false
     })
   }
 
@@ -258,7 +260,7 @@ export function useWorkspace() {
   }
   const matrixView = useMatrix(codeViews, data?.cases ?? [], matrix, drillDown)
 
-  return { projects, slug, data, loading, busy, error, notice, view, setView, chooseProject, createProject, run, reload, readOnly, attribution,
+  return { projects, slug, data, loading, busy, error, notice, view, setView: (next: View) => { setNotice(''); setView(next) }, chooseProject, createProject, run, reload, readOnly, attribution,
     sources, source, segments: segmentViews, active, activeText, currentSpan, activate, receiveSpan, selectSource, caseId, setCaseId,
     codes: codeViews, codingCodes, version, setVersionId, activeCodings, activeEvents, actor, setActor, assign, remove,
     clearSpan: () => setSpan(null), panel, setPanel, editCode, setEditCode, editMemo, setEditMemo, editCase, setEditCase, formNonce, setNotice,
