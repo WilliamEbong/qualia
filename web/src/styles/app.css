@@ -792,3 +792,10 @@ label > .caption { display: block; margin: 2px 0 6px; }
 /* The coder's name, once set, is one quiet line (cause 4 in design-review/ROOT-CAUSES.md). */
 .actor-line { font-size: var(--type-caption); color: var(--secondary); margin: 8px 0 12px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
 .actor-field > .button { margin: 4px 0 12px; }
+/* Matrix: the frozen code column has a visible edge, and the heat has a key (cause 7). */
+.matrix-page table { border-collapse: separate; border-spacing: 0; }
+.matrix-page tbody th:first-child, .matrix-page thead th:first-child { border-right: 1px solid var(--foreground); }
+.heat-legend { display: flex; align-items: center; gap: 8px; margin: 24px 0 0; }
+.heat-legend > span { display: inline-flex; border: 1px solid var(--border); }
+.heat-swatch { width: 20px; height: 14px; background: rgb(var(--heat-rgb) / var(--heat)); }
+.matrix-page .table-scroll { margin-top: 12px; }
