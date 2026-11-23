@@ -454,3 +454,6 @@ input, select, textarea { border-color: var(--caption); }
 /* An ivory inset keeps the focus ring visible on the strongest heat fill (a ring, not a depth shadow). */
 .matrix-cell:focus-visible { box-shadow: inset 0 0 0 5px var(--background); }
 .project-drawer .button.primary { background: var(--accent); border-color: var(--accent); }
+/* Review cards: one rule between cards, actions closer to the decision. */
+.review-page .suggestion { margin: 0 0 12px; }
+.review-page .suggestion .actions { border-top: 0; padding-top: 8px; }

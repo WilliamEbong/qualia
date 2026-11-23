@@ -45,8 +45,8 @@ function Proposals({ w, p }: { w: WorkspaceController; p: ProposalsController })
         </fieldset></form>
       </details>
       <div role="status">{p.result && <div className="run-result"><h3>Proposals {p.result.status}</h3><p>{counted(p.result.proposal_ids.length, 'new proposal')}</p><p className="caption">{p.result.backend} / {p.result.model} · batch {p.result.batch_id}</p>{p.result.errors.map((error, index) => <p key={index} className="error">{error}</p>)}</div>}</div>
-      <label>Reviewer<input value={w.actor} onChange={event => w.setActor(event.target.value)} maxLength={200} /></label>
-      <label>Decision note (optional)<textarea rows={2} value={p.note} onChange={event => p.setNote(event.target.value)} /></label>
+      {p.pending.length > 0 && <><label>Reviewer<input value={w.actor} onChange={event => w.setActor(event.target.value)} maxLength={200} /></label>
+      <label>Decision note (optional)<textarea rows={2} value={p.note} onChange={event => p.setNote(event.target.value)} /></label></>}
       {!p.pending.length && <p className="caption">No proposals are waiting.</p>}
       {p.pending.map(item => <ProposalCard key={item.id} w={w} p={p} item={item} />)}
     </>}
