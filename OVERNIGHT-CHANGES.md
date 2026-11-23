@@ -514,8 +514,14 @@ Each batch takes the reasons fresh scorers gave and is then scored by two new sc
 - Retrieval's count reads "13 excerpts from 12 passages".
 - The phone code row is a single scrolling row again, with room reserved under the transcript.
 - The phone View row is slimmer, and Home's counts sit in two columns on phones.
+- **Scores:** scorer Q 8.3 / 7.6, scorer R 7.7 / 6.7. Home and Retrieval reached 9.0 on desktop with scorer Q.
+- **Fixed after scoring:** the New-code layout squeezed phone Codebook cards (Codebook on phones scored 4.7–5). Cards use the full width again (`2711948`). The decision buttons now stand apart from Open segment, and the phone Experiments checklist wraps tidily (`4217f21`). These two fixes were not re-scored.
 
 **What the scorers keep naming** (none of it reached 9):
+- **Workspace:** the duplicate "AI agrees" suggestion line, and highlights that look like a text selection.
+- **Experiments:** disabled buttons should say why they are disabled.
+- **Matrix:** a sticky code column and a colour legend.
+- **Analysis:** the disclosure styling.
 - **Phones:** the stacked header.
 - **Review:** the card count and length. The trust wording on every card is fixed by the design rules.
 - **Home:** a fuller study-progress view.
