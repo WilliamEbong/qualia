@@ -22,6 +22,9 @@ from qualia.store.db import canonical
 from qualia.workspace import pipeline_hash, read_config
 
 RETRYABLE = {'timeout', 'transient', 'process_failed', 'transport_error', 'rate_limit'}
+# Seconds before retry n (doubling), so a rate limit or transient fault is not hit again at once.
+RETRY_DELAY_SECONDS = 1.0
+_pause = time.sleep
 SAFE_FAILURES = RETRYABLE | {'invalid_model', 'unavailable', 'input_limit', 'output_limit',
                             'unsupported_version', 'invalid_input', 'tool_call', 'invalid_response',
                             'subscription_auth_required', 'quota', 'unsupported_flag',
@@ -253,6 +256,7 @@ def classify_segments(db, segments, codebook, config, *, prompt, codebook_versio
                                   reserved_usd=reserved_usd)
                     retryable = getattr(exc, 'code', None) in RETRYABLE
                     if retryable and attempt < retries:
+                        _pause(RETRY_DELAY_SECONDS * 2 ** attempt)
                         continue
                     identity = (exc.segment_id if isinstance(exc, ResponseValidationError) and
                                 exc.segment_id in {segment['id'] for segment in batch} else batch[0]['id'])

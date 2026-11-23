@@ -562,3 +562,14 @@ def test_one_segment_the_provider_cannot_admit_does_not_stop_the_rest_of_the_run
                                    backend='fixture', model='fixture-v1', registry={'fixture': backend})
     assert result['status'] == 'partial' and result['segments'] == 3 and backend.calls == 3
     assert result['errors'] == ['segment s1: cost estimate unavailable']
+
+
+def test_retries_back_off_before_resending(monkeypatch):
+    import qualia.ai.router as router
+    pauses = []
+    monkeypatch.setattr(router, '_pause', pauses.append)
+    backend = CountingBackend(failures=2)
+    with Store(':memory:') as db:
+        result = run(db, backend, config={'max_retries': 2})
+    assert result['status'] == 'completed' and backend.calls == 3
+    assert pauses == [1.0, 2.0]
