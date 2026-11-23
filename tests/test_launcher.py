@@ -123,3 +123,11 @@ def test_default_browser_is_read_from_windows_settings(monkeypatch):
     monkeypatch.setitem(__import__('sys').modules, 'winreg', winreg)
     for prog, expected in (('ChromeHTML', 'chrome'), ('MSEdgeHTM', 'edge'), ('FirefoxURL-308046B0AF4A39CB', None)):
         assert launcher._default_browser() == expected
+
+
+@pytest.mark.parametrize('setting', ['70000', '0'])
+def test_out_of_range_port_setting_is_explained_before_anything_starts(quiet, monkeypatch, setting):
+    monkeypatch.setenv('QUALIA_PORT', setting)
+    monkeypatch.setattr(launcher.subprocess, 'Popen', lambda command: pytest.fail('opened a window'))
+    launcher.main(None)
+    assert len(quiet) == 1 and 'between 1024 and 65535' in quiet[0]

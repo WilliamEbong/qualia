@@ -116,6 +116,8 @@ def _run(port):
         port = int(port or local_setting('QUALIA_PORT') or 8765)
     except ValueError:
         return _notify('QUALIA_PORT in Qualia\'s .env file must be a number.')
+    if not 1024 <= port <= 65535:
+        return _notify('QUALIA_PORT in Qualia\'s .env file must be between 1024 and 65535.')
     url = f'http://127.0.0.1:{port}'
     state = _probe(port)
     if state == 'qualia':
