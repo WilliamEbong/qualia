@@ -28,6 +28,10 @@ These are the effects you can see when you use Qualia. The details and evidence 
 - **Analysis:** results now come first, with the criteria and export options folded away until you open them.
 - **Keyboard and screen readers:** both work better. Fields have visible outlines, panels take focus when they open, and buttons say which suggestion they act on.
 
+**Design scores.**
+- Fresh reviewers rated the main screens about 7.2 out of 10 on desktop and 6.8 on phone, up from 7.1 and 5.9.
+- No screen reached 9. What stands in the way is mostly new features, rules in the design docs that only you can change, and splitting the long Analysis page. Round 5 below lists each one.
+
 **Faster and tidier.**
 - **Commands:** every `qualia` command except `open` starts about 3× faster, because it no longer loads the web server.
 - **CI:** the type check runs once instead of three times.
@@ -337,6 +341,64 @@ graphify explain "classify_segments()"
 - **Web:** 65 tests pass, and the typecheck and build pass.
 - **Static-demo e2e:** passes.
 - **Mutation e2e (`tests/e2e/mvp.spec.ts`):** not run. It needs the AnnoMI demo project, the project's guard blocks commands that touch the demo data, and I did not work around it. Run it after merging, from a terminal where you have the demo, using the command in that file's header.
+
+## Round 5: scoring each main screen toward 9
+
+**Method.**
+- **Scorers:** each scoring round used two new Opus scorers who had not seen any earlier version.
+- **What they scored:** the first screen and the whole page at 1280 and 375 px, from the live synthetic study and the public demo.
+- **Score used:** each screen's number is the mean of both scorers. Where a scorer gave clarity, craft and ease separately, I averaged them first.
+- **Passes:** three different approaches, then a check for any regressions they introduced:
+  - **Pass 1** (`1e0c7e6`), content before controls: each screen leads with what it is for, and the phone header became one compact block.
+  - **Pass 2** (`1dfaee8`), first-screen compaction: a shorter Home plate, a one-row phone coding strip, a quiet run summary on Review, and the Analysis index.
+  - **Pass 3** (`0c59215`), density and one type voice: compact codebook entries, the display face for code names, codes leading the coding rail, receding zeros in Matrix, and folded memo links.
+
+| Screen | Baseline | After pass 1 | After pass 2 | After pass 3 |
+|---|---|---|---|---|
+| Home | 7.0 / 6.0 | 7.0 / 6.0 | 7.5 / 6.8 | 6.8 / 6.8 |
+| Workspace | 8.0 / 5.5 | 8.0 / 6.3 | 7.8 / 7.0 | 7.8 / 7.0 |
+| Codebook | 6.5 / 5.7 | 7.5 / 6.8 | 7.0 / 6.5 | 7.0 / 6.8 |
+| Review | 7.0 / 6.0 | 7.3 / 6.8 | 7.5 / 6.8 | 7.5 / 7.5 |
+| Analysis | 6.0 / 5.2 | 6.3 / 5.5 | 6.5 / 5.8 | 6.0 / 5.7 |
+| Evaluation | 7.0 / 6.2 | 6.5 / 5.5 | 7.0 / 6.5 | 7.0 / 6.5 |
+| Experiments | 6.2 / 5.3 | 7.0 / 6.5 | 7.5 / 7.0 | 6.8 / 6.7 |
+| Matrix | 8.3 / 6.5 | 8.3 / 7.3 | 8.3 / 7.0 | 8.2 / 7.2 |
+| Retrieval | 7.5 / 6.7 | 8.3 / 8.0 | 8.0 / 7.5 | 7.5 / 7.0 |
+| Memos | 7.2 / 6.2 | 7.3 / 7.3 | 8.0 / 7.5 | 7.5 / 7.2 |
+| **Mean** | **7.1 / 5.9** | **7.4 / 6.6** | **7.5 / 6.8** | **7.2 / 6.8** |
+
+Each cell is 1280 px / 375 px.
+
+**Outcome.**
+- **No main screen reached 9.** All three approaches have now been tried, so I stopped, as the brief says.
+- **Phone:** scores rose by about a point overall (5.9 → 6.8). Every phone screen rose, Workspace most (5.5 → 7.0).
+- **Desktop:** scores rose slightly and then levelled off.
+- **Pass 3 was kept** even though the desktop mean fell 0.3. Two reasons:
+  - Screens pass 3 did not touch moved as much as the ones it did. Home fell 0.7 when pass 3 changed only the phone tab strip there. That points to scorer variance, which between pairs is about ±0.5.
+  - Pass 3 also restored the phone order so trust captions come before Accept and Reject.
+
+**Regressions the scorers found, fixed.**
+- **Order:** on both widths, the Review decision buttons had been placed before the trust captions. They now come after them (`0c59215`, `17d95d7`). Checked: the actions start at 762 px and the captions end at 659 px.
+- **Phone source switching:** after the transcript moved first, phones had no quick way to switch source. A "Switch source" select now handles it.
+
+**What blocks a 9.** Across the last two rounds the scorers' remaining reasons fall into four groups, and none can be fixed inside a presentation-only pass:
+1. **New product features.**
+   - A study-status summary on Home: sources, coded, pending, latest version and next step.
+   - A prerequisites checklist on Experiments.
+   - In-app benchmark import for Evaluation; today it needs a terminal command.
+   - Totals in Matrix.
+   - Grouping Retrieval by code with one entry per excerpt.
+   - Dates and authors on memo cards.
+   - Disabling Run until a benchmark exists. That needs state the web app does not have.
+2. **The fixed design contract.** These are fixed in docs 04–05 and DESIGN.md, and only you can change them:
+   - The repeated trust captions on every suggestion card make the review queue long.
+   - The 22% code-colour highlight reads as a "selection" to some scorers.
+   - The no-gradient rule rules out the usual edge fade on scrolling strips.
+   - The Home plate is the approved identity.
+3. **Analysis is one long report** of seven sections, 8,500 px with real data. A 9 would need it split into sub-views or tabs, which is an information-architecture change for you to decide.
+4. **The read-only demo** shows disabled write controls and empty model menus. A 9 would need a demo-specific layout, which is logic, not styling.
+
+The polish items scorers raised in the final round are small and specific. Each is in their reports in the session scratchpad. They would add about a quarter point, not reach 9.
 
 ## Found, not changed
 
