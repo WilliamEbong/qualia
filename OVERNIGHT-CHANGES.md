@@ -8,12 +8,13 @@ This was a fix-only pass. It added no features, made no redesign and changed no 
 
 | | Before | After |
 |---|---|---|
-| Python (`uv run pytest`) | 682 passed, 5 skipped, 4 failed, 4 errors | 688 passed, 5 skipped, the same 4 failed and 4 errors |
-| Web (`npm test`) | 63 passed | 63 passed |
+| Python (`uv run pytest`) | 682 passed, 5 skipped, 4 failed, 4 errors | 701 passed, 5 skipped, 0 failed (after round 3; later commits touched only web and docs) |
+| Web (`npm test`) | 63 passed | 65 passed |
+| Static-demo e2e (`tests/e2e/demo.spec.ts`) | not run | 1 passed |
 | `tsc --noEmit`, `ruff check` | clean | clean |
 | `pip-audit` / `npm audit` | 17 known vulnerabilities in 3 packages / 1 moderate | 0 / 0 |
 
-The 4 failures and 4 errors before the pass all come from one cause on this PC, and this branch leaves them as they were (see "Found, not changed" #1).
+The 4 failures and 4 errors before the pass all came from one cause on this PC: the newer Codex CLI. Round 2 fixed the tests (#12).
 
 ## Changes
 
