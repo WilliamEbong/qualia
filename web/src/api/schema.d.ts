@@ -226,6 +226,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/projects/{slug}/matrix/totals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Matrix Totals */
+        get: operations["matrix_totals_api_projects__slug__matrix_totals_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/projects/{slug}/matrix": {
         parameters: {
             query?: never;
@@ -1054,6 +1071,19 @@ export interface components {
             /** New Segments */
             new_segments: number;
         };
+        /** MatrixTotals */
+        MatrixTotals: {
+            /** By Code */
+            by_code: {
+                [key: string]: number;
+            };
+            /** By Case */
+            by_case: {
+                [key: string]: number;
+            };
+            /** All */
+            all: number;
+        };
         /** MemoInput */
         MemoInput: {
             /** Title */
@@ -1776,6 +1806,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    matrix_totals_api_projects__slug__matrix_totals_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MatrixTotals"];
                 };
             };
             /** @description Validation Error */

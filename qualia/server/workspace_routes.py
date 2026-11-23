@@ -13,6 +13,7 @@ from qualia.server.api_models import (
     IdResult,
     ImportInput,
     ImportResult,
+    MatrixTotals,
     MemoInput,
 )
 from qualia.store.db import Store
@@ -95,6 +96,11 @@ def register_workspace_routes(app: FastAPI, home: Path | None):
     def retrieval(slug: str, code_id: int | None = None, case_id: int | None = None):
         with Store(existing_project(slug, home) / 'project.db') as db:
             return db.retrieve(code_id=code_id, case_id=case_id)
+
+    @app.get('/api/projects/{slug}/matrix/totals', response_model=MatrixTotals)
+    def matrix_totals(slug: str):
+        with Store(existing_project(slug, home) / 'project.db') as db:
+            return db.matrix_totals()
 
     @app.get('/api/projects/{slug}/matrix')
     def matrix(slug: str):

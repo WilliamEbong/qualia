@@ -647,6 +647,45 @@
         }
       }
     },
+    "/api/projects/{slug}/matrix/totals": {
+      "get": {
+        "summary": "Matrix Totals",
+        "operationId": "matrix_totals_api_projects__slug__matrix_totals_get",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Slug"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatrixTotals"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/projects/{slug}/matrix": {
       "get": {
         "summary": "Matrix",
@@ -3032,6 +3071,36 @@
           "new_segments"
         ],
         "title": "ImportResult"
+      },
+      "MatrixTotals": {
+        "properties": {
+          "by_code": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "By Code"
+          },
+          "by_case": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "By Case"
+          },
+          "all": {
+            "type": "integer",
+            "title": "All"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "by_code",
+          "by_case",
+          "all"
+        ],
+        "title": "MatrixTotals"
       },
       "MemoInput": {
         "properties": {

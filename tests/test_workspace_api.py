@@ -119,3 +119,30 @@ def test_out_of_range_record_ids_are_rejected_not_crashes(tmp_path):
         client.post(prefix + '/coding', json={'segment_id': huge, 'code_id': 1}),
     ):
         assert response.status_code == 400, (response.request.url, response.text)
+
+
+def test_matrix_totals_count_distinct_segments_across_cases(tmp_path):
+    from qualia.io.imports import import_text
+    from qualia.workspace import init_project, pipeline_hash
+
+    project = init_project('study', tmp_path)
+    with Store(project / 'project.db') as db:
+        source = import_text(db, project, 'one.txt', 'First passage.\n\nSecond passage.', 'txt')['source_ids'][0]
+        alone = import_text(db, project, 'two.txt', 'Unlinked passage.', 'txt')['source_ids'][0]
+        code = db.save_code({'name': 'Waiting'})
+        other = db.save_code({'name': 'Trust'})
+        version = db.freeze_codebook()['id']
+        first_case = db.save_case({'name': 'A', 'source_ids': [source]})
+        second_case = db.save_case({'name': 'B', 'source_ids': [source]})
+        segments = [row['id'] for row in db.rows('SELECT id, source_id FROM segments ORDER BY id')]
+        for segment, code_id in ((segments[0], code), (segments[0], other), (segments[1], code), (segments[2], code)):
+            db.assign({'segment_id': segment, 'code_id': code_id, 'span_start': 0, 'span_end': 4,
+                       'codebook_version_id': version, 'action': 'assign', 'actor': 'r', 'actor_type': 'human',
+                       'pipeline_version': pipeline_hash(project)})
+    client = TestClient(create_app(tmp_path, token='test'), base_url='http://127.0.0.1',
+                        headers={'X-Qualia-Token': 'test'})
+    totals = client.get('/api/projects/study/matrix/totals').json()
+    # Two cases share one source: its two coded segments count once overall; the unlinked source is outside.
+    assert totals == {'by_code': {str(code): 2, str(other): 1},
+                      'by_case': {str(first_case): 2, str(second_case): 2}, 'all': 2}
+    del alone

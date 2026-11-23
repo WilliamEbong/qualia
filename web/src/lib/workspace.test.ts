@@ -104,7 +104,7 @@ describe('study status and next step', () => {
 
 describe('matrix totals and retrieval grouping', () => {
   it('totals count distinct segments, so a segment in two cases counts once overall', async () => {
-    const { matrixTotals } = await import('./matrix')
+    const { matrixTotals } = await import('./entities')
     const data = { segments: [{ id: 1, source_id: 10 }, { id: 2, source_id: 20 }, { id: 3, source_id: 30 }],
       source_cases: [{ source_id: 10, case_id: 100 }, { source_id: 10, case_id: 200 }, { source_id: 20, case_id: 200 }],
       current_codings: [{ segment_id: 1, code_id: 5 }, { segment_id: 1, code_id: 6 }, { segment_id: 2, code_id: 5 }, { segment_id: 3, code_id: 5 }] }

@@ -142,3 +142,20 @@ export function memoMeta(memo: Pick<Memo, 'kind' | 'created_at' | 'author'>, rev
   const edited = revisions.map(item => item.replaced_at ?? '').sort().at(-1)
   return [`${memo.kind ?? 'analytic'} memo`, day(memo.created_at), memo.author, edited ? `edited ${day(edited)}` : ''].filter(Boolean).join(' · ')
 }
+
+// Totals use the cells' definition: distinct currently coded segments whose source is linked to a case.
+export function matrixTotals(data: { segments: Array<{ id: number; source_id: number }>; source_cases: Array<{ source_id: number; case_id: number }>; current_codings: Array<{ segment_id: number; code_id: number }> }) {
+  const sourceOf = new Map(data.segments.map(segment => [segment.id, segment.source_id]))
+  const casesOf = new Map<number, number[]>()
+  for (const link of data.source_cases) casesOf.set(link.source_id, [...(casesOf.get(link.source_id) ?? []), link.case_id])
+  const byCode = new Map<number, Set<number>>(), byCase = new Map<number, Set<number>>(), all = new Set<number>()
+  for (const coding of data.current_codings) {
+    const cases = casesOf.get(sourceOf.get(coding.segment_id) ?? -1) ?? []
+    if (!cases.length) continue
+    all.add(coding.segment_id)
+    byCode.set(coding.code_id, (byCode.get(coding.code_id) ?? new Set()).add(coding.segment_id))
+    for (const case_ of cases) byCase.set(case_, (byCase.get(case_) ?? new Set()).add(coding.segment_id))
+  }
+  const sizes = (map: Map<number, Set<number>>) => Object.fromEntries([...map].map(([key, value]) => [key, value.size]))
+  return { byCode: sizes(byCode), byCase: sizes(byCase), all: all.size }
+}

@@ -585,6 +585,17 @@ class Store:
             parameters.append(case_id)
         return self.rows(query + ' ORDER BY c.segment_id,c.span_start,c.code_id,c.id', parameters)
 
+    def matrix_totals(self) -> dict:
+        """Distinct coded segments per code, per case and overall, with the matrix cells' joins."""
+        base = ('FROM current_codings c JOIN segments g ON g.id=c.segment_id '
+                'JOIN source_cases sc ON sc.source_id=g.source_id')
+        with self.reading():
+            by_code = self.rows(f'SELECT c.code_id AS id, count(DISTINCT c.segment_id) AS n {base} GROUP BY c.code_id')
+            by_case = self.rows(f'SELECT sc.case_id AS id, count(DISTINCT c.segment_id) AS n {base} GROUP BY sc.case_id')
+            total = self.one(f'SELECT count(DISTINCT c.segment_id) AS n {base}')['n']
+        return {'by_code': {str(row['id']): row['n'] for row in by_code},
+                'by_case': {str(row['id']): row['n'] for row in by_case}, 'all': total}
+
     def matrix(self) -> list[dict]:
         return self.rows('SELECT c.code_id, sc.case_id, count(DISTINCT c.segment_id) AS count '
                          'FROM current_codings c JOIN segments g ON g.id=c.segment_id '

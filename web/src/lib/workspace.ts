@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import type { components } from '../api/schema'
 import { readOnly, request } from './client'
 import type { DemoSnapshot } from './demo'
+type MatrixTotalsResult = components['schemas']['MatrixTotals']
 import { useMatrix } from './matrix'
 import { codeDepth, counted, eventCodeName, exampleList, frozenCodes, hydrateWorkspace, isEditingTarget, orderedCodes, segmentText, shortcut } from './entities'
 import type { Case, Code, Coding, MatrixCell, Memo, MemoKind, Project, Retrieval, Span, View, Workspace } from './entities'
@@ -46,6 +47,7 @@ export function useWorkspace() {
   const [retrievalCode, setRetrievalCode] = useState<number | null>(null)
   const [retrievalCase, setRetrievalCase] = useState<number | null>(null)
   const [retrieval, setRetrieval] = useState<Retrieval[]>([])
+  const [matrixTotals, setMatrixTotals] = useState<MatrixTotalsResult | null>(null)
   const [queryLoading, setQueryLoading] = useState(false)
   const [matrix, setMatrix] = useState<MatrixCell[]>([])
   const mutationLock = useRef(false)
@@ -56,7 +58,7 @@ export function useWorkspace() {
     if (scope.current === value) { setView('workspace'); return }
     setSlug(value); setData(null); setSourceId(null); setCaseId(null); setActiveId(null); setSpan(null); setVersionId(null)
     setEditCode(null); setEditMemo(null); setEditCase(null); setPanel(null); setView('workspace'); setError(''); setNotice('')
-    setRetrievalCode(null); setRetrievalCase(null); setRetrieval([]); setMatrix([]); setQueryLoading(false)
+    setRetrievalCode(null); setRetrievalCase(null); setRetrieval([]); setMatrix([]); setMatrixTotals(null); setQueryLoading(false)
     const url = new URL(location.href)
     url.searchParams.set('project', value)
     history.replaceState(null, '', url)
@@ -182,9 +184,11 @@ export function useWorkspace() {
     if (retrievalCode !== null) query.set('code_id', String(retrievalCode))
     if (retrievalCase !== null) query.set('case_id', String(retrievalCase))
     const route = view === 'matrix' ? 'matrix' : `retrieval?${query}`
-    request<MatrixCell[] | Retrieval[]>(`projects/${encodeURIComponent(slug)}/${route}`, { signal: controller.signal }).then(value => {
+    // Cells and totals are fetched together so they always describe the same coding.
+    const totalsRequest = view === 'matrix' ? request<MatrixTotalsResult>(`projects/${encodeURIComponent(slug)}/matrix/totals`, { signal: controller.signal }) : Promise.resolve(null)
+    Promise.all([request<MatrixCell[] | Retrieval[]>(`projects/${encodeURIComponent(slug)}/${route}`, { signal: controller.signal }), totalsRequest]).then(([value, totals]) => {
       if (controller.signal.aborted) return
-      if (view === 'matrix') setMatrix(value as MatrixCell[])
+      if (view === 'matrix') { setMatrix(value as MatrixCell[]); setMatrixTotals(totals) }
       else setRetrieval(value as Retrieval[])
     }).catch(reason => { if (!controller.signal.aborted) setError(reason.message) }).finally(() => { if (!controller.signal.aborted) setQueryLoading(false) })
     return () => controller.abort()
@@ -271,6 +275,7 @@ export function useWorkspace() {
     sourceName: (id: number) => data?.sources.find(item => item.id === id)?.name ?? `Source ${id}`,
     caseName: (id: number) => data?.cases.find(item => item.id === id)?.name ?? `Case ${id}`, saveCase, exportData, retrieval, retrievalCode, setRetrievalCode, retrievalCase, setRetrievalCase,
     queryLoading, matrix, matrixView, drillDown, openSegment,
+    matrixTotals,
     retrievalSegmentCount: new Set(retrieval.map(item => item.segment_id)).size,
     caseAttributes: data?.attributes.filter(item => item.case_id === editCase?.id).map(item => `${item.key}=${item.value}`).join('\n') ?? '',
     caseSources: data?.source_cases.filter(item => item.case_id === editCase?.id).map(item => item.source_id) ?? [],

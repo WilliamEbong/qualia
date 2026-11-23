@@ -165,6 +165,12 @@ class EvaluateInput(Record):
     model: str | None = None
 
 
+class MatrixTotals(Record):
+    by_code: dict[str, int]
+    by_case: dict[str, int]
+    all: int
+
+
 class BenchmarkImportInput(Record):
     split: Literal['dev', 'validation']
     version: int | None = Field(default=None, gt=0)
