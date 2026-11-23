@@ -183,3 +183,13 @@ def test_read_boundary_and_model_provenance(project):
         event.update(actor_type='model', backend='', model='')
         with pytest.raises(sqlite3.IntegrityError):
             db.add('coding_events', event)
+
+
+def test_an_older_app_refuses_a_database_from_a_newer_version_and_releases_it(tmp_path):
+    path = tmp_path / 'project.db'
+    with Store(path) as db:
+        db.save_code({'name': 'Kept'})
+        db.connection.execute('PRAGMA user_version=99')
+    with pytest.raises(ValueError, match='newer version of Qualia'):
+        Store(path)
+    path.unlink()  # a refused open must not keep the file locked

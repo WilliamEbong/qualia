@@ -35,11 +35,15 @@ class Store:
         self._check_operation()
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.connection = sqlite3.connect(self.path, timeout=5, check_same_thread=False)
-        self.connection.row_factory = sqlite3.Row
-        self.connection.execute('PRAGMA foreign_keys=ON')
-        self.connection.execute('PRAGMA busy_timeout=5000')
-        self.connection.execute('PRAGMA journal_mode=WAL')
-        self.migrate()
+        try:
+            self.connection.row_factory = sqlite3.Row
+            self.connection.execute('PRAGMA foreign_keys=ON')
+            self.connection.execute('PRAGMA busy_timeout=5000')
+            self.connection.execute('PRAGMA journal_mode=WAL')
+            self.migrate()
+        except BaseException:
+            self.connection.close()  # release the file so it can be replaced or restored
+            raise
         stat = self.path.stat() if str(self.path) != ':memory:' else None
         self._file_identity = (stat.st_dev, stat.st_ino) if stat else None
 
@@ -119,6 +123,9 @@ class Store:
 
     def migrate(self):
         migrations = sorted((Path(__file__).parent / 'migrations').glob('*.sql'))
+        known = int(migrations[-1].name.split('_')[0])
+        if self.connection.execute('PRAGMA user_version').fetchone()[0] > known:
+            raise ValueError('this project was saved by a newer version of Qualia; open it with that version')
         for file in migrations:
             number = int(file.name.split('_')[0])
             if number <= self.connection.execute('PRAGMA user_version').fetchone()[0]:
