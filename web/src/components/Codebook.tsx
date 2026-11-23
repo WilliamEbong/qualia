@@ -12,13 +12,13 @@ import { Button } from './ui/button'
 function ProposalCard({ w, p, item }: { w: WorkspaceController; p: ProposalsController; item: ProposalView }) {
   const passages = (item.evidence.segment_ids ?? []).slice(0, 3)
   return <article className="suggestion proposal" aria-label={`Proposal ${item.id}`}>
-    <h4>{item.title}</h4><p className="caption">{item.origin} · proposal #{item.id}</p>
+    <h3>{item.title}</h3><p className="caption">{item.origin} · proposal #{item.id}</p>
     <dl className="code-fields">{item.changes.map(change => <Fragment key={change.field}><dt>{change.label}</dt><dd className="preserve-lines">{change.before ? <><span className="caption">Current</span>{'\n'}{change.before}{'\n'}<span className="caption">Proposed</span>{'\n'}{change.after || '—'}</> : change.after || '—'}</dd></Fragment>)}</dl>
     {!item.changes.length && <p className="caption">No field differs from the current draft.</p>}
     <p>{item.rationale}</p>{item.evidence.focus && <p className="caption">Focus: {item.evidence.focus}</p>}
     {passages.length > 0 && <details><summary>Supporting passages ({item.evidence.segment_ids?.length})</summary>{passages.map(id => <div key={id}><blockquote>{p.excerpt(id)}</blockquote><Button onClick={() => w.openSegment(id)}>Open segment {id}</Button></div>)}</details>}
     <details className="provenance"><summary>Proposal provenance</summary><dl><dt>Mode</dt><dd>{item.mode}</dd><dt>Actor</dt><dd>{item.actor_type}</dd>{item.actor_type === 'model' && <><dt>Backend / model</dt><dd>{item.backend} / {item.model}{item.model_version && <> · answered by {item.model_version}</>}</dd><dt>CLI version</dt><dd>{item.cli_version}</dd><dt>Prompt hash</dt><dd>{item.prompt_hash}</dd></>}<dt>Based on codebook</dt><dd>{item.codebook_version_id ? `cb_v${item.codebook_version_id}` : 'No frozen version yet'}</dd><dt>Batch</dt><dd>{item.batch_id}</dd><dt>Created</dt><dd>{item.created_at}</dd></dl></details>
-    <div className="actions"><Button disabled={w.busy || !w.actor.trim()} onClick={() => p.startAccept(item)}>Review and accept</Button><Button disabled={w.busy || !w.actor.trim()} onClick={() => void p.reject(item)}>Reject</Button></div>
+    <div className="actions"><Button disabled={w.busy || !w.actor.trim()} onClick={() => p.startAccept(item)} aria-label={`Review and accept proposal ${item.title}`}>Review and accept</Button><Button disabled={w.busy || !w.actor.trim()} onClick={() => void p.reject(item)} aria-label={`Reject proposal ${item.title}`}>Reject</Button></div>
   </article>
 }
 
@@ -44,7 +44,7 @@ function Proposals({ w, p }: { w: WorkspaceController; p: ProposalsController })
           <Button type="submit" disabled={w.busy || !!p.blockedReason}>Ask for proposals</Button>
         </fieldset></form>
       </details>
-      {p.result && <div role="status" className="run-result"><h3>Proposals {p.result.status}</h3><p>{counted(p.result.proposal_ids.length, 'new proposal')}</p><p className="caption">{p.result.backend} / {p.result.model} · batch {p.result.batch_id}</p>{p.result.errors.map((error, index) => <p key={index} className="error">{error}</p>)}</div>}
+      <div role="status">{p.result && <div className="run-result"><h3>Proposals {p.result.status}</h3><p>{counted(p.result.proposal_ids.length, 'new proposal')}</p><p className="caption">{p.result.backend} / {p.result.model} · batch {p.result.batch_id}</p>{p.result.errors.map((error, index) => <p key={index} className="error">{error}</p>)}</div>}</div>
       <label>Reviewer<input value={w.actor} onChange={event => w.setActor(event.target.value)} maxLength={200} /></label>
       <label>Decision note (optional)<textarea rows={2} value={p.note} onChange={event => p.setNote(event.target.value)} /></label>
       {!p.pending.length && <p className="caption">No proposals are waiting.</p>}
@@ -58,8 +58,8 @@ export function Codebook({ w, proposals: p }: { w: WorkspaceController; proposal
   const editing = p.editorCode ?? w.editCode
   const blocked = editing?.id ? descendantIds(editing.id, w.codes) : new Set<number>()
   return <section className="content-page codebook-page" aria-label="Codebook">
-    <header className="section-heading"><div><p className="caption">Researcher-controlled methodology</p><h2>Codebook</h2></div><Button disabled={w.readOnly || w.busy || !w.codes.some(code => code.status === 'active')} onClick={() => void w.freeze()}>Freeze codebook</Button></header>
-    <p>Draft edits apply to the next frozen version. Existing coding always retains the version used for its decision.</p>
+    <header className="section-heading"><div><p className="caption">Researcher-controlled methodology</p><h2>Codebook</h2></div><Button className="primary" disabled={w.readOnly || w.busy || !w.codes.some(code => code.status === 'active')} onClick={() => void w.freeze()}>Freeze codebook</Button></header>
+    <p>Edits stay in a draft until you choose Freeze codebook. Freezing saves a locked version you can code with. Codes you have already applied keep the version they were made with.</p>
     <div className="two-column"><div>
       <Proposals w={w} p={p} />
       {!w.codes.length && <div className="empty"><h3>No codes yet</h3><p>Describe the first idea you want to track, or ask for draft proposals above, then freeze a version to begin coding.</p></div>}

@@ -175,7 +175,7 @@ Video tutorial: [Import material](https://cdn.jsdelivr.net/gh/WilliamEbong/quali
 ### Text or Markdown
 
 1. Select the correct **Local project**.
-2. In **Workspace**, choose **Import source** or **Import transcript**.
+2. In **Workspace**, choose **Import source**.
 3. Choose a `.txt` or `.md` file, or paste text into **Or paste source text**. Use UTF-8 files.
 4. Set **File format** explicitly and optionally provide a **Source name**.
 5. Leave **Source version** as **New source** for a new document.
