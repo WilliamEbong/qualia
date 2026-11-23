@@ -227,8 +227,9 @@ def classify_segments(db, segments, codebook, config, *, prompt, codebook_versio
                 try:
                     reserved_usd = provider.estimate_cost(batch, context) if hasattr(provider, 'estimate_cost') else 0.0
                 except Exception:
+                    # A batch shrinks to one segment before this fails, so skip only that segment.
                     failures.append(('error', f"segment {batch[0]['id']}: cost estimate unavailable"))
-                    return collected
+                    break
                 try:
                     reservation = ledger.reserve(db, backend=provider, model=model_name, run_id=run_id,
                                                  segments=batch, config=config, purpose=task,

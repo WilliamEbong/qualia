@@ -544,3 +544,21 @@ def test_a_confident_no_code_answer_is_not_escalated():
             result = scored_run(db, {'fixture': primary, 'strong': strong},
                                 {**tiers, 'code_thresholds': {'2': .5}})
         assert result['escalated_segments'] == strong.calls == escalated
+
+
+def test_one_segment_the_provider_cannot_admit_does_not_stop_the_rest_of_the_run():
+    class Bounded(CountingBackend):
+        def estimate_cost(self, segments, context):
+            if any(segment['id'] == 's1' for segment in segments):
+                raise ValueError('request exceeds local size bound')
+            return 0.0
+
+    backend = Bounded()
+    segments = [{'id': f's{index}', 'text': 'Synthetic.'} for index in range(4)]
+    with Store(':memory:') as db:
+        result = classify_segments(db, segments, [{'id': 1, 'name': 'Synthetic', 'status': 'active'}],
+                                   {**ROUTING, 'segments_per_call': 1}, prompt='Classify synthetic content.',
+                                   codebook_version_id=1, pipeline_version='pipeline',
+                                   backend='fixture', model='fixture-v1', registry={'fixture': backend})
+    assert result['status'] == 'partial' and result['segments'] == 3 and backend.calls == 3
+    assert result['errors'] == ['segment s1: cost estimate unavailable']
