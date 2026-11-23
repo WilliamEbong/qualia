@@ -583,10 +583,11 @@ label > .caption { display: block; margin: 2px 0 6px; }
 .run-classification > summary h3 { font-family: var(--font-body); font-size: var(--type-body); font-weight: 500; }
 .run-classification:not([open]) { padding-top: 12px; padding-bottom: 12px; }
 @media (max-width: 900px) {
-  /* Phone workspace: the pinned panel is one scrolling row of code buttons. */
-  .coding-panel { max-height: none; padding: 8px 12px; }
-  .coding-panel > :not(.code-shortcuts) { display: none; }
-  .coding-panel > .code-shortcuts { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 8px; }
+  /* Phone workspace: the pinned panel opens on one row of code buttons; the rest of the panel
+     (version, removal, suggestions with their trust captions, provenance) scrolls beneath it. */
+  .coding-panel { max-height: 30vh; padding: 0 12px 8px; }
+  .coding-panel > * { flex: none; }
+  .coding-panel > .code-shortcuts { display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 8px; position: sticky; top: 0; z-index: 1; background: var(--surface); padding: 8px 0; }
   .coding-panel > .code-shortcuts > .button { flex: none; white-space: nowrap; }
 }
 /* Analysis: the counts and section index read as one ruled navigation row. */

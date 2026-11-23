@@ -22,6 +22,11 @@ test.describe('Read-only static demo', () => {
     expect(requests.filter(url => new URL(url).pathname.includes('/api/'))).toEqual([])
     await page.setViewportSize({ width: 375, height: 812 })
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+    // The pinned phone panel keeps every coding control and provenance record reachable, not only the code row.
+    const frozen = page.getByLabel('Frozen codebook')
+    await frozen.scrollIntoViewIfNeeded()
+    await expect(frozen).toBeVisible()
+    await expect(page.locator('.coding-panel > h3').first()).toBeVisible()
     // Phones choose views from the compact menu instead of the tab strip.
     await page.getByRole('combobox', { name: 'View', exact: true }).selectOption('home')
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
