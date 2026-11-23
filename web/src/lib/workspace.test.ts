@@ -101,3 +101,23 @@ describe('study status and next step', () => {
     expect([done.sources, done.passages, done.coded, done.pending, done.latestVersion]).toEqual([1, 2, 1, 0, 'cb_v1 · 2026-11-23'])
   })
 })
+
+describe('matrix totals and retrieval grouping', () => {
+  it('totals count distinct segments, so a segment in two cases counts once overall', async () => {
+    const { matrixTotals } = await import('./matrix')
+    const data = { segments: [{ id: 1, source_id: 10 }, { id: 2, source_id: 20 }, { id: 3, source_id: 30 }],
+      source_cases: [{ source_id: 10, case_id: 100 }, { source_id: 10, case_id: 200 }, { source_id: 20, case_id: 200 }],
+      current_codings: [{ segment_id: 1, code_id: 5 }, { segment_id: 1, code_id: 6 }, { segment_id: 2, code_id: 5 }, { segment_id: 3, code_id: 5 }] }
+    const totals = matrixTotals(data as never)
+    // Segment 3's source has no case, so it is outside the matrix, as in the cells.
+    expect(totals.byCode).toEqual({ 5: 2, 6: 1 })
+    expect(totals.byCase).toEqual({ 100: 1, 200: 2 })
+    expect(totals.all).toBe(2)
+  })
+  it('groups excerpts under their code in codebook order', async () => {
+    const { groupByCode } = await import('./entities')
+    const items: Array<{ code_id: number; segment_id: number }> = [{ code_id: 2, segment_id: 1 }, { code_id: 1, segment_id: 2 }, { code_id: 2, segment_id: 3 }]
+    const groups = groupByCode(items, [1, 2], id => `Code ${id}`)
+    expect(groups.map(group => [group.name, group.items.map(item => item.segment_id)])).toEqual([['Code 1', [2]], ['Code 2', [1, 3]]])
+  })
+})

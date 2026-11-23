@@ -659,3 +659,12 @@ label > .caption { display: block; margin: 2px 0 6px; }
 .study-counts { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px 24px; margin: 0; }
 .study-counts dt { font-family: var(--font-mono); font-size: var(--type-caption); color: var(--caption); }
 .study-counts dd { margin: 4px 0 0; font-size: var(--type-subtitle); font-variant-numeric: tabular-nums lining-nums; }
+/* Feature 019: matrix totals and grouped retrieval. */
+.matrix-total { text-align: center; font-family: var(--font-mono); font-size: var(--type-caption); border-left: 1px solid var(--foreground); }
+.matrix-page tfoot th, .matrix-page tfoot td { border-top: 1px solid var(--foreground); }
+.retrieval-group { margin: 24px 0; }
+.retrieval-group > h3 { border-bottom: 1px solid var(--foreground); padding-bottom: 8px; margin: 0; }
+.retrieval-meta { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 16px; }
+.retrieval-meta .caption { margin: 0; }
+.retrieval-card { padding: 12px 0; }
+.retrieval-card blockquote { margin: 8px 0 0; }

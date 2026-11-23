@@ -17,3 +17,20 @@ export function useMatrix(codes: Code[], cases: Case[], cells: MatrixCell[], sel
   const maximum = Math.max(1, ...cells.map(cell => cell.count))
   return { table, rows: table.getRowModel().rows.map(row => ({ id: row.id, cells: row.getAllCells().map(cell => ({ id: cell.id, cell, label: `${row.original.codeName} · ${cell.column.columnDef.header} · ${counted(Number(cell.getValue()), 'segment')}`, isCode: cell.column.id === 'code', style: { '--heat': Number(cell.getValue()) / maximum * 0.6 }, select: () => select(row.original.codeId, Number(cell.column.id)) })) })) }
 }
+
+// Totals use the cells' definition: distinct currently coded segments whose source is linked to a case.
+export function matrixTotals(data: { segments: Array<{ id: number; source_id: number }>; source_cases: Array<{ source_id: number; case_id: number }>; current_codings: Array<{ segment_id: number; code_id: number }> }) {
+  const sourceOf = new Map(data.segments.map(segment => [segment.id, segment.source_id]))
+  const casesOf = new Map<number, number[]>()
+  for (const link of data.source_cases) casesOf.set(link.source_id, [...(casesOf.get(link.source_id) ?? []), link.case_id])
+  const byCode = new Map<number, Set<number>>(), byCase = new Map<number, Set<number>>(), all = new Set<number>()
+  for (const coding of data.current_codings) {
+    const cases = casesOf.get(sourceOf.get(coding.segment_id) ?? -1) ?? []
+    if (!cases.length) continue
+    all.add(coding.segment_id)
+    byCode.set(coding.code_id, (byCode.get(coding.code_id) ?? new Set()).add(coding.segment_id))
+    for (const case_ of cases) byCase.set(case_, (byCase.get(case_) ?? new Set()).add(coding.segment_id))
+  }
+  const sizes = (map: Map<number, Set<number>>) => Object.fromEntries([...map].map(([key, value]) => [key, value.size]))
+  return { byCode: sizes(byCode), byCase: sizes(byCase), all: all.size }
+}

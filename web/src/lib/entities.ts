@@ -129,3 +129,9 @@ export function studyStatus(data: Pick<Workspace, 'sources' | 'segments' | 'code
   return { sources: data.sources.length, passages: data.segments.length, coded, pending,
     latestVersion: latest ? `cb_v${latest.id} · ${String(latest.frozen_at).slice(0, 10)}` : null, next }
 }
+
+// Retrieval: excerpts grouped under their code, in codebook order.
+export function groupByCode<T extends { code_id: number }>(items: T[], codeOrder: number[], nameOf: (id: number) => string) {
+  const ids = [...new Set(items.map(item => item.code_id))].sort((a, b) => (codeOrder.indexOf(a) + 1 || Infinity) - (codeOrder.indexOf(b) + 1 || Infinity))
+  return ids.map(id => ({ codeId: id, name: nameOf(id), items: items.filter(item => item.code_id === id) }))
+}
