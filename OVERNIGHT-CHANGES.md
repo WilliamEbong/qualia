@@ -60,7 +60,7 @@ Branch `claude/overnight-fixes-3d262b`, based on `main` at `2978c5d`. Nothing wa
 
 | | Before | After |
 |---|---|---|
-| Python (`uv run pytest`) | 682 passed, 5 skipped, 4 failed, 4 errors | 706 passed, 5 skipped, 0 failed (full run after the last Python change, round 6) |
+| Python (`uv run pytest`) | 682 passed, 5 skipped, 4 failed, 4 errors | 707 passed, 5 skipped, 0 failed (full run after the last Python change, round 6) |
 | Web (`npm test`) | 63 passed | 71 passed |
 | Static-demo e2e (`tests/e2e/demo.spec.ts`) | not run | 1 passed |
 | `tsc --noEmit`, `ruff check` | clean | clean |
@@ -482,7 +482,7 @@ Both contradict the frozen rules in docs 04–05 and the project CLAUDE.md, and 
 - **Analysis:** the overview is text rather than a chart.
 - **The demo:** it has no recorded evaluation or experiment, which would need new licensed demo data.
 
-**Checks:** 706 Python tests passed, 71 web tests passed, and typecheck, build and the static-demo e2e pass. OpenAPI and the generated types were regenerated.
+**Checks:** 707 Python tests passed, 71 web tests passed, and typecheck, build and the static-demo e2e pass. OpenAPI and the generated types were regenerated.
 
 ## Found, not changed
 
