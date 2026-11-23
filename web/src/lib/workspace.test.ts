@@ -165,4 +165,11 @@ describe('suggestions beside applied codes', () => {
     expect(agreeing(applied[1])).toEqual([]) // shown once, under the first mark for that code
     expect(separate.map(item => item.id)).toEqual([11])
   })
+  it('keeps a suggestion from another frozen version separate, since the code may have been renamed', () => {
+    const applied = [{ id: 1, code_id: 7, codebook_version_id: 1 }] as Coding[]
+    const suggestions = [{ id: 10, code_id: 7, codebook_version_id: 2 }] as Coding[]
+    const { agreeing, separate } = splitSuggestions(applied, suggestions)
+    expect(agreeing(applied[0])).toEqual([])
+    expect(separate.map(item => item.id)).toEqual([10])
+  })
 })
