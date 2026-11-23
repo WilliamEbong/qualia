@@ -724,7 +724,7 @@ Open **Evaluation provenance and metric definitions** for the exact definitions 
 
 ### Check repeatability
 
-AI models can answer differently when asked the same thing twice. **Evaluation → Check repeatability** (or `qualia repeatability`) classifies the same sample of your project's passages twice with the stored answers switched off, and reports:
+AI models can answer differently when asked the same thing twice. **Evaluation → Check repeatability** (or `qualia repeatability --project my-study`) classifies the same sample of your project's passages twice with the stored answers switched off, and reports:
 
 - **Identical code sets:** the share of passages where both runs suggested exactly the same codes.
 - **Per code:** how often the two runs made the same yes/no decision, and Cohen's kappa between the runs.
@@ -810,7 +810,7 @@ The fake operator makes a scripted change to fake classification behavior. A gai
 
 ### Try another classification model
 
-Switching the classification model changes results, so Qualia treats it like any other experiment. **Experiments → Try another classification model** (or `qualia improve --agent model --candidate-backend claude --candidate-model sonnet`) measures the current model and the candidate on your validation benchmark, confirms a gain with a fresh run, and keeps the switch only if the unchanged policy says KEEP. Otherwise the project keeps its current model and the evidence is recorded either way.
+Switching the classification model changes results, so Qualia treats it like any other experiment. **Experiments → Try another classification model** (or `qualia improve --agent model --project my-study --candidate-backend claude --candidate-model sonnet`) measures the current model and the candidate on your validation benchmark, confirms a gain with a fresh run, and keeps the switch only if the unchanged policy says KEEP. Otherwise the project keeps its current model and the evidence is recorded either way.
 
 It costs three validation evaluations with external models. The policy's call limit also applies: a candidate that needs many more calls than the current model is reverted.
 
