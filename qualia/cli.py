@@ -8,9 +8,7 @@ import webbrowser
 from pathlib import Path
 
 import typer
-import uvicorn
 
-from qualia.server.app import create_app
 from qualia.store.db import Store
 from qualia.workspace import init_project, list_projects, local_setting, pipeline_hash, project_dir
 
@@ -490,6 +488,11 @@ def open_command(port: int = typer.Option(8765, min=1024, max=65535), browser: b
         raise typer.BadParameter('QUALIA_PORT must be an integer') from exc
     if not 1024 <= port <= 65535:
         raise typer.BadParameter('QUALIA_PORT must be between 1024 and 65535')
+    # Loaded here so other commands start without the web server stack.
+    import uvicorn
+
+    from qualia.server.app import create_app
+
     server = uvicorn.Server(uvicorn.Config(create_app(), host='127.0.0.1', port=port, access_log=False))
     stopped = threading.Event()
     if browser:
