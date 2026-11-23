@@ -602,6 +602,10 @@ Codex reviewed all 91 commits since `2978c5d`. I checked each finding against th
 - **Fixing a reason does not lift the score.** Both scorers in this pass said 5 of the 7 targeted causes were gone. Yet Review stayed at 6 / 5, and the reason simply moved from "repeated text on every card" to "15 cards for one code". Every round named new reasons for the same screens.
 - **The capture flatters nothing.** It always uses a fresh browser with an unsaved name and one synthetic study, so first-visit states (such as cause 4) are what scorers see.
 
+**Codex review of this branch** (against `origin/main`) found one real defect, now fixed. A renamed code keeps its ID across frozen versions. Cause 5's grouping could therefore place a newer suggestion under an older assignment that shows a different name or definition. Grouping now also requires the same frozen version. A unit test covers this; it failed before the fix.
+
+**Checks:** Python 707 passed (5 skipped), web 76 passed, the type check and build pass, and the demo e2e test passes.
+
 **What would move the number:** fewer, larger workflow changes that a researcher feels: grouping by code with batch review, and search in Retrieval. More polish of what is already there would not. Scoring the same scorer before and after would also give a cleaner measure.
 
 ## Found, not changed
