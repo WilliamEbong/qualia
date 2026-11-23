@@ -159,3 +159,15 @@ export function matrixTotals(data: { segments: Array<{ id: number; source_id: nu
   const sizes = (map: Map<number, Set<number>>) => Object.fromEntries([...map].map(([key, value]) => [key, value.size]))
   return { byCode: sizes(byCode), byCase: sizes(byCase), all: all.size }
 }
+
+// How many codes differ between the draft and the latest frozen version (added, edited or removed).
+export function draftChanges(codes: Code[], latest: Version | undefined): number {
+  const fields = ['parent_id', 'name', 'status', 'definition', 'include', 'exclude', 'examples_pos', 'examples_neg'] as const
+  if (!latest) return codes.length
+  let frozen: Code[]
+  try { frozen = JSON.parse(latest.snapshot_json) } catch { return codes.length }
+  const before = new Map(frozen.map(code => [code.id, code]))
+  const changed = codes.filter(code => { const old = before.get(code.id); return !old || fields.some(field => String(old[field] ?? '') !== String(code[field] ?? '')) }).length
+  const removed = frozen.filter(code => !codes.some(item => item.id === code.id)).length
+  return changed + removed
+}

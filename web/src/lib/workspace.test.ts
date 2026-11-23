@@ -129,3 +129,14 @@ describe('memo metadata line', () => {
     expect(memoMeta({ created_at: '2026-11-20T09:00:00Z' } as never, [{ replaced_at: '2026-11-21T10:00:00Z' }, { replaced_at: '2026-11-22T10:00:00Z' }] as never)).toBe('analytic memo · 2026-11-20 · edited 2026-11-22')
   })
 })
+
+describe('draft changes since the latest frozen codebook', () => {
+  it('counts added, edited and removed codes', async () => {
+    const { draftChanges } = await import('./entities')
+    const code = (id: number, extra = {}) => ({ id, parent_id: null, name: `C${id}`, status: 'active', definition: '', include: '', exclude: '', examples_pos: '[]', examples_neg: '[]', ...extra })
+    const frozen = { id: 1, hash: 'h', frozen_at: '2026-11-23', snapshot_json: JSON.stringify([code(1), code(2), code(3)]) }
+    expect(draftChanges([code(1), code(2), code(3)] as never, frozen)).toBe(0)
+    expect(draftChanges([code(1, { definition: 'new' }), code(2), code(4)] as never, frozen)).toBe(3)
+    expect(draftChanges([code(1)] as never, undefined)).toBe(1)
+  })
+})
