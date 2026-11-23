@@ -54,7 +54,8 @@ def _validate(records_or_bytes, split, code_ids):
     if isinstance(records_or_bytes, bytes):
         raw = records_or_bytes
         try:
-            lines = raw.decode('utf-8').splitlines()
+            # JSONL lines end only at \n; splitlines() would also split text on U+2028 or U+0085.
+            lines = [line.removesuffix('\r') for line in raw.decode('utf-8').removesuffix('\n').split('\n')]
         except UnicodeDecodeError:
             raise ValueError(f'{split}.jsonl: line 1: invalid UTF-8') from None
     elif isinstance(records_or_bytes, list):
