@@ -642,3 +642,13 @@ label > .caption { display: block; margin: 2px 0 6px; }
   .review-page .suggestion { display: block; }
   .review-page .suggestion > .actions { display: flex; flex-direction: row; align-items: center; gap: 8px; padding-top: 8px; }
 }
+
+/* Feature 019: benchmark import and experiment prerequisites. */
+.benchmark-import { margin-bottom: 24px; }
+.benchmark-import input[type=file] { padding: 6px; }
+.prerequisites { grid-column: 1 / -1; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 8px 0 12px; }
+.prerequisites ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 4px 24px; }
+.prerequisites li { display: flex; align-items: baseline; gap: 8px; min-height: 32px; }
+.prerequisite-mark { font-family: var(--font-mono); width: 1ch; }
+.prerequisites li[data-met=true] .prerequisite-mark { color: var(--decision-keep); }
+.prerequisites li[data-met=false] { color: var(--secondary); }

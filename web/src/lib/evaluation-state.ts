@@ -94,3 +94,22 @@ export function calibrationRows(metrics: EvaluationMetrics) {
     .filter(bin => finite(bin?.lower) && finite(bin.upper) && finite(bin.count) && bin.count > 0 && finite(bin.accuracy))
     .map(bin => ({ band: `${bin.lower.toFixed(1)}–${bin.upper.toFixed(1)}`, count: bin.count, meanScore: formatMetric(bin.mean_confidence, 2), correct: `${Math.round(bin.accuracy! * 100)}%` }))
 }
+
+export type BenchmarkSplit = { records: number; codebook_version_id: number } | null
+export type BenchmarkStatus = { dev: BenchmarkSplit; validation: BenchmarkSplit }
+
+// Plain reason a run cannot start yet, or '' when every needed split is imported.
+export function benchmarkReason(status: BenchmarkStatus | null, needed: Array<'dev' | 'validation'>): string {
+  if (!status) return 'Checking benchmarks…'
+  const missing = needed.filter(split => !status[split])
+  return !missing.length ? '' : missing.length === 1 ? `Import a ${missing[0]} benchmark first.` : 'Import dev and validation benchmarks first.'
+}
+
+export function experimentPrerequisites({ frozen, status, classifierReady }: { frozen: boolean; status: BenchmarkStatus | null; classifierReady: boolean }) {
+  return [
+    { label: 'A frozen codebook', met: frozen },
+    { label: 'A dev benchmark (for tuning)', met: !!status?.dev },
+    { label: 'A validation benchmark', met: !!status?.validation },
+    { label: 'An available classifier', met: classifierReady },
+  ]
+}

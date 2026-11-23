@@ -4,12 +4,13 @@ import type { components } from '../api/schema'
 import type { WorkspaceController } from './workspace'
 import type { ReviewController } from './review'
 import { request } from './client'
-import { backendBlockedReason } from './evaluation-state'
+import { backendBlockedReason, benchmarkReason, experimentPrerequisites } from './evaluation-state'
+import type { BenchmarksController } from './evaluation'
 import { experimentHistory } from './experiment-state'
 import type { ExperimentRecord } from './experiment-state'
 import { useModelChoice } from './models'
 
-export function useExperiments(w: WorkspaceController, review: ReviewController) {
+export function useExperiments(w: WorkspaceController, review: ReviewController, benchmarks: BenchmarksController) {
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const configured = typeof w.data?.routing?.backend === 'string' ? w.data.routing.backend : 'rules'
   const [backend, setBackend] = useState(configured)
@@ -21,7 +22,7 @@ export function useExperiments(w: WorkspaceController, review: ReviewController)
   const history = useMemo(() => experimentHistory((w.data?.experiments ?? []) as ExperimentRecord[]), [w.data])
   const selected = history.find(item => item.id === selectedId) ?? history[0]
   const provider = review.availability?.backends.find(item => item.name === backend)
-  const blockedReason = backendBlockedReason(w.readOnly, provider, review.availability?.allow_external, 'Tuning is unavailable in this read-only public snapshot.')
+  const blockedReason = backendBlockedReason(w.readOnly, provider, review.availability?.allow_external, 'Tuning is unavailable in this read-only public snapshot.') || benchmarkReason(benchmarks.status, ['dev', 'validation'])
   const tune = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     void w.run(async () => {
@@ -32,7 +33,7 @@ export function useExperiments(w: WorkspaceController, review: ReviewController)
     })
   }
   const candidateProvider = review.availability?.backends.find(item => item.name === candidateBackend)
-  const candidateBlocked = backendBlockedReason(w.readOnly, candidateProvider, review.availability?.allow_external, 'Model experiments are unavailable in this read-only public snapshot.')
+  const candidateBlocked = backendBlockedReason(w.readOnly, candidateProvider, review.availability?.allow_external, 'Model experiments are unavailable in this read-only public snapshot.') || benchmarkReason(benchmarks.status, ['validation'])
   const current = `${configured} / ${typeof w.data?.routing?.model === 'string' ? w.data.routing.model : 'configured model'}`
   // A model switch is measured like any experiment: baseline, candidate and confirmation on validation.
   const tryModel = (event: FormEvent<HTMLFormElement>) => {
@@ -46,7 +47,8 @@ export function useExperiments(w: WorkspaceController, review: ReviewController)
       await w.reload(); setSelectedId(result.id)
     })
   }
-  return { history, selected, select: setSelectedId, backend, setBackend, blockedReason, tune, model,
+  const prerequisites = experimentPrerequisites({ frozen: !!w.data?.codebook_versions.length, status: benchmarks.status, classifierReady: !!provider?.available })
+  return { history, selected, select: setSelectedId, backend, setBackend, blockedReason, tune, model, prerequisites,
     candidateBackend, setCandidateBackend, candidate, candidateBlocked, current, tryModel }
 }
 export type ExperimentsController = ReturnType<typeof useExperiments>

@@ -1,13 +1,23 @@
 import { counted } from '../lib/entities'
 import type { WorkspaceController } from '../lib/workspace'
 import type { ReviewController } from '../lib/review'
-import type { EvaluationController } from '../lib/evaluation'
+import type { BenchmarksController, EvaluationController } from '../lib/evaluation'
 import { ModelPicker } from './ModelPicker'
 import { Button } from './ui/button'
 
-export function Evaluation({ w, review, evaluation: e }: { w: WorkspaceController; review: ReviewController; evaluation: EvaluationController }) {
+const splitLine = (name: string, split: { records: number; codebook_version_id: number } | null | undefined) => split ? `${name}: ${counted(split.records, 'record')} · codebook cb_v${split.codebook_version_id}` : `${name}: not imported`
+
+export function Evaluation({ w, review, evaluation: e, benchmarks: b }: { w: WorkspaceController; review: ReviewController; evaluation: EvaluationController; benchmarks: BenchmarksController }) {
   return <section className="content-page evaluation-page" aria-label="Validation evaluation"><header className="section-heading"><div><p className="caption">Measure against reference labels</p><h2>Validation evaluation</h2></div><span className="caption">{counted(e.runs.length, 'recorded evaluation')}</span></header>
-    <div className="two-column"><div><form key={w.slug} className="editor" onSubmit={e.evaluate}><fieldset disabled={w.readOnly}><h3>Evaluate validation split</h3><p>This run evaluates all imported validation records. Predictions stay in evaluation history and do not become coding assignments.</p>
+    <div className="two-column"><div>{!w.readOnly && <form key={`${w.slug}-benchmark`} className="editor benchmark-import" onSubmit={b.importBenchmark}><fieldset disabled={w.busy}><h3>Benchmarks</h3>
+      <p className="caption">{b.status ? <>{splitLine('Validation', b.status.validation)}<br />{splitLine('Dev', b.status.dev)}</> : 'Checking benchmarks…'}</p>
+      <p>A benchmark is a JSONL file of passages with the codes a person gave them (User Guide, section 14). Each split is imported once; importing the same file again changes nothing.</p>
+      <label>Benchmark file<input type="file" name="file" accept=".jsonl,application/x-ndjson,application/json,text/plain" required /></label>
+      <label>Split<select name="split" defaultValue="validation"><option value="validation">Validation (measures the classifier)</option><option value="dev">Dev (used for tuning)</option></select></label>
+      <label>Frozen codebook version<select name="version" defaultValue=""><option value="">Latest frozen version</option>{w.data?.codebook_versions.map(version => <option key={version.id} value={version.id}>cb_v{version.id}</option>)}</select></label>
+      <Button type="submit" disabled={w.busy || !w.data?.codebook_versions.length}>Import benchmark</Button>
+      {!w.data?.codebook_versions.length && <p className="caption">Freeze a codebook before importing a benchmark.</p>}
+    </fieldset></form>}<form key={w.slug} className="editor" onSubmit={e.evaluate}><fieldset disabled={w.readOnly}><h3>Evaluate validation split</h3><p>This run evaluates all imported validation records. Predictions stay in evaluation history and do not become coding assignments.</p>
       <label>Evaluation backend<select value={e.backend} onChange={event => e.setBackend(event.target.value)} disabled={w.readOnly || w.busy}>{review.availability?.backends.map(provider => <option key={provider.name} value={provider.name}>{provider.name} · {provider.external ? 'external' : 'offline'}{provider.available ? '' : ' · unavailable'}</option>) ?? <option value="rules">Checking availability…</option>}</select></label>
       <ModelPicker id="evaluation-model" m={e.model} disabled={w.readOnly || w.busy} />
       {e.blockedReason && <p className="caption">{e.blockedReason}</p>}{review.availabilityError && <p role="alert">Availability unavailable: {review.availabilityError}</p>}
@@ -23,7 +33,7 @@ export function Evaluation({ w, review, evaluation: e }: { w: WorkspaceControlle
         <div className="table-scroll" role="region" tabIndex={0} aria-label="Run-to-run agreement by code (scrollable)"><table aria-label="Run-to-run agreement by code"><thead><tr><th scope="col">Code</th><th scope="col">Same decision</th><th scope="col">Kappa between runs</th></tr></thead><tbody>{e.repeat.rows.map(row => <tr key={row.code}><th scope="row">{row.code}</th><td>{row.agreement}</td><td>{row.kappa}</td></tr>)}</tbody></table></div>
         <p className="caption">Kappa is n/a when neither run varied for a code.</p></div>}
     </section></div><div><label>Recorded validation run<select value={e.selected?.id ?? ''} onChange={event => e.select(Number(event.target.value))}><option value="" disabled>No recorded validation runs</option>{e.runs.map(run => <option key={run.id} value={run.id}>#{run.id} · {run.backend} / {run.model} · {run.created_at}</option>)}</select></label>
-      {!e.selected && <div className="empty"><h3>No validation result yet</h3><p>Evaluation compares the classifier's suggested codes with reference codes from a validation benchmark. Import a validation benchmark with <code>uv run qualia benchmark import</code> (User Guide, section 14), then choose Run validation evaluation.</p><p className="caption">Metrics are unavailable until a complete evaluation succeeds.</p></div>}
+      {!e.selected && <div className="empty"><h3>No validation result yet</h3><p>Evaluation compares the classifier's suggested codes with reference codes from a validation benchmark. {w.readOnly ? 'The public demo shows recorded results only.' : 'Import a validation benchmark under Benchmarks on this page, then choose Run validation evaluation.'}</p><p className="caption">Metrics are unavailable until a complete evaluation succeeds.</p></div>}
       {e.selected && !e.selected.metrics && <p role="alert">This evaluation’s metrics could not be read. Choose another run or evaluate again.</p>}
       {e.selected?.metrics && <><p className="caption">{e.selected.metrics.segment_count ?? 'n/a'} evaluated segments · {e.selected.metrics.scored_prediction_count ?? 'n/a'} scored code assignments · {e.selected.metrics.calls ?? 'n/a'} attempted calls</p><p className="caption">Alpha basis: {e.alphaBasis}</p><div className="table-scroll" role="region" tabIndex={0} aria-label="Validation metrics (scrollable)"><table aria-label="Validation metrics"><thead><tr><th scope="col">Metric</th><th scope="col">Value</th></tr></thead><tbody>{e.metricRows.map(row => <tr key={row.label}><th scope="row">{row.label}<span className="metric-help">{row.help}</span></th><td className="metric-value">{row.value}</td></tr>)}</tbody></table></div><p className="caption">n/a means undefined or unavailable. Model-reported scores are not accuracy. ECE measures observed calibration of scored predicted code assignments on this validation set.</p>{e.reviewSentence && <p className="review-budget">{e.reviewSentence}</p>}</>}
     </div></div>

@@ -5,13 +5,39 @@ import type { WorkspaceController } from './workspace'
 import type { ReviewController } from './review'
 import { request } from './client'
 import { eventCodeName } from './entities'
-import { backendBlockedReason, calibrationRows, formatInterval, formatMetric, metricRows, parseEvaluations, reviewSentence } from './evaluation-state'
-import type { EvaluationRecord } from './evaluation-state'
+import { backendBlockedReason, benchmarkReason, calibrationRows, formatInterval, formatMetric, metricRows, parseEvaluations, reviewSentence } from './evaluation-state'
+import type { BenchmarkStatus, EvaluationRecord } from './evaluation-state'
 import { useModelChoice } from './models'
 
 const formatPercent = (value: number | null | undefined) => typeof value === 'number' && Number.isFinite(value) ? `${Math.round(value * 1000) / 10}%` : 'n/a'
 
-export function useEvaluation(w: WorkspaceController, review: ReviewController) {
+// Which benchmark splits the open project has, and in-app import (dev and validation only).
+export function useBenchmarks(w: WorkspaceController) {
+  const [status, setStatus] = useState<BenchmarkStatus | null>(null)
+  const url = `projects/${encodeURIComponent(w.slug)}/benchmarks`
+  useEffect(() => {
+    setStatus(null)
+    if (!w.slug || w.readOnly) return
+    let current = true
+    request<BenchmarkStatus>(url).then(value => { if (current) setStatus(value) }).catch(() => { if (current) setStatus({ dev: null, validation: null }) })
+    return () => { current = false }
+  }, [w.slug, w.readOnly, url])
+  const importBenchmark = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault(); const target = event.currentTarget; const form = new FormData(target)
+    void w.run(async () => {
+      const file = form.get('file')
+      if (!(file instanceof File) || !file.size) throw new Error('Choose a benchmark JSONL file.')
+      const version = Number(form.get('version')) || null
+      const input: components['schemas']['BenchmarkImportInput'] = { split: String(form.get('split')) as 'dev' | 'validation', version, content: await file.text() }
+      setStatus(await request<BenchmarkStatus>(url, { method: 'POST', body: JSON.stringify(input) }))
+      target.reset(); w.setNotice(`Imported the ${input.split} benchmark.`)
+    })
+  }
+  return { status, importBenchmark }
+}
+export type BenchmarksController = ReturnType<typeof useBenchmarks>
+
+export function useEvaluation(w: WorkspaceController, review: ReviewController, benchmarks: BenchmarksController) {
   const [backend, setBackend] = useState('rules')
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [sample, setSample] = useState(50)
@@ -21,7 +47,7 @@ export function useEvaluation(w: WorkspaceController, review: ReviewController) 
   const runs = useMemo(() => parseEvaluations((w.data?.evaluation_runs ?? []) as EvaluationRecord[]), [w.data])
   const selected = runs.find(run => run.id === selectedId) ?? runs[0]
   const provider = review.availability?.backends.find(item => item.name === backend)
-  const blockedReason = backendBlockedReason(w.readOnly, provider, review.availability?.allow_external, 'Evaluation is unavailable in this read-only public snapshot.')
+  const blockedReason = backendBlockedReason(w.readOnly, provider, review.availability?.allow_external, 'Evaluation is unavailable in this read-only public snapshot.') || benchmarkReason(benchmarks.status, ['validation'])
   const evaluate = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     void w.run(async () => {
