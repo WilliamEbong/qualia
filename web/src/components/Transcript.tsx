@@ -11,7 +11,7 @@ import { Suggestion } from './Review'
 export function Transcript({ w, review }: { w: WorkspaceController; review: ReviewController }) {
   return <section className="transcript-panel" aria-label="Transcript">
     <header className="section-heading transcript-heading"><div><p className="caption">Source {w.source?.id ?? '—'}</p><h2>{w.source?.name ?? 'Your research begins here'}</h2></div><Button disabled={w.readOnly} onClick={() => w.setPanel('import')}>Import source</Button></header>
-    <p className="caption">{w.readOnly ? 'Read-only snapshot · ↑ / ↓ move between segments · inspect saved coding and provenance' : '↑ / ↓ next or previous passage · 1–9 apply a code · select text to code part of a passage · Esc clears the selection'}</p>
+    <p className="caption">{w.readOnly ? 'Read-only snapshot · ↑ / ↓ next or previous passage · inspect saved coding and provenance' : '↑ / ↓ next or previous passage · 1–9 apply a code · select text to code part of a passage · Esc clears the selection'}</p>
     {!w.segments.length && <div className="empty"><h3>No transcript open</h3><p>Select a source on the left, or choose Import source to add a transcript (TXT, Markdown or CSV). Your text stays in this local project.</p></div>}
     <div className="transcript">
       {w.segments.map(segment => <article id={`segment-${segment.id}`} key={`${w.slug}-${segment.id}`} tabIndex={0} aria-label={`Segment ${segment.ordinal + 1}`} className={`segment ${w.active?.id === segment.id ? 'active-segment' : ''}`} onFocus={() => w.activate(segment.id)} onPointerDown={() => w.activate(segment.id)}>
@@ -43,10 +43,10 @@ export function CodingPanel({ w, review }: { w: WorkspaceController; review: Rev
       <Button type="submit">Create, freeze and assign</Button>
     </fieldset></form></details>}
     <h3>Current assignments</h3>
-    {!w.activeCodings.length && <p className="caption">No codes on this segment.</p>}
+    {!w.activeCodings.length && <p className="caption">No codes on this passage.</p>}
     {w.activeCodings.map(item => <div key={item.id} className="assignment"><strong>{w.eventCodeName(item)}</strong><p className="caption">characters {item.span_start}–{item.span_end} · coded by {item.actor}</p><blockquote>{w.spanText(item)}</blockquote><Button disabled={w.readOnly || w.busy} onClick={() => void w.remove(item)} aria-label={`Remove assignment of ${w.eventCodeName(item)}`}>Remove assignment</Button></div>)}
     <h3>Pending suggestions</h3>
-    {!review.activeSuggestions.length && <p className="caption">No pending suggestions for this segment.</p>}
+    {!review.activeSuggestions.length && <p className="caption">No pending suggestions for this passage.</p>}
     {review.activeSuggestions.map(item => <Suggestion key={item.id} item={item} w={w} review={review} />)}
     <h3>Provenance</h3>
     <p className="caption">Decisions are retained, including removals.</p>
