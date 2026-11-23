@@ -42,7 +42,7 @@ export function useReview(w: WorkspaceController) {
   const blockedReason = w.readOnly ? 'AI is unavailable in this read-only public snapshot.' : !selectedBackend ? 'Checking backend availability…' : !selectedBackend.available ? selectedBackend.reason || 'Backend unavailable.' : selectedBackend.external && !availability?.allow_external ? 'External AI is disabled in this project’s routing configuration.' : ''
   const evaluations = useMemo(() => parseEvaluations((w.data?.evaluation_runs ?? []) as EvaluationRecord[]), [w.data])
   const review = (suggestion: Coding, decision: 'accept' | 'reject') => w.run(async () => {
-    const input: components['schemas']['ReviewInput'] = { suggestion_id: suggestion.id, decision, actor: w.actor, note: selected?.id === suggestion.id ? note : '' }
+    const input: components['schemas']['ReviewInput'] = { suggestion_id: suggestion.id, decision, actor: w.actor, note }
     await request<components['schemas']['IdResult']>(`projects/${encodeURIComponent(w.slug)}/review`, { method: 'POST', body: JSON.stringify(input) })
     await w.reload(); setSelectedId(null); setNote('')
   })
@@ -71,7 +71,7 @@ export function useReview(w: WorkspaceController) {
     const segment = w.data?.segments.find(segment => segment.id === item.segment_id)
     return segment && w.data ? Array.from(segmentText(w.data, segment)).slice(item.span_start, item.span_end).join('') : ''
   }
-  return { availability, availabilityError, backend, setBackend, blockedReason, selected, select: (id: number) => { if (selected?.id !== id) setNote(''); setSelectedId(id) },
+  return { availability, availabilityError, backend, setBackend, blockedReason, selected, select: (id: number) => setSelectedId(id),
     model,
     suggestions, activeSuggestions, groups, note, setNote, result, review, classify, excerpt, modelScore, reviewReasons,
     reasonCaption: (value: string | null) => reasonCaption(value, w.data?.routing?.human_review_below), eceCaption: (item: Coding) => calibrationCaption(item, evaluations), isAcceptedModel,
