@@ -775,3 +775,5 @@ label > .caption { display: block; margin: 2px 0 6px; }
 .experiments-page > .empty::after, .experiments-page > .empty::before { display: none; }
 .suggestion-position { margin: 0 0 4px; }
 @media (max-width: 900px) { .experiments-page { display: flex; flex-direction: column; } }
+.experiments-start { padding-bottom: 8px; margin-bottom: 12px; }
+@media (max-width: 500px) { .prerequisites li { flex-wrap: wrap; } .prerequisites li .caption { flex-basis: 100%; padding-left: calc(1ch + 8px); } }
