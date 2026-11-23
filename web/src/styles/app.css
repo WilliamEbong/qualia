@@ -668,3 +668,8 @@ label > .caption { display: block; margin: 2px 0 6px; }
 .retrieval-meta .caption { margin: 0; }
 .retrieval-card { padding: 12px 0; }
 .retrieval-card blockquote { margin: 8px 0 0; }
+/* Feature 019: Analysis view switcher, styled like the main tabs. */
+.analysis-index { font-family: var(--font-body); gap: 0; padding: 0; }
+.analysis-index .button { border: 0; border-bottom: 3px solid transparent; min-height: 44px; padding: 8px 14px; background: transparent; }
+.analysis-index .button[aria-current=page] { border-bottom-color: var(--accent); background: var(--surface); }
+.analysis-top { margin: 12px 0 20px; }
