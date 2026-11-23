@@ -276,6 +276,7 @@ def export_command(project: str = 'demo', format: str = 'json',
         except ValueError as exc:
             raise typer.BadParameter(str(exc)) from exc
     if output:
+        output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(content, encoding='utf-8', newline='')
         typer.echo(str(output))
     else:

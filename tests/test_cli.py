@@ -97,7 +97,7 @@ def test_cli_export_output_file_keeps_stored_newlines(tmp_path, monkeypatch):
     transcript = tmp_path / 'transcript.txt'
     transcript.write_bytes(b'line one\nline two\n\nsecond para')
     assert runner.invoke(app, ['import', str(transcript), '--project', 'study']).exit_code == 0
-    output = tmp_path / 'export.csv'
+    output = tmp_path / 'new folder' / 'export.csv'  # a folder that does not exist yet
     result = runner.invoke(app, ['export', '--project', 'study', '--format', 'csv',
                                  '--include-text', '--output', str(output)])
     assert result.exit_code == 0, result.output
