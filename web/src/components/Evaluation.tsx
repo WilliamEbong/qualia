@@ -23,7 +23,7 @@ export function Evaluation({ w, review, evaluation: e, benchmarks: b }: { w: Wor
       {e.blockedReason && <p className="caption">{e.blockedReason}</p>}{review.availabilityError && <p role="alert">Availability unavailable: {review.availabilityError}</p>}
       <Button type="submit" className="primary" disabled={w.readOnly || w.busy || !!e.blockedReason || !w.data?.codebook_versions.length}>Run validation evaluation</Button>
       {!w.data?.codebook_versions.length && <p className="caption">Freeze a codebook before evaluating.</p>}
-      <p className="caption">Normal project privacy and call budgets apply. Rules is an offline keyword baseline; fake is a synthetic test backend.</p>
+      <p className="caption">Normal project privacy and call budgets apply. Rules is a free offline keyword baseline; Fake gives practice answers only.</p>
     </fieldset></form>
     <section className="editor repeatability" aria-label="Repeatability check"><h3>Check repeatability</h3><p>Classifies the same sample of your passages twice, without stored answers, using the backend and model above. It shows how often the model agrees with itself and records nothing in your coding.</p>
       <label>Passages in the sample (1–200)<input type="number" min={1} max={200} value={e.sample} onChange={event => e.setSample(Number(event.target.value))} disabled={w.readOnly || w.busy} /></label>

@@ -463,7 +463,7 @@ td > .button:not(.matrix-cell) { width: 100%; justify-content: flex-start; font-
 .home-lede { background: var(--plate-ground); padding: 4px 8px; width: fit-content; }
 @media (max-width: 900px) {
   /* On a phone the queue comes before the classification form. */
-  .review-page .two-column > :last-child { order: -1; }
+  /* Round 7: the run form folds once suggestions exist, so reviewer controls lead again on phones. */
 }
 @media (max-width: 900px) {
   /* One page scroll on phones: the Sources rail is no longer its own 480px scroller. */
@@ -708,4 +708,23 @@ label > .caption { display: block; margin: 2px 0 6px; }
 @media (max-width: 500px) {
   /* Codebook on phones: the explanation and version status come before the Freeze button. */
   .codebook-page > .section-heading { flex-direction: column; align-items: flex-start; }
+}
+/* Analysis overview: the most frequent codes as a small ruled bar list. */
+.analysis-top { margin: 16px 0 24px; border-top: 1px solid var(--border); padding-top: 12px; }
+.analysis-top h3 { font-size: var(--type-subtitle); margin: 0 0 8px; }
+.analysis-top ol { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 6px; }
+.analysis-top li { display: grid; grid-template-columns: minmax(8rem, 14rem) minmax(0, 1fr) auto; align-items: center; gap: 12px; }
+.analysis-top-bar { height: 12px; background: var(--accent); width: calc(var(--share) * 100%); }
+.analysis-top-count { font-family: var(--font-mono); font-size: var(--type-caption); color: var(--secondary); }
+@media (max-width: 500px) { .analysis-top li { grid-template-columns: minmax(0, 1fr) 30% auto; } }
+.analysis-page > details + p { margin-top: 16px; }
+@media (max-width: 900px) {
+  /* The pinned code row shows it scrolls: a fixed chevron on its cut edge. */
+  .coding-panel > .code-shortcuts::after { content: '›'; position: sticky; right: 0; flex: none; display: flex; align-items: center; padding: 0 8px; background: var(--surface); color: var(--secondary); border-left: 1px solid var(--border); }
+}
+.matrix-page thead .matrix-total { font-family: var(--font-body); font-size: inherit; text-align: left; }
+.scroll-hint { display: none; }
+@media (max-width: 500px) {
+  .matrix-page .scroll-hint { display: block; margin: 0 0 8px; }
+  .experiments-start { font-size: var(--type-small-heading); }
 }
