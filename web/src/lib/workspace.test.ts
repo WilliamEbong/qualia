@@ -81,3 +81,23 @@ describe('counted', () => {
     expect(counted(3, 'pending suggestion')).toBe('3 pending suggestions')
   })
 })
+
+describe('study status and next step', () => {
+  it('counts the study and picks one next step in order', async () => {
+    const { studyStatus } = await import('./entities')
+    const base = { sources: [], segments: [], codes: [], codebook_versions: [], current_codings: [], suggestions: [] }
+    const step = (extra: object) => studyStatus({ ...base, ...extra } as never).next
+    expect(step({})).toEqual({ label: 'Import your first source', view: 'workspace', panel: 'import' })
+    const sources = [{ id: 1 }], segments = [{ id: 1 }, { id: 2 }]
+    expect(step({ sources, segments }).label).toBe('Create your first codes')
+    expect(step({ sources, segments, codes: [{ id: 1 }] }).label).toBe('Freeze the codebook')
+    const frozen = { codebook_versions: [{ id: 1, frozen_at: '2026-11-23T17:02:40Z' }] }
+    expect(step({ sources, segments, codes: [{ id: 1 }], ...frozen }).label).toBe('Code a passage')
+    const coded = { current_codings: [{ segment_id: 1 }, { segment_id: 1 }] }
+    expect(step({ sources, segments, codes: [{ id: 1 }], ...frozen, ...coded, suggestions: [{}, {}] }))
+      .toEqual({ label: 'Review 2 pending suggestions', view: 'review' })
+    const done = studyStatus({ ...base, sources, segments, codes: [{ id: 1 }], ...frozen, ...coded } as never)
+    expect(done.next.label).toBe('Explore the analysis')
+    expect([done.sources, done.passages, done.coded, done.pending, done.latestVersion]).toEqual([1, 2, 1, 0, 'cb_v1 · 2026-11-23'])
+  })
+})

@@ -113,3 +113,19 @@ export function uniqueSegmentCount(codings: Coding[], codeId: number, sourceIds:
 }
 
 export const codeStyle = (index: number) => ({ '--code-color': `var(--code-${index % 8 + 1})`, '--code-border': 'solid', '--code-pattern': index >= 8 ? 'var(--code-hatch)' : 'none' })
+
+// Home's study status: what the project holds, and the single next step that moves it forward.
+export function studyStatus(data: Pick<Workspace, 'sources' | 'segments' | 'codes' | 'codebook_versions' | 'current_codings' | 'suggestions'>) {
+  const coded = new Set(data.current_codings.map(item => item.segment_id)).size
+  const latest = data.codebook_versions[data.codebook_versions.length - 1]
+  const pending = data.suggestions.length
+  const next: { label: string; view: View; panel?: 'import' } =
+    !data.sources.length ? { label: 'Import your first source', view: 'workspace', panel: 'import' }
+    : !data.codes.length ? { label: 'Create your first codes', view: 'codebook' }
+    : !latest ? { label: 'Freeze the codebook', view: 'codebook' }
+    : !coded ? { label: 'Code a passage', view: 'workspace' }
+    : pending ? { label: `Review ${counted(pending, 'pending suggestion')}`, view: 'review' }
+    : { label: 'Explore the analysis', view: 'analysis' }
+  return { sources: data.sources.length, passages: data.segments.length, coded, pending,
+    latestVersion: latest ? `cb_v${latest.id} · ${String(latest.frozen_at).slice(0, 10)}` : null, next }
+}
