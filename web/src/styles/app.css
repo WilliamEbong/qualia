@@ -457,3 +457,16 @@ input, select, textarea { border-color: var(--caption); }
 /* Review cards: one rule between cards, actions closer to the decision. */
 .review-page .suggestion { margin: 0 0 12px; }
 .review-page .suggestion .actions { border-top: 0; padding-top: 8px; }
+/* Count cells read as one clickable figure, not a small boxed input. */
+td > .button:not(.matrix-cell) { width: 100%; justify-content: flex-start; font-variant-numeric: tabular-nums; }
+/* The home intro line sits on a flat plate ground so it stays legible over the contour lines. */
+.home-lede { background: var(--plate-ground); padding: 4px 8px; width: fit-content; }
+@media (max-width: 900px) {
+  /* On a phone the queue comes before the classification form. */
+  .review-page .two-column > :last-child { order: -1; }
+}
+@media (max-width: 900px) {
+  /* One page scroll on phones: the Sources rail is no longer its own 480px scroller. */
+  .source-panel { max-height: none; overflow-y: visible; }
+}
+td > .button:not(.matrix-cell) { border-color: transparent; background: transparent; text-decoration: underline; text-underline-offset: 3px; }

@@ -9,9 +9,10 @@ import { Button } from './ui/button'
 export function Suggestion({ item, w, review }: { item: Coding; w: WorkspaceController; review: ReviewController }) {
   return <article className={`suggestion ${review.selected?.id === item.id ? 'selected-suggestion' : ''}`} style={codeStyle(w.codeIndex(item.code_id)) as CSSProperties} aria-label={`Suggestion ${item.id}`} onFocus={() => review.select(item.id)}>
     <Button className="suggestion-select" aria-pressed={review.selected?.id === item.id} onClick={() => review.select(item.id)}>{review.codeName(item)}</Button>
+    <blockquote>{review.excerpt(item)}</blockquote>
     <p className="caption">suggested · {review.modelScore(item.score)}</p><p className="caption">{review.eceCaption(item)}</p>
     <p className="caption">{review.reasonCaption(item.review_trigger)} · segment {item.segment_id}</p>
-    <blockquote>{review.excerpt(item)}</blockquote><p>{item.rationale || 'No rationale supplied.'}</p>
+    <p>{item.rationale || 'No rationale supplied.'}</p>
     <details className="provenance"><summary>Suggestion provenance</summary><dl><dt>Backend / model</dt><dd>{item.backend} / {item.model}{item.model_version && <> · answered by {item.model_version}</>}</dd><dt>CLI version</dt><dd>{item.cli_version}</dd><dt>Actor</dt><dd>{item.actor_type} · {item.actor}</dd><dt>Frozen codebook</dt><dd>{item.codebook_version_id}</dd><dt>Span</dt><dd>{item.span_start}:{item.span_end}</dd><dt>Pipeline hash</dt><dd>{item.pipeline_version}</dd><dt>Prompt hash</dt><dd>{item.prompt_hash}</dd><dt>Created</dt><dd>{item.created_at}</dd></dl></details>
     <div className="actions"><Button disabled={w.readOnly || w.busy || !w.actor.trim()} onClick={() => void review.review(item, 'accept')} aria-label={`Accept ${review.codeName(item)}, suggestion ${item.id}`} aria-keyshortcuts="a">Accept <span className="caption" aria-hidden="true">a</span></Button><Button disabled={w.readOnly || w.busy || !w.actor.trim()} onClick={() => void review.review(item, 'reject')} aria-label={`Reject ${review.codeName(item)}, suggestion ${item.id}`} aria-keyshortcuts="r">Reject <span className="caption" aria-hidden="true">r</span></Button><Button onClick={() => w.openSegment(item.segment_id)} aria-label={`Open segment ${item.segment_id}`}>Open segment</Button></div>
   </article>
