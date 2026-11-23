@@ -632,3 +632,13 @@ label > .caption { display: block; margin: 2px 0 6px; }
 .memo-links { margin: 8px 0 16px; }
 .memo-links > summary { cursor: pointer; font-size: var(--type-caption); color: var(--secondary); padding: 8px 0; }
 @media (max-width: 500px) { .workspace-nav { padding-right: 0; } }
+/* Review desktop: decision buttons sit at the end of the card, after the trust captions. */
+@media (min-width: 901px) { .review-page .suggestion > .actions { align-self: end; } }
+/* Phones only: switch transcript without scrolling to the sources rail. */
+.source-switch { display: none; }
+@media (max-width: 900px) { .source-switch { display: block; margin: 12px 0 0; } }
+/* Trust captions always precede the decision: the actions return to the end of the card's flow. */
+@media (min-width: 901px) {
+  .review-page .suggestion { display: block; }
+  .review-page .suggestion > .actions { display: flex; flex-direction: row; align-items: center; gap: 8px; padding-top: 8px; }
+}

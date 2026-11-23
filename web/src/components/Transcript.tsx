@@ -10,7 +10,7 @@ import { Suggestion } from './Review'
 
 export function Transcript({ w, review }: { w: WorkspaceController; review: ReviewController }) {
   return <section className="transcript-panel" aria-label="Transcript">
-    <header className="section-heading transcript-heading"><div><p className="caption">Source {w.source?.id ?? '—'}</p><h2>{w.source?.name ?? 'Your research begins here'}</h2></div><Button disabled={w.readOnly} onClick={() => w.setPanel('import')}>Import source</Button></header>
+    <header className="section-heading transcript-heading"><div><p className="caption">Source {w.source?.id ?? '—'}</p><h2>{w.source?.name ?? 'Your research begins here'}</h2>{(w.data?.sources.length ?? 0) > 1 && <label className="source-switch">Switch source<select value={w.source?.id ?? ''} onChange={event => w.selectSource(Number(event.target.value))}>{w.data?.sources.map(source => <option key={source.id} value={source.id}>{source.name}</option>)}</select></label>}</div><Button disabled={w.readOnly} onClick={() => w.setPanel('import')}>Import source</Button></header>
     <p className="caption">{w.readOnly ? 'Read-only snapshot · ↑ / ↓ next or previous passage · inspect saved coding and provenance' : '↑ / ↓ next or previous passage · 1–9 apply a code · select text to code part of a passage · Esc clears the selection'}</p>
     {!w.segments.length && <div className="empty"><h3>No transcript open</h3><p>Select a source on the left, or choose Import source to add a transcript (TXT, Markdown or CSV). Your text stays in this local project.</p></div>}
     <div className="transcript">
