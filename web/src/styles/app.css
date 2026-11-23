@@ -681,3 +681,13 @@ label > .caption { display: block; margin: 2px 0 6px; }
 @media (max-width: 500px) { .demo-notice { padding: 10px 16px; } }
 .read-only form:has(> fieldset:disabled), .read-only .editor:not(:has(:enabled, a, p:not(.caption))) { display: none; }
 .read-only .repeatability, .read-only label:has(> input:disabled) + .caption, .read-only .coding-panel > .rail-title, .read-only .coding-panel > .selection-note { display: none; }
+/* Round 6 fixes from fresh scoring. */
+.analysis-index { flex-wrap: wrap; }
+.analysis-index .button { flex: none; white-space: nowrap; }
+@media (max-width: 500px) { .analysis-index { flex-wrap: nowrap; overflow-x: auto; } }
+.memo-card .section-heading .caption { white-space: nowrap; }
+.code-mark .caption { margin-left: 6px; }
+.prerequisites ul { grid-template-columns: minmax(0, 1fr); }
+.prerequisites li .text-link { margin-left: 8px; min-height: 32px; }
+.retrieval-group > h3 { border-bottom: 3px solid var(--code-color, var(--foreground)); }
+.retrieval-group blockquote { border-left-color: var(--code-color, var(--border)); }
