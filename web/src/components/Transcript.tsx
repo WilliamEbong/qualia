@@ -15,7 +15,7 @@ export function Transcript({ w, review }: { w: WorkspaceController; review: Revi
     {!w.segments.length && <div className="empty"><h3>No transcript open</h3><p>Select a source on the left, or choose Import source to add a transcript (TXT, Markdown or CSV). Your text stays in this local project.</p></div>}
     <div className="transcript">
       {w.segments.map(segment => <article id={`segment-${segment.id}`} key={`${w.slug}-${segment.id}`} tabIndex={0} aria-label={`Segment ${segment.ordinal + 1}`} className={`segment ${w.active?.id === segment.id ? 'active-segment' : ''}`} onFocus={() => w.activate(segment.id)} onPointerDown={() => w.activate(segment.id)}>
-        <div className="segment-heading"><span className="caption">{segment.speaker || 'Speaker'} / {segment.ordinal + 1}</span><span className="caption">segment {segment.id}</span></div>
+        <div className="segment-heading"><span className="caption">{segment.speaker ? `${segment.speaker} / ` : 'Passage '}{segment.ordinal + 1}</span><span className="caption">segment {segment.id}</span></div>
         <Annotorious><TextAnnotator annotatingEnabled={!w.readOnly} selectionMode="all" style={annotationStyle(w.codes.map(code => code.id))}>
           <p className="segment-text" data-testid={`segment-text-${segment.id}`}>{segment.text}</p>
           <AnnotationSync segmentId={segment.id} text={segment.text} codings={segment.codings} onSpan={w.receiveSpan} />

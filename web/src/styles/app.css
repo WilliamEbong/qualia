@@ -512,3 +512,14 @@ h1, h2, h3, h4 { font-variant-numeric: lining-nums; }
   .suggestion .actions .button { padding-left: 12px; padding-right: 12px; }
 }
 label > .caption { display: block; margin: 2px 0 6px; }
+@media (min-width: 901px) { .review-page .suggestion > .actions { align-items: stretch; } }
+.code-card .section-heading { flex-wrap: nowrap; align-items: baseline; }
+.code-card .section-heading .caption { flex: none; }
+@media (max-width: 900px) {
+  /* A tall empty state on a phone keeps its horizon below the text. */
+  .empty:has(> :nth-child(3))::after { top: auto; bottom: 88px; }
+}
+@media (max-width: 500px) {
+  .matrix-page th:first-child { min-width: 128px; }
+  .matrix-page thead th { min-width: 72px; }
+}
