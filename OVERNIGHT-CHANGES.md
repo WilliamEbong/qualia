@@ -32,6 +32,17 @@ These are the effects you can see when you use Qualia. The details and evidence 
 - Fresh reviewers rated the main screens about 7.2 out of 10 on desktop and 6.8 on phone, up from 7.1 and 5.9.
 - No screen reached 9. What stands in the way is mostly new features, rules in the design docs that only you can change, and splitting the long Analysis page. Round 5 below lists each one.
 
+**New in round 6.**
+- **Home:** shows where the study stands and the next step.
+- **Benchmarks:** you can import benchmarks in the app, with no terminal needed.
+- **Analysis:** opens on a short overview with one tab per analysis.
+- **Matrix:** has totals.
+- **Retrieval:** groups excerpts by code.
+- **Memos:** show their date and author.
+- **The public demo:** hides what it cannot do.
+
+Two design-rule changes are waiting for your decision in `OWNER-NEEDED.md`.
+
 **Faster and tidier.**
 - **Commands:** every `qualia` command except `open` starts about 3× faster, because it no longer loads the web server.
 - **CI:** the type check runs once instead of three times.
@@ -49,8 +60,8 @@ Branch `claude/overnight-fixes-3d262b`, based on `main` at `2978c5d`. Nothing wa
 
 | | Before | After |
 |---|---|---|
-| Python (`uv run pytest`) | 682 passed, 5 skipped, 4 failed, 4 errors | 703 passed, 5 skipped, 0 failed (full run after the last Python change in round 4) |
-| Web (`npm test`) | 63 passed | 65 passed |
+| Python (`uv run pytest`) | 682 passed, 5 skipped, 4 failed, 4 errors | 706 passed, 5 skipped, 0 failed (full run after the last Python change, round 6) |
+| Web (`npm test`) | 63 passed | 71 passed |
 | Static-demo e2e (`tests/e2e/demo.spec.ts`) | not run | 1 passed |
 | `tsc --noEmit`, `ruff check` | clean | clean |
 | `pip-audit` / `npm audit` | 17 known vulnerabilities in 3 packages / 1 moderate | 0 / 0 |
@@ -399,6 +410,74 @@ Each cell is 1280 px / 375 px.
 4. **The read-only demo** shows disabled write controls and empty model menus. A 9 would need a demo-specific layout, which is logic, not styling.
 
 The polish items scorers raised in the final round are small and specific. Each is in their reports in the session scratchpad. They would add about a quarter point, not reach 9.
+
+## Round 6: the features the scorers asked for (feature 019)
+
+The orchestrator relayed your delegation and lifted the presentation-only limit for the items scorers named as blocking a 9. I built them as Spec Kit feature `specs/019-researcher-experience` (spec, plan, tasks, convergence), one commit each, with tests:
+
+45. **Benchmarks in the app.**
+    - **Commits:** `4339c7f` (API), `6accf4a` (screens).
+    - **What changed:**
+      - Evaluation has a Benchmarks card that shows which splits are imported and imports a JSONL file under the CLI's exact rules. The protected split stays command-line only.
+      - Run validation evaluation stays disabled, with the reason shown, until a validation benchmark exists.
+      - Experiments lists its prerequisites in plain words, and the missing ones link to Evaluation.
+    - **Who notices:** every researcher who reaches Evaluation. It used to be a dead end that needed a terminal.
+46. **Home shows where the study stands.** `2cb2ab3`
+    - **What changed:** Home shows sources, passages, coded passages, pending suggestions and the latest frozen version, plus one button for the next step.
+47. **Matrix totals, and Retrieval grouped by code.** `54e5472`
+    - **Matrix:** totals count distinct coded segments, like the cells.
+    - **Retrieval:** excerpts are grouped under each code, in its code colour.
+48. **Memo cards show the date and author.** `fff42bc`
+    - **What changed:** migration 006 adds `memos.author`, and the app records the current coder's name.
+    - **Upgrade:** existing projects upgrade automatically, with a `.v5.bak` backup.
+49. **Analysis opens on an overview with one view per job.** `e60d7b7`
+    - **Before:** one 8,500 px report.
+    - **Now:** each analysis has its own tab. Choosing a bar or cell anywhere opens the evidence for it.
+50. **The read-only demo.** `f4ff3de`, `c7a4169`
+    - **What changed:** one notice says what the demo is. Write controls, empty model menus, start headings and editing copy are hidden.
+51. **Docs:** the user guide and `docs/CONTRACTS.md`. `ee50869`
+52. **Fixes from scoring the new build.** `68267eb`, `c7a4169`
+    - Analysis tabs collapsed to one letter wide on phones.
+    - The Evaluation empty state ignored an already imported benchmark.
+    - The demo review page said "Run classification".
+    - Memo dates wrapped.
+    - Home listed the study that is already open.
+    - On Evaluation, Run now leads once a benchmark is ready.
+
+**Not built: your decision.** Item 4 of the request was not built; see `OWNER-NEEDED.md` (gitignored, in this worktree):
+- **Trust captions:** collapse the per-card trust captions behind a marker.
+- **Highlight:** change the code-colour highlight.
+
+Both contradict the frozen rules in docs 04–05 and the project CLAUDE.md, and those docs are read-only to sessions. The note gives a recommendation for each.
+
+**Scores after round 6.** These come from two new scorers, the mean of both, before the last two small fixes (`c7a4169`). Each cell is 1280 px / 375 px.
+
+| Screen | End of round 5 | After round 6 |
+|---|---|---|
+| Home | 6.8 / 6.8 | 8.3 / 7.5 |
+| Workspace | 7.8 / 7.0 | 7.7 / 7.0 |
+| Codebook | 7.0 / 6.8 | 7.8 / 7.4 |
+| Review | 7.5 / 7.5 | 7.5 / 6.8 |
+| Analysis | 6.0 / 5.7 | 7.0 / 6.4 |
+| Evaluation | 7.0 / 6.5 | 6.3 / 6.4 |
+| Experiments | 6.8 / 6.7 | 7.5 / 7.3 |
+| Matrix | 8.2 / 7.2 | 8.3 / 7.2 |
+| Retrieval | 7.5 / 7.0 | 8.8 / 8.2 |
+| Memos | 7.5 / 7.2 | 8.0 / 8.0 |
+| **Mean** | **7.2 / 6.8** | **7.7 / 7.2** |
+
+**Reading the scores.**
+- **Closest to 9:** Retrieval reached 9 with one scorer (9/9/9 on desktop). Home, Matrix and Memos are close.
+- **Evaluation:** its score dropped because the empty state still pointed at a Run button far down the page. `c7a4169` fixed that afterwards and was not rescored.
+- **Review:** it stays limited by the required per-card trust captions (see `OWNER-NEEDED.md`).
+
+**Remaining items scorers named:**
+- **Phones:** the scrolling code row and tab strips have no edge cue, because the no-gradient rule rules out the usual fade.
+- **Workspace:** passages carry "characters 0–72" and "segment N" captions.
+- **Analysis:** the overview is text rather than a chart.
+- **The demo:** it has no recorded evaluation or experiment, which would need new licensed demo data.
+
+**Checks:** 706 Python tests passed, 71 web tests passed, and typecheck, build and the static-demo e2e pass. OpenAPI and the generated types were regenerated.
 
 ## Found, not changed
 
