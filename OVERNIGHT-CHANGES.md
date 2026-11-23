@@ -135,6 +135,75 @@ Three read-only Opus auditors covered: storage and migrations; AI routing, budge
 - **Smaller items.** Bare CR or U+2029 paragraph breaks, missing request-size caps, live-region timing, and duplicate evidence IDs.
 - **Flaky tests under load.** The installed-CLI probes and the launcher idle-timing test each failed once while other sessions loaded the PC, and passed when re-run alone.
 
+## Design pass: UI and UX (2026-11-23)
+
+**Method.**
+- **Identity:** I read DESIGN.md and docs 04–05 first. The archival look, the type, the code colours, the provenance stripes and every trust caption stay exactly as they were.
+- **What changed:** only styles and component markup (docs 05 §1). Nothing in `web/src/lib`, the API or Python changed.
+- **Projects used:** a synthetic 3-interview study I wrote (invented text, in a temporary home), plus the committed public demo snapshot. The AnnoMI demo data is protected by the guard hook, so it was not used.
+- **Screens:** I captured every view at 1280 and 375 px.
+- **Round 1 critique:** five fresh-context Opus reviewers worked in parallel, one lens each: hierarchy, words, flow, visual craft and accessibility.
+- **Fixes and later rounds:** I fixed the top items, then ran three more rounds of fresh reviewers. They included the William Web Design reviewer and language reviewer, plus a final regression check. I stopped when the reviewers found nothing a user would notice.
+
+**Changes, each with who notices.**
+
+29. **No stray rust stub under the header.** `4a93d53`
+    - **Who notices:** everyone, on every screen. It came from an empty alert region.
+30. **Save and error messages stay in view.** `4a93d53`
+    - **Who notices:** anyone who saves a code, freezes or decides on a proposal far down the page. Before, the confirmation appeared off-screen at the top.
+31. **Form fields have visible outlines.** `4a93d53`
+    - **Who notices:** low-vision users and anyone on a bright screen. Outlines went from 1.9:1 to 5.6:1 contrast (WCAG 1.4.11).
+    - **Also:** focused matrix cells keep a visible ring.
+32. **One clear primary action per screen.** `71134df`, `292f394`
+    - **Who notices:** first-time users looking for the next step.
+    - **Which buttons:** Open project, Freeze codebook, Run classification and Run validation evaluation. Each was checked with Playwright at 4.61:1 in light and dark.
+33. **Plainer words.** `71134df`, `6e0f7c3`
+    - **Who notices:** non-technical researchers.
+    - **What changed:**
+      - One name, **Import source**, for importing.
+      - Spans read "characters 0–72" rather than a time-like "0:72".
+      - A caption explains the **Human actor** field, and says coding stays disabled until it is filled.
+      - Codebook explains what freezing does.
+      - Evaluation's empty state says what it compares and how to import a benchmark.
+      - "Passage" is used consistently.
+    - **Unchanged:** every label named in the user guide or tests, and all trust wording.
+34. **Screen readers hear which suggestion a button acts on.** `71134df`
+    - **Who notices:** screen-reader users.
+    - **What changed:**
+      - Accept, Reject, Open segment, Remove assignment and the proposal buttons name their code or proposal.
+      - Key hints are announced as shortcuts.
+      - Run results are announced.
+      - No heading levels are skipped.
+35. **Review is shorter and puts the decision first.** `157d063`, `58fafd1`
+    - **Who notices:** anyone reviewing suggestions.
+    - **What changed:**
+      - The passage now comes before the captions.
+      - Cards are tighter.
+      - The controls stay beside the queue on desktop.
+      - On a phone the queue comes first.
+36. **Phone coding is usable.** `edf9701`
+    - **Who notices:** anyone coding on a phone.
+    - **What changed:** the transcript comes first and the code buttons stay pinned below it. The sources rail is no longer a nested scroller, and the nav scrolls sideways instead of taking three rows.
+    - **Checked:** tap a passage, tap a code, and the code is assigned.
+37. **Smaller fixes a user sees.**
+    - The empty-state horizon no longer strikes through text.
+    - Analysis counts read as links to their evidence.
+    - Codebook cards drop empty example slips, and proposal fields are hidden when there is nothing to decide.
+    - The Home intro line is legible over the plate.
+    - "P01" in headings no longer reads as "Po1".
+
+**Evidence.**
+- **Screenshots:** before and after are in `design-review/overnight/before/` and `design-review/overnight/final/`, covering the key screens at 1280 and 375. The full 46-screen sets of every round are outside the repo, in the session scratchpad.
+- **Checks:** web tests (65), the typecheck and the build pass, and so does the static-demo e2e test (`tests/e2e/demo.spec.ts`).
+- **Not run:** the mutation e2e test needs the AnnoMI demo, which the guard keeps me from building.
+- **Live checks with Playwright:** I checked primary-button contrast in both themes, panel focus, and phone coding.
+
+**Left alone, with the reason:**
+- **"Saving…" during a long classification.** It shows in the sticky strip, but a per-button "Running…" label would rename buttons the e2e test finds by name.
+- **No confirmation after Accept or Reject.** Adding one needs a change in `web/src/lib`, which is out of design scope.
+- **The Home plate height and the open-by-default Analysis criteria.** Both are approved identity or working defaults.
+- **The 501–900 px Workspace layout between phone and desktop.** It was not captured, so it is not verified.
+
 ## Round 3: tidy, simplify, graphify
 
 Your bar was that deletion counts as improvement and that nothing should change behaviour. An Opus over-engineering audit (ponytail-audit) swept the whole repo. It found the project already lean: no unused dependency, no dead function, no unused CSS or test helper. These three changes passed the bar:

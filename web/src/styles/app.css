@@ -484,3 +484,5 @@ h1, h2, h3, h4 { font-variant-numeric: lining-nums; }
   .coding-panel > .selection-note { order: -2; }
   .coding-panel > .code-shortcuts { order: -1; }
 }
+/* While a message shows, top-pinned panels start below the sticky message strip. */
+.messages:has(p) ~ main :is(.source-panel, .coding-panel, .review-controls) { top: var(--messages-height, 58px); max-height: calc(100vh - var(--messages-height, 58px)); }

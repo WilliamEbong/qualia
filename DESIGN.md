@@ -34,6 +34,15 @@ Square corners, no shadows, one-pixel keylines, and a four-point spacing rhythm.
 
 Presentation changes are limited to styles, markup/classes, public presentation assets, and this document. State, handlers, calculations, generated API types, privacy behavior, and protected project files remain unchanged from the D0 baseline. Root performs browser evidence and accessibility/performance audits before final acceptance.
 
+## Usability pass (2026-11-23)
+
+- One filled primary action per screen: Open project, Freeze codebook, Run classification, Run validation evaluation. Save draft code and Save memo stay primary as the submit of their own form.
+- Save and error messages sit in a sticky strip at the top of the viewport, so feedback is seen wherever the action was taken.
+- On narrow screens the Workspace shows the transcript first and pins the coding panel to the bottom, with the code buttons at its top. The Review queue comes before the classification form.
+- Review cards show the passage being judged directly under the code name. Captions keep their exact wording below it.
+- Headings use lining figures, so participant IDs such as P01 read correctly in Cormorant.
+- Form field outlines use the caption colour (3:1 against both grounds). `--border` stays the decorative keyline.
+
 ## Measured accessibility and loading adjustments
 
 The light caption token is slightly darker than the initial contract example to reach AA against both ivory and cream. Fixed code and decision colors are unchanged. The seed-3 dome plate has 640px and 1280px WebP derivatives encoded with existing FFmpeg/libwebp quality65; these preserve the original composition while removing excess grain payload. Responsive image and preload declarations use the same candidate sizes and deployment base. Initial loading reserves a viewport of content height to keep the footer from jumping through the visible page.
