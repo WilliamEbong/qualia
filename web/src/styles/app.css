@@ -673,3 +673,11 @@ label > .caption { display: block; margin: 2px 0 6px; }
 .analysis-index .button { border: 0; border-bottom: 3px solid transparent; min-height: 44px; padding: 8px 14px; background: transparent; }
 .analysis-index .button[aria-current=page] { border-bottom-color: var(--accent); background: var(--surface); }
 .analysis-top { margin: 12px 0 20px; }
+/* Feature 019: the read-only demo hides what it cannot do and says so once. */
+.demo-notice { margin: 0; padding: 10px 32px; background: var(--surface); border-bottom: 1px solid var(--border); font-size: var(--type-caption); }
+.read-only fieldset:disabled, .read-only .button:disabled, .read-only button:disabled,
+.read-only label:has(> input:disabled), .read-only label:has(> select:disabled), .read-only label:has(> textarea:disabled),
+.read-only .run-classification, .read-only .prerequisites { display: none; }
+@media (max-width: 500px) { .demo-notice { padding: 10px 16px; } }
+.read-only form:has(> fieldset:disabled), .read-only .editor:not(:has(:enabled, a, p:not(.caption))) { display: none; }
+.read-only .repeatability, .read-only label:has(> input:disabled) + .caption, .read-only .coding-panel > .rail-title, .read-only .coding-panel > .selection-note { display: none; }
