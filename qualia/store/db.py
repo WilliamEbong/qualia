@@ -605,7 +605,7 @@ class Store:
 
     def retrieve(self, code_id: int | None = None, case_id: int | None = None) -> list[dict]:
         """Current coded spans; a multi-case source appears once per span in each filter."""
-        query = ('SELECT c.*, g.source_id, s.name AS source_name, '
+        query = ('SELECT c.*, g.source_id, g.speaker, s.name AS source_name, '
                  'g.start AS segment_start, g.end AS segment_end, '
                  'substr(s.text,g.start+1,g.end-g.start) AS segment_text, '
                  'substr(s.text,g.start+c.span_start+1,c.span_end-c.span_start) AS excerpt '
