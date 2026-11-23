@@ -737,3 +737,19 @@ label > .caption { display: block; margin: 2px 0 6px; }
   .nav-compact .export-action { margin-left: 0; }
   .workspace-nav { display: none; }
 }
+/* Round 7 batch 2. */
+.draft-mark { font-weight: 500; color: var(--accent); }
+.next-step { margin: 4px 0 8px; }
+.analysis-top-bar { background: var(--code-color, var(--accent)); }
+.analysis-chart .chart-bar { fill: var(--code-color, var(--accent)); }
+.retrieval-card blockquote { margin: 0 0 6px; }
+@media (max-width: 900px) {
+  /* Phone code row: every code visible in up to two wrapped rows, no hidden scroller. */
+  .coding-panel > .code-shortcuts { flex-wrap: wrap; overflow-x: visible; max-height: 112px; overflow-y: auto; gap: 6px; }
+  .coding-panel > .code-shortcuts::after { display: none; }
+  .coding-panel > .code-shortcuts > .button { min-height: 44px; padding: 4px 10px; }
+}
+@media (max-width: 900px) {
+  .transcript-heading > .button { border-color: transparent; background: transparent; padding-left: 0; text-decoration: underline; text-underline-offset: 3px; min-height: 40px; }
+  .transcript-heading { margin-bottom: 12px; }
+}

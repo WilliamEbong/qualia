@@ -160,14 +160,20 @@ export function matrixTotals(data: { segments: Array<{ id: number; source_id: nu
   return { byCode: sizes(byCode), byCase: sizes(byCase), all: all.size }
 }
 
+const CODE_FIELDS = ['parent_id', 'name', 'status', 'definition', 'include', 'exclude', 'examples_pos', 'examples_neg'] as const
+const frozenCodesOf = (latest: Version | undefined): Code[] | null => { try { return latest ? JSON.parse(latest.snapshot_json) : null } catch { return null } }
+
+// Draft codes that are new or edited since the latest frozen version.
+export function changedCodeIds(codes: Code[], latest: Version | undefined): Set<number> {
+  const frozen = frozenCodesOf(latest)
+  if (!frozen) return new Set(codes.map(code => code.id))
+  const before = new Map(frozen.map(code => [code.id, code]))
+  return new Set(codes.filter(code => { const old = before.get(code.id); return !old || CODE_FIELDS.some(field => String(old[field] ?? '') !== String(code[field] ?? '')) }).map(code => code.id))
+}
+
 // How many codes differ between the draft and the latest frozen version (added, edited or removed).
 export function draftChanges(codes: Code[], latest: Version | undefined): number {
-  const fields = ['parent_id', 'name', 'status', 'definition', 'include', 'exclude', 'examples_pos', 'examples_neg'] as const
-  if (!latest) return codes.length
-  let frozen: Code[]
-  try { frozen = JSON.parse(latest.snapshot_json) } catch { return codes.length }
-  const before = new Map(frozen.map(code => [code.id, code]))
-  const changed = codes.filter(code => { const old = before.get(code.id); return !old || fields.some(field => String(old[field] ?? '') !== String(code[field] ?? '')) }).length
-  const removed = frozen.filter(code => !codes.some(item => item.id === code.id)).length
-  return changed + removed
+  const frozen = frozenCodesOf(latest)
+  if (!frozen) return codes.length
+  return changedCodeIds(codes, latest).size + frozen.filter(code => !codes.some(item => item.id === code.id)).length
 }

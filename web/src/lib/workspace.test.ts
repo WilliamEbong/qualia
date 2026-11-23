@@ -140,3 +140,12 @@ describe('draft changes since the latest frozen codebook', () => {
     expect(draftChanges([code(1)] as never, undefined)).toBe(1)
   })
 })
+
+describe('codes changed since the latest frozen version', () => {
+  it('lists the ids that are new or edited', async () => {
+    const { changedCodeIds } = await import('./entities')
+    const code = (id: number, extra = {}) => ({ id, parent_id: null, name: `C${id}`, status: 'active', definition: '', include: '', exclude: '', examples_pos: '[]', examples_neg: '[]', ...extra })
+    const frozen = { id: 1, hash: 'h', frozen_at: '2026-11-23', snapshot_json: JSON.stringify([code(1), code(2)]) }
+    expect([...changedCodeIds([code(1, { name: 'Renamed' }), code(2), code(3)] as never, frozen)]).toEqual([1, 3])
+  })
+})
