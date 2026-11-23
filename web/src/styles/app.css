@@ -453,3 +453,4 @@ input[type=checkbox]:disabled { cursor: not-allowed; }
 input, select, textarea { border-color: var(--caption); }
 /* An ivory inset keeps the focus ring visible on the strongest heat fill (a ring, not a depth shadow). */
 .matrix-cell:focus-visible { box-shadow: inset 0 0 0 5px var(--background); }
+.project-drawer .button.primary { background: var(--accent); border-color: var(--accent); }
