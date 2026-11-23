@@ -17,10 +17,10 @@ export function Memos({ w }: { w: WorkspaceController }) {
     <label>Title<input name="title" required maxLength={200} defaultValue={memo?.title ?? ''} /></label>
     <label>Kind<select name="kind" defaultValue={memo?.kind ?? 'analytic'}>{Object.entries(kinds).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
     <label>Memo<textarea name="text" rows={10} defaultValue={memo?.text ?? ''} /></label>
-    <label>Linked segment<select name="segment_id" defaultValue={memo?.segment_id ?? ''}><option value="">No linked segment</option>{w.data?.segments.map(segment => <option key={segment.id} value={segment.id}>{w.sourceName(segment.source_id)} · segment {segment.ordinal + 1} (#{segment.id})</option>)}</select></label>
+    <details className="memo-links" open={!!memo && (memo.segment_id !== null || memo.code_id !== null || memo.case_id !== null || memo.source_id !== null)}><summary>Link to a segment, code, case or source (optional)</summary><label>Linked segment<select name="segment_id" defaultValue={memo?.segment_id ?? ''}><option value="">No linked segment</option>{w.data?.segments.map(segment => <option key={segment.id} value={segment.id}>{w.sourceName(segment.source_id)} · segment {segment.ordinal + 1} (#{segment.id})</option>)}</select></label>
     <label>Linked code<select name="code_id" defaultValue={memo?.code_id ?? ''}><option value="">No linked code</option>{w.codes.map(code => <option key={code.id} value={code.id}>{code.name}</option>)}</select></label>
     <label>Linked case<select name="case_id" defaultValue={memo?.case_id ?? ''}><option value="">No linked case</option>{w.data?.cases.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-    <label>Linked source<select name="source_id" defaultValue={memo?.source_id ?? ''}><option value="">No linked source</option>{w.data?.sources.map(source => <option key={source.id} value={source.id}>{source.name}</option>)}</select></label>
+    <label>Linked source<select name="source_id" defaultValue={memo?.source_id ?? ''}><option value="">No linked source</option>{w.data?.sources.map(source => <option key={source.id} value={source.id}>{source.name}</option>)}</select></label></details>
     <p className="caption">Editing keeps the previous version under “Earlier versions”.</p>
     <Button type="submit" className="primary" disabled={w.readOnly || w.busy}>Save memo</Button></fieldset></form></div></section>
 }

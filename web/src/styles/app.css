@@ -583,10 +583,6 @@ label > .caption { display: block; margin: 2px 0 6px; }
 .run-classification > summary h3 { font-family: var(--font-body); font-size: var(--type-body); font-weight: 500; }
 .run-classification:not([open]) { padding-top: 12px; padding-bottom: 12px; }
 @media (max-width: 900px) {
-  .review-page .suggestion { display: flex; flex-direction: column; }
-  .review-page .suggestion > * { order: 2; }
-  .review-page .suggestion > .suggestion-select, .review-page .suggestion > blockquote { order: 0; }
-  .review-page .suggestion > .actions { order: 1; margin: 0 0 12px; }
   /* Phone workspace: the pinned panel is one scrolling row of code buttons. */
   .coding-panel { max-height: none; padding: 8px 12px; }
   .coding-panel > :not(.code-shortcuts) { display: none; }
@@ -599,3 +595,40 @@ label > .caption { display: block; margin: 2px 0 6px; }
 @media (max-width: 900px) {
   .coding-panel.needs-actor > label:first-of-type, .coding-panel.needs-actor > label:first-of-type + .caption { display: block; }
 }
+
+/* Round 5, pass 3: density and one type voice. */
+@media (max-width: 500px) {
+  /* The tab strip shows it scrolls: a fixed chevron sits on the cut edge. */
+  .workspace-nav::after { content: '›'; position: sticky; right: 0; flex: none; display: flex; align-items: center; padding: 0 10px; background: var(--surface); color: var(--secondary); border-left: 1px solid var(--border); }
+  .analysis-index { flex-wrap: nowrap; overflow-x: auto; }
+  .analysis-index a { flex: none; }
+}
+/* Codebook: compact code entries so the codebook reads as a catalogue, not a stack of panels. */
+.code-card { padding: 16px 20px; margin-bottom: 12px; }
+.code-card .section-heading { margin-bottom: 8px; padding-bottom: 8px; }
+.code-card .section-heading h3 { font-size: var(--type-small-heading); }
+.code-definition { margin: 0 0 12px; }
+.code-fields { padding: 4px 16px 12px; margin-bottom: 12px; }
+.codebook-page #code-editor { border-top-width: 1px; border-top-color: var(--border); }
+/* Review: the code name uses the display face like every other heading. */
+.review-page .suggestion-select { font-family: var(--font-display); font-weight: 400; font-size: var(--type-small-heading); }
+/* Workspace desktop: the code buttons lead the coding rail; actor and version follow. */
+@media (min-width: 901px) {
+  .coding-panel { display: flex; flex-direction: column; }
+  .coding-panel > .rail-title { order: -3; }
+  .coding-panel > .selection-note { order: -2; }
+  .coding-panel > .code-shortcuts { order: -1; margin-bottom: 16px; }
+  /* The rail already has Import source; the reading header copy is for phones. */
+  .transcript-heading > .button { display: none; }
+}
+/* Experiments: the section heading outranks the two option cards. */
+.experiments-start { font-size: var(--type-heading); }
+.experiments-page > .tune-form { align-self: start; }
+/* Evaluation: on phones the result or empty state leads, the run form follows. */
+@media (max-width: 900px) { .evaluation-page .two-column > :first-child { order: 1; } }
+/* Matrix: zero cells recede so the counts read as a pattern. */
+.matrix-cell.zero { color: var(--caption); }
+.matrix-page th:first-child { max-width: 260px; }
+.memo-links { margin: 8px 0 16px; }
+.memo-links > summary { cursor: pointer; font-size: var(--type-caption); color: var(--secondary); padding: 8px 0; }
+@media (max-width: 500px) { .workspace-nav { padding-right: 0; } }
