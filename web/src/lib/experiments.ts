@@ -22,7 +22,8 @@ export function useExperiments(w: WorkspaceController, review: ReviewController,
   const history = useMemo(() => experimentHistory((w.data?.experiments ?? []) as ExperimentRecord[]), [w.data])
   const selected = history.find(item => item.id === selectedId) ?? history[0]
   const provider = review.availability?.backends.find(item => item.name === backend)
-  const blockedReason = backendBlockedReason(w.readOnly, provider, review.availability?.allow_external, 'Tuning is unavailable in this read-only public snapshot.') || benchmarkReason(benchmarks.status, ['dev', 'validation'])
+  const unfrozen = w.data && !w.data.codebook_versions.length ? 'Freeze a codebook version first (Codebook > Freeze); experiments measure one frozen version.' : ''
+  const blockedReason = backendBlockedReason(w.readOnly, provider, review.availability?.allow_external, 'Tuning is unavailable in this read-only public snapshot.') || unfrozen || benchmarkReason(benchmarks.status, ['dev', 'validation'])
   const tune = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     void w.run(async () => {
@@ -33,7 +34,7 @@ export function useExperiments(w: WorkspaceController, review: ReviewController,
     })
   }
   const candidateProvider = review.availability?.backends.find(item => item.name === candidateBackend)
-  const candidateBlocked = backendBlockedReason(w.readOnly, candidateProvider, review.availability?.allow_external, 'Model experiments are unavailable in this read-only public snapshot.') || benchmarkReason(benchmarks.status, ['validation'])
+  const candidateBlocked = backendBlockedReason(w.readOnly, candidateProvider, review.availability?.allow_external, 'Model experiments are unavailable in this read-only public snapshot.') || unfrozen || benchmarkReason(benchmarks.status, ['validation'])
   const current = `${configured} / ${typeof w.data?.routing?.model === 'string' ? w.data.routing.model : 'configured model'}`
   // A model switch is measured like any experiment: baseline, candidate and confirmation on validation.
   const tryModel = (event: FormEvent<HTMLFormElement>) => {

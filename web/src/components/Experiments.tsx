@@ -20,15 +20,15 @@ export function Experiments({ w, review, experiments: e }: { w: WorkspaceControl
     <form key={w.slug} className="editor tune-form" onSubmit={e.tune}><fieldset disabled={w.readOnly}><h3>Tune suggestion thresholds</h3><p>Finds the score each code needs before the AI suggests it, using up to 400 dev benchmark segments. Qualia then measures the change on the validation split and keeps it only if results improve.</p>
       <label>Classifier to tune<select value={e.backend} onChange={event => e.setBackend(event.target.value)} disabled={w.readOnly || w.busy}>{review.availability?.backends.map(provider => <option key={provider.name} value={provider.name}>{provider.name} · {provider.external ? 'external' : 'offline'}{provider.available ? '' : ' · unavailable'}</option>) ?? <option value={e.backend}>Checking availability…</option>}</select></label>
       <ModelPicker id="tuning-model" m={e.model} disabled={w.readOnly || w.busy} />
-      {e.blockedReason && <p className="caption">{e.blockedReason}</p>}
-      <Button type="submit" disabled={w.readOnly || w.busy || !!e.blockedReason || !w.data?.codebook_versions.length}>{w.busy ? 'Working…' : 'Tune thresholds'}</Button>
+      
+      <Button type="submit" disabled={w.readOnly || w.busy || !!e.blockedReason || !w.data?.codebook_versions.length} aria-describedby={e.blockedReason ? 'tune-blocked' : undefined}>{w.busy ? 'Working…' : 'Tune thresholds'}</Button>{e.blockedReason && <p id="tune-blocked" className="caption blocked-reason"><span aria-hidden="true">! </span>{e.blockedReason}</p>}
       <p className="caption">No AI operator runs. Classification calls count against this project’s budgets and can take several minutes. Needs dev and validation benchmarks and a clean project Git state.</p>
     </fieldset></form>
     <form key={`${w.slug}-model`} className="editor tune-form" onSubmit={e.tryModel}><fieldset disabled={w.readOnly}><h3>Try another classification model</h3><p>Measures the current model ({e.current}) against the one you choose on the validation split, confirms a gain with a fresh run, and switches only if Qualia's policy keeps it.</p>
       <label>Backend to try<select value={e.candidateBackend} onChange={event => e.setCandidateBackend(event.target.value)} disabled={w.readOnly || w.busy}>{review.availability?.backends.map(provider => <option key={provider.name} value={provider.name}>{provider.name} · {provider.external ? 'external' : 'offline'}{provider.available ? '' : ' · unavailable'}</option>) ?? <option value={e.candidateBackend}>Checking availability…</option>}</select></label>
       <ModelPicker id="candidate-model" label="Model to try" m={e.candidate} disabled={w.readOnly || w.busy} />
-      {e.candidateBlocked && <p className="caption">{e.candidateBlocked}</p>}
-      <Button type="submit" disabled={w.readOnly || w.busy || !!e.candidateBlocked || !w.data?.codebook_versions.length}>{w.busy ? 'Working…' : 'Measure this model'}</Button>
+      
+      <Button type="submit" disabled={w.readOnly || w.busy || !!e.candidateBlocked || !w.data?.codebook_versions.length} aria-describedby={e.candidateBlocked ? 'model-blocked' : undefined}>{w.busy ? 'Working…' : 'Measure this model'}</Button>{e.candidateBlocked && <p id="model-blocked" className="caption blocked-reason"><span aria-hidden="true">! </span>{e.candidateBlocked}</p>}
       <p className="caption">Runs three validation evaluations with external models, so it uses quota and can take several minutes. A candidate that needs many more calls than the current model is reverted by the policy. Needs a validation benchmark and a clean project Git state.</p>
     </fieldset></form>
   </section>
