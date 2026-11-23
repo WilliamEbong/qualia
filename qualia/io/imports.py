@@ -63,17 +63,24 @@ def import_text(db, project, name, content, format, text_column='text', case_col
         attributes = attribute_columns or []
         if not isinstance(attributes, list) or any(not isinstance(v, str) for v in attributes):
             raise ValueError(f'{name}: attribute columns must be a list of names')
-        reader = csv.DictReader(io.StringIO(content, newline=''), strict=True)
+        reader = csv.reader(io.StringIO(content, newline=''), strict=True)
+        columns = None
         try:
-            columns = reader.fieldnames or []
-            if (not columns or len(set(columns)) != len(columns) or any(not c for c in columns)
-                    or text_column not in columns or any(c not in columns for c in attributes)):
-                raise ValueError(f'{name}: row 1: invalid or missing mapped CSV columns')
-            # Number records as a spreadsheet shows them (header is row 1), not physical lines.
-            for number, row in enumerate(reader, 2):
+            # Number rows as a spreadsheet shows them: a quoted multi-line cell is one row,
+            # a blank line is a row of its own (csv.DictReader would hide both).
+            for number, values in enumerate(reader, 1):
+                if not values:
+                    continue
+                if columns is None:
+                    columns = values
+                    if (len(set(columns)) != len(columns) or any(not c for c in columns)
+                            or text_column not in columns or any(c not in columns for c in attributes)):
+                        raise ValueError(f'{name}: row {number}: invalid or missing mapped CSV columns')
+                    continue
                 context = f'{name}: row {number}'
-                if None in row or any(value is None for value in row.values()):
+                if len(values) != len(columns):
                     raise ValueError(f'{context}: malformed CSV column count')
+                row = dict(zip(columns, values, strict=True))
                 records.append(_record(context, {
                     'name': context, 'text': row[text_column],
                     'case': (row.get(case_column) or '').strip() or None,

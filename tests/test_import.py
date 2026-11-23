@@ -74,8 +74,9 @@ def test_malformed_csv_is_rejected(tmp_path, content):
 
 def test_csv_sources_are_named_by_spreadsheet_row_even_with_multiline_cells(tmp_path):
     project = init_project('study', tmp_path)
-    content = 'text\r\n"First answer.\r\n\r\nSecond paragraph."\r\nNext answer.\r\n'
+    content = 'text\r\n"First answer.\r\n\r\nSecond paragraph."\r\nNext answer.\r\n\r\nLast answer.\r\n'
     with Store(project / 'project.db') as db:
         import_text(db, project, 'answers.csv', content, 'csv')
         names = [row['name'] for row in db.rows('SELECT name FROM sources ORDER BY id')]
-    assert names == ['answers.csv: row 2', 'answers.csv: row 3']
+    # A blank row still occupies a spreadsheet row.
+    assert names == ['answers.csv: row 2', 'answers.csv: row 3', 'answers.csv: row 5']
