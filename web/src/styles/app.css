@@ -831,3 +831,9 @@ label > .caption { display: block; margin: 2px 0 6px; }
 .review-by-code .suggestion .suggestion-select { display: none; }
 .review-by-code .suggestion { padding-top: 12px; padding-bottom: 12px; }
 .review-by-code .suggestion blockquote { margin: 4px 0; }
+/* Phones: Retrieval's four filters sit two by two with the search across, so results start sooner. */
+@media (max-width: 500px) {
+  .retrieval-page .filters { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 0 12px; padding: 4px 12px; margin-bottom: 20px; }
+  .retrieval-page .filters label:has(input[type="search"]) { grid-column: 1 / -1; order: -1; }
+  .retrieval-page .filters label { margin: 6px 0; }
+}
