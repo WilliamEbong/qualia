@@ -523,3 +523,11 @@ label > .caption { display: block; margin: 2px 0 6px; }
   .matrix-page th:first-child { min-width: 128px; }
   .matrix-page thead th { min-width: 72px; }
 }
+/* A tall empty state ends just below its text, with the horizon rule under the last line. */
+.empty:has(> :nth-child(3)) { min-height: 0; padding-bottom: 56px; }
+.empty:has(> :nth-child(3))::after { top: auto; bottom: 28px; }
+.editor .button + .caption, form .button + .caption { margin-top: 8px; }
+@media (max-width: 600px) {
+  .review-page .suggestion .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .review-page .suggestion .actions > :last-child { grid-column: 1 / -1; }
+}
