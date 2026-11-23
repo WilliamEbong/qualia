@@ -13,6 +13,8 @@ const lines = (value: string) => value.split(/\r?\n/).map(item => item.trim()).f
 // Offsets and the server count characters (code points), so the example cap does too.
 export const inVivoExample = (quote: string, keep: boolean) => keep && quote && Array.from(quote).length <= 500 ? [quote] : []
 export const exampleLines = (value: unknown) => exampleList(value).join('\n')
+// Stable ref callback: moves focus to a panel heading once, when the panel opens.
+export const focusOnOpen = (node: HTMLElement | null) => node?.focus()
 export const focusCodeEditor = () => requestAnimationFrame(() => document.querySelector<HTMLInputElement>('#code-editor input[name="name"]')?.focus())
 export const codeFormValues = (form: FormData): components['schemas']['CodeInput'] => ({ name: field(form, 'name'), parent_id: idField(form, 'parent_id'), definition: field(form, 'definition'), include: field(form, 'include'), exclude: field(form, 'exclude'), examples_pos: lines(field(form, 'examples_pos')), examples_neg: lines(field(form, 'examples_neg')), status: field(form, 'status') as 'active' | 'archived' })
 
