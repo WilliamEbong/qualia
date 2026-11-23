@@ -7,6 +7,7 @@ from contextlib import contextmanager
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
+from qualia.ai.schemas import unique_object
 from qualia.store.db import canonical
 from qualia.workspace import (
     check_manifest,
@@ -40,14 +41,7 @@ def _hash(value):
 
 
 def _json(raw):
-    def unique(pairs):
-        result = {}
-        for key, value in pairs:
-            if key in result:
-                raise ValueError('duplicate JSON key')
-            result[key] = value
-        return result
-    return json.loads(raw, object_pairs_hook=unique)
+    return json.loads(raw, object_pairs_hook=unique_object)
 
 
 def _validate(records_or_bytes, split, code_ids):

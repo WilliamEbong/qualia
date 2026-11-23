@@ -120,7 +120,8 @@ def response_schema() -> dict:
     return Predictions.model_json_schema()
 
 
-def _unique_object(pairs):
+def unique_object(pairs):
+    """json.loads object_pairs_hook that rejects a repeated key."""
     result = {}
     for key, value in pairs:
         if key in result:
@@ -151,7 +152,7 @@ def validate_result(raw, segments: list[dict], codebook: list[dict]) -> dict:
         return str(segments[index]['id']) if 0 <= index < len(segments) else first
 
     try:
-        value = json.loads(raw, object_pairs_hook=_unique_object) if isinstance(raw, str) else raw
+        value = json.loads(raw, object_pairs_hook=unique_object) if isinstance(raw, str) else raw
         result = Result.model_validate(value).model_dump()
     except ValidationError as exc:
         location = exc.errors(include_input=False)[0]['loc']
@@ -212,7 +213,7 @@ def validate_proposals(raw, mode: str, segments: list[dict], codes: list[dict],
     Each example is replaced by the passage's own wording, so stored examples are verbatim even
     when a model normalizes quotes or spacing; examples with no match are removed and counted."""
     try:
-        value = json.loads(raw, object_pairs_hook=_unique_object) if isinstance(raw, str) else raw
+        value = json.loads(raw, object_pairs_hook=unique_object) if isinstance(raw, str) else raw
         result = CodeProposalResult.model_validate(value).model_dump()
     except (ValidationError, ValueError, TypeError):
         raise ProposalValidationError('invalid provider response') from None
