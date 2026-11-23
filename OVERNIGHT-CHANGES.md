@@ -1,8 +1,45 @@
-# Overnight maintenance pass: 2026-11-22 to 2026-11-23 (rounds 1–3)
+# Overnight work on Qualia: 2026-11-22 to 2026-11-23
 
-Branch `claude/overnight-fixes-3d262b`, based on `main` at `2978c5d`. It has not been pushed or merged, and nothing was released, tagged or version-bumped.
+## What changed for you
 
-This was a fix-only pass. It added no features, made no redesign and changed no decision you had made. Each fix is a defect we could demonstrate, with a test that failed before the change and passes after it. Opus did the work in this session, three read-only Opus subagents audited the code, and Codex reviewed the branch diff.
+These are the effects you can see when you use Qualia. The details and evidence for each one follow further down.
+
+**Your research data is safer.**
+- **Older copies of the app:** if you keep an old install folder and open a project with it, Qualia now refuses rather than writing into a newer project.
+- **Re-running classification:** this no longer puts back suggestions you already accepted or rejected.
+- **Review notes:** a note you type while reviewing is now kept even if you click a different suggestion's button.
+- **Your name in the record:** the name you code under is remembered after a reload, so later decisions are no longer recorded as "researcher".
+- **Exports:** an export that includes the interview text is now named `-with-text`, so you cannot share it by mistake.
+- **Starting a project's database:** when several things open a project at once right after an update, the upgrade no longer fails with an error.
+
+**The AI side spends less and behaves as documented.**
+- **No-code answers:** passages where the model proposed no code are no longer sent to the expensive model.
+- **A passage Jev cannot accept:** Jev skips just that passage instead of stopping the whole run.
+- **Rate limits:** a retry now waits a moment first, so it is less likely to fail the same way.
+- **Threshold tuning:** it no longer replaces a better setting with a worse one.
+- **Keep or revert:** a gain of exactly the required size is no longer reverted because of a rounding error.
+
+**The app is easier to use.**
+- **One main button:** each screen has one clearly marked main action.
+- **Messages:** save confirmations and errors stay in view, and old ones clear when you switch screens.
+- **Plainer words:** for example, "characters 0–72" rather than "0:72", one name for importing, and short explanations of what freezing does and what the Include field is for.
+- **Review:** the queue shows the passage you are judging first, with the Accept and Reject buttons beside it.
+- **Coding on a phone:** the code buttons stay at the bottom of the screen while you read.
+- **Analysis:** results now come first, with the criteria and export options folded away until you open them.
+- **Keyboard and screen readers:** both work better. Fields have visible outlines, panels take focus when they open, and buttons say which suggestion they act on.
+
+**Faster and tidier.**
+- **Commands:** every `qualia` command except `open` starts about 3× faster, because it no longer loads the web server.
+- **CI:** the type check runs once instead of three times.
+- **Code:** three copies of the same check are now one.
+- **Code map:** a code map of the project, built with graphify, is ready in this worktree.
+
+**What I need from you:** nothing is required.
+- **To take the changes:** merge the branch (steps under "How to merge" below). Each change can be undone on its own.
+- **Optional:** look through `design-review/overnight/before` and `final` to see the visual changes.
+- **Optional:** decide whether manual codes should be allowed to share a name ("Found, not changed").
+
+Branch `claude/overnight-fixes-3d262b`, based on `main` at `2978c5d`. Nothing was pushed, merged, released, tagged or version-bumped.
 
 ## Tests
 
@@ -249,6 +286,55 @@ graphify explain "classify_segments()"
   Or open `graphify-out\graph.html` in a browser. To rebuild after changes, run `/graphify . --update` in Claude Code.
 - **The main checkout:** `C:\Users\Owner\OneDrive\Documents\Qualia` has no graph yet. After merging, run `/graphify .` there once, or copy this worktree's `graphify-out` folder across.
 
+## Round 4: first-time users, merge rehearsal, design scoring
+
+**Acceptance.**
+- **Who tested:** two fresh Opus agents acted as first-time researchers, using only the README and the user guide.
+- **What they used:** one worked in the command line, one in the web app through the browser. Each had an invented study in a temporary home and used only the offline `rules` backend.
+- **How far they got:** both finished the whole journey. The web tester rated ease at 6/10 before the fixes below.
+- **What I fixed:** what a real user would hit, after reproducing each item. One web report was not reproducible with a real mouse drag: selecting text in a passage that is not the active one. The selection correctly made that passage active.
+
+38. **Re-running classification no longer re-queues decided suggestions.** `35c8546`
+    - **Who notices:** anyone who re-runs classification, which by default covers the whole project. Every accepted or rejected suggestion used to come back as a new pending copy.
+    - **Evidence:** `tests/test_ai_router.py::test_rerunning_classification_does_not_requeue_recorded_suggestions`. One existing test relied on that duplicate. It now fills the cache first, so it still proves that the model version survives cache reuse.
+    - **To undo:** `git revert 35c8546` re-queues repeats.
+39. **A review note is no longer lost.** `4d30128`
+    - **Who notices:** reviewers who type a note and then click another card's Accept or Reject.
+    - **Checked live:** the feedback row now holds the note.
+40. **The app remembers the coder's name.** `6b561b9`
+    - **Who notices:** anyone who reloads the page. Decisions were being recorded as "researcher".
+    - **Also in this commit:** the New project popover closes after use, stale notices clear when you switch screens, and the progress line says "Working…".
+41. **On a phone the coding panel stays small after a message.** `4b5963e`
+    - **Cause:** a regression from my own design-pass rule, caught by the web tester. It covered the transcript.
+    - **Also in this commit:** a readable frozen-version date, and an explanation of the Include field.
+42. **Text-inclusive exports are named `…-with-text`.** `133ec69`
+    - **Who notices:** anyone exporting both kinds. Before, both files had the same name.
+43. **`qualia export --output` creates a missing folder.** `e5d177a`
+    - **Before:** a 37-line traceback.
+44. **Docs.** `a849871`
+    - The JSON for setting inclusion terms.
+    - Case attributes in the form that works in Windows PowerShell 5.1 (checked: the form the tester tried first fails).
+    - What `--version` means for a benchmark.
+
+**Design scoring.**
+- **Method:** fresh reviewers scored every main screen out of 10 for clarity, craft and ease, at 1280 and 375 px. I fixed the top items each cycle (`63426d2`, `c86557b`, `7a24785`, plus the design part of `4b5963e`). I stopped when scores levelled off.
+- **Moves, desktop then phone:**
+  - Analysis rose from 6/6/6 and 5/4/5 to 7/7/7 and 7/6/6.
+  - Review ease rose from 6 to 8 on desktop.
+  - Workspace reached 9/8/8 on desktop.
+  - Matrix reached 9/9/9 on desktop.
+  - Home stayed at 9.
+- **Final scores:** every main screen is 8–9 on desktop and 7–8 on phone.
+- **Remaining phone gap:** mainly the header height and the long Review and Analysis pages, which are not worth a redesign.
+- **Screenshots:** in `design-review/overnight/final/`.
+
+**Merge rehearsal.**
+- **Clean merge:** `main` has not moved since the branch point `2978c5d`, and `git merge-tree --write-tree main HEAD` reports a clean merge. So the merged result is exactly this branch, and the checks below are checks of the merge.
+- **Python:** see the Tests table.
+- **Web:** 65 tests pass, and the typecheck and build pass.
+- **Static-demo e2e:** passes.
+- **Mutation e2e (`tests/e2e/mvp.spec.ts`):** not run. It needs the AnnoMI demo project, the project's guard blocks commands that touch the demo data, and I did not work around it. Run it after merging, from a terminal where you have the demo, using the command in that file's header.
+
 ## Found, not changed
 
 Reverted under your "tangible improvements only" bar: the round-2 `QUALIA_PORT` range check in the double-click launcher (`62dbad0`, reverted). It only helped a hand-edited `.env` value outside 1024–65535.
@@ -261,22 +347,46 @@ Reverted under your "tangible improvements only" bar: the round-2 `QUALIA_PORT` 
 3. **`test_real_cli_policy_confirmation_and_read_only_history_api` failed once under load.**
    - **Investigated:** the improvement loop's trusted tests take about 13 s, against a 120 s limit. A timeout makes the experiment REVERT, which is the safe outcome.
    - **Why not:** this is not a product defect, so no change.
+4. **Manual codes can share a name.** Proposals refuse a duplicate name, but codes created by hand do not. This is a methodology rule for you to decide, and existing projects may already contain such names.
+5. **Shown suggestions repeat codes you already applied by hand.** The classifier is independent of your coding by design, so Qualia does not hide these.
+6. **Command-line users have no command that lists the ID numbers of sources, passages or suggestions** (found by the CLI tester). Adding one is a new feature, so it is left for you to decide.
 
 ## Needs a browser check
 
-Round 1 made no UI changes. The visible changes in round 2 are #19 (one extra sentence in the confirmation after creating a code from a selection) and #20 (singular counts). #20 was checked in Review with Playwright. The Analysis, Evaluation, Codebook and Matrix labels use the same helper but were not opened.
+I checked every UI change in the built app with Playwright at 1280 and 375 px. The one gap is screen widths between 501 and 900 px (small tablets and narrow windows), which I did not capture.
 
 ## How to merge
 
+From `C:\Users\Owner\OneDrive\Documents\Qualia`, with no uncommitted work on `main`:
+
 ```powershell
 git switch main
-git merge --no-ff claude/overnight-fixes-3d262b
-uv sync
-uv run pytest
 ```
 
 ```powershell
-cd web; npm ci; npm test
+git merge --no-ff claude/overnight-fixes-3d262b -m "Merge overnight maintenance and design pass"
 ```
 
-Or open a pull request from the branch. Each commit can be reverted on its own with `git revert <hash>`.
+```powershell
+uv sync; uv run pytest
+```
+
+```powershell
+cd web; npm ci; npm test; npm run build; cd ..
+```
+
+Then run the mutation e2e test against your demo (the command is in the header of `tests/e2e/mvp.spec.ts`), and run `/graphify .` once if you want the code map in the main checkout.
+
+**Rollback:** to undo the whole merge before you push, run
+
+```powershell
+git reset --keep HEAD~1
+```
+
+After a push, run
+
+```powershell
+git revert -m 1 HEAD
+```
+
+Each change can also be undone on its own with `git revert <hash>`, using the hashes listed above. Or open a pull request from the branch instead of merging locally.
