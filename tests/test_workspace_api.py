@@ -100,3 +100,18 @@ def test_workspace_current_coding_ids_come_from_one_read_snapshot(tmp_path, monk
     monkeypatch.setattr(Store, 'reading', tracked)
     assert client.get('/api/projects/study').status_code == 200
     assert calls
+
+
+def test_out_of_range_record_ids_are_rejected_not_crashes(tmp_path):
+    """IDs beyond SQLite's 64-bit range overflow in the driver; that is bad input, not a 500."""
+    client = TestClient(create_app(tmp_path, token='test'), base_url='http://127.0.0.1',
+                        headers={'X-Qualia-Token': 'test'}, raise_server_exceptions=False)
+    assert client.post('/api/projects', json={'name': 'study'}).status_code == 201
+    prefix = '/api/projects/study'
+    huge = 2 ** 64
+    for response in (
+        client.get(prefix + f'/retrieval?code_id={huge}'),
+        client.put(prefix + f'/memos/{huge}', json={'title': 'x', 'text': 'y'}),
+        client.post(prefix + '/coding', json={'segment_id': huge, 'code_id': 1}),
+    ):
+        assert response.status_code == 400, (response.request.url, response.text)

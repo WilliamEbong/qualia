@@ -67,6 +67,12 @@ def create_app(home: Path | None = None, token: str | None = None, dist: Path | 
     async def invalid_record(request, exc):
         return JSONResponse({'detail': str(exc)}, status_code=400)
 
+    @app.exception_handler(OverflowError)
+    async def out_of_range(request, exc):
+        # SQLite integers are 64-bit; larger request IDs overflow in the driver.
+        return JSONResponse({'detail': 'A number in the request is outside the supported range.'},
+                            status_code=400)
+
     @app.exception_handler(sqlite3.IntegrityError)
     async def invalid_reference(request, exc):
         return JSONResponse({'detail': 'Record conflicts with workspace constraints or references.'}, status_code=400)
