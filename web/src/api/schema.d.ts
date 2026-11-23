@@ -1074,6 +1074,8 @@ export interface components {
             case_id?: number | null;
             /** Source Id */
             source_id?: number | null;
+            /** Author */
+            author?: string | null;
         };
         /** ModelChoice */
         ModelChoice: {

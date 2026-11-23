@@ -52,3 +52,27 @@ def test_saving_an_unchanged_memo_adds_no_revision():
         memo = db.save_memo({'title': 't', 'text': 'same'})
         db.save_memo({'title': 't', 'text': 'same'}, memo)
         assert db.rows('SELECT * FROM memo_revisions') == []
+
+
+def test_memo_author_is_recorded_and_a_version_5_database_upgrades(tmp_path):
+    import sqlite3
+
+    from qualia.store.db import Store
+
+    path = tmp_path / 'project.db'
+    with Store(path) as db:
+        first = db.save_memo({'title': 'Before', 'text': 'Kept.'})
+        db.connection.execute('PRAGMA user_version=5')
+    with sqlite3.connect(path) as raw:  # simulate the version 5 schema without the column
+        raw.execute('ALTER TABLE memos DROP COLUMN author')
+    with Store(path) as db:
+        assert db.one('SELECT author FROM memos WHERE id=?', (first,))['author'] is None
+        second = db.save_memo({'title': 'After', 'text': 'New.', 'author': 'AK'})
+        db.save_memo({'text': 'Edited.', 'author': 'BL'}, second)
+        assert db.one('SELECT author FROM memos WHERE id=?', (second,))['author'] == 'BL'
+        for bad in ('', '   ', 7):
+            try:
+                db.save_memo({'title': 'x', 'text': 'y', 'author': bad})
+            except ValueError:
+                continue
+            raise AssertionError(f'accepted author {bad!r}')

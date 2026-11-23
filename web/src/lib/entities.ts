@@ -7,7 +7,7 @@ export type Code = { id: number; parent_id: number | null; name: string; status:
 export type Version = { id: number; hash: string; frozen_at: string; snapshot_json: string }
 export type Coding = { id: number; segment_id: number; code_id: number; span_start: number; span_end: number; action: string; actor_type: string; actor: string; backend: string | null; model: string | null; model_version?: string | null; cli_version: string | null; codebook_version_id: number; pipeline_version: string; prompt_hash: string; created_at: string; score: number | null; reviewed_by: string | null; rationale: string | null; review_trigger: string | null; suggestion_id: number | null; review_status: string }
 export type MemoKind = 'analytic' | 'reflexive' | 'theme' | 'method'
-export type Memo = { id: number; title: string; text: string; kind?: MemoKind; segment_id: number | null; code_id: number | null; case_id?: number | null; source_id?: number | null; created_at?: string }
+export type Memo = { id: number; title: string; text: string; kind?: MemoKind; segment_id: number | null; code_id: number | null; case_id?: number | null; source_id?: number | null; created_at?: string; author?: string | null }
 export type MemoRevision = { id: number; memo_id: number; title: string; text: string; kind: MemoKind; replaced_at: string }
 export type Case = { id: number; name: string }
 export type Attribute = { id: number; case_id: number | null; source_id: number | null; key: string; value: string }
@@ -134,4 +134,11 @@ export function studyStatus(data: Pick<Workspace, 'sources' | 'segments' | 'code
 export function groupByCode<T extends { code_id: number }>(items: T[], codeOrder: number[], nameOf: (id: number) => string) {
   const ids = [...new Set(items.map(item => item.code_id))].sort((a, b) => (codeOrder.indexOf(a) + 1 || Infinity) - (codeOrder.indexOf(b) + 1 || Infinity))
   return ids.map(id => ({ codeId: id, name: nameOf(id), items: items.filter(item => item.code_id === id) }))
+}
+
+// One caption per memo card: kind, created date, author when recorded, and the last edit.
+export function memoMeta(memo: Pick<Memo, 'kind' | 'created_at' | 'author'>, revisions: Array<{ replaced_at?: string }>) {
+  const day = (value?: string) => (value ?? '').slice(0, 10)
+  const edited = revisions.map(item => item.replaced_at ?? '').sort().at(-1)
+  return [`${memo.kind ?? 'analytic'} memo`, day(memo.created_at), memo.author, edited ? `edited ${day(edited)}` : ''].filter(Boolean).join(' · ')
 }

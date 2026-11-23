@@ -480,13 +480,17 @@ class Store:
     def save_memo(self, values: dict, memo_id: int | None = None) -> int:
         """Create or edit a memo; the memo_history trigger keeps every replaced version."""
         if not values or set(values) - {'title', 'text', 'kind', 'segment_id', 'code_id', 'case_id',
-                                        'source_id'}:
+                                        'source_id', 'author'}:
             raise ValueError('invalid memo fields')
         if memo_id is None and not {'title', 'text'} <= set(values):
             raise ValueError('memo title and text are required')
         for field in ('title', 'text'):
             if field in values and not isinstance(values[field], str):
                 raise ValueError(f'memo {field} must be text')
+        author = values.get('author')
+        if 'author' in values and author is not None and (
+                not isinstance(author, str) or not author.strip() or len(author) > 200):
+            raise ValueError('memo author must be nonblank text of at most 200 characters')
         if 'kind' in values and values['kind'] not in MEMO_KINDS:
             raise ValueError('memo kind must be analytic, reflexive, theme or method')
         for field, table in (('segment_id', 'segments'), ('code_id', 'codes'), ('case_id', 'cases'),

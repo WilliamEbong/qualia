@@ -92,6 +92,7 @@ class MemoInput(Record):
     code_id: int | None = None
     case_id: int | None = None
     source_id: int | None = None
+    author: str | None = Field(default=None, min_length=1, max_length=200)
 
 
 class CaseInput(Record):

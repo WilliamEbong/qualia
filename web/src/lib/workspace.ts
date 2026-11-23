@@ -222,7 +222,7 @@ export function useWorkspace() {
   const saveMemo = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault(); const form = new FormData(event.currentTarget)
     void run(async () => {
-      const input: components['schemas']['MemoInput'] = { title: field(form, 'title'), text: String(form.get('text') ?? ''), kind: (field(form, 'kind') || 'analytic') as MemoKind, segment_id: idField(form, 'segment_id'), code_id: idField(form, 'code_id'), case_id: idField(form, 'case_id'), source_id: idField(form, 'source_id') }
+      const input: components['schemas']['MemoInput'] = { title: field(form, 'title'), text: String(form.get('text') ?? ''), kind: (field(form, 'kind') || 'analytic') as MemoKind, segment_id: idField(form, 'segment_id'), code_id: idField(form, 'code_id'), case_id: idField(form, 'case_id'), source_id: idField(form, 'source_id'), author: actor.trim() || null }
       await mutate(editMemo ? `memos/${editMemo.id}` : 'memos', input, editMemo ? 'PUT' : 'POST'); await reload(); setEditMemo(null); setFormNonce(value => value + 1); setNotice('Memo saved.')
     })
   }

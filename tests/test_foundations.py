@@ -27,7 +27,7 @@ def test_migration_is_idempotent_and_settings(project):
     with Store(project / 'project.db') as db:
         db.migrate()
         db.migrate()
-        assert db.connection.execute('PRAGMA user_version').fetchone()[0] == 5
+        assert db.connection.execute('PRAGMA user_version').fetchone()[0] == 6
         assert db.connection.execute('PRAGMA journal_mode').fetchone()[0] == 'wal'
         assert db.connection.execute('PRAGMA busy_timeout').fetchone()[0] == 5000
         event = seed(db)
@@ -43,7 +43,7 @@ def test_concurrent_open_of_an_older_database_upgrades_once(project, monkeypatch
 
     path = project / 'race.db'
     monkeypatch.setattr(store_module, 'sorted', lambda files: [
-        file for file in builtins.sorted(files) if not file.name.startswith('005')], raising=False)
+        file for file in builtins.sorted(files) if file.name < '005'], raising=False)
     Store(path).connection.close()
 
     def other_process_upgrades_first(files):
@@ -54,7 +54,7 @@ def test_concurrent_open_of_an_older_database_upgrades_once(project, monkeypatch
 
     monkeypatch.setattr(store_module, 'sorted', other_process_upgrades_first, raising=False)
     with Store(path) as db:
-        assert db.connection.execute('PRAGMA user_version').fetchone()[0] == 5
+        assert db.connection.execute('PRAGMA user_version').fetchone()[0] == 6
     with sqlite3.connect(project / 'race.db.v4.bak') as backup:
         assert backup.execute('PRAGMA user_version').fetchone()[0] == 4
 
@@ -62,7 +62,7 @@ def test_concurrent_open_of_an_older_database_upgrades_once(project, monkeypatch
     import threading
     parallel = project / 'parallel.db'
     monkeypatch.setattr(store_module, 'sorted', lambda files: [
-        file for file in builtins.sorted(files) if not file.name.startswith('005')], raising=False)
+        file for file in builtins.sorted(files) if file.name < '005'], raising=False)
     Store(parallel).connection.close()
     monkeypatch.setattr(store_module, 'sorted', builtins.sorted, raising=False)
     errors = []

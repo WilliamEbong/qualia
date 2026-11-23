@@ -121,3 +121,11 @@ describe('matrix totals and retrieval grouping', () => {
     expect(groups.map(group => [group.name, group.items.map(item => item.segment_id)])).toEqual([['Code 1', [2]], ['Code 2', [1, 3]]])
   })
 })
+
+describe('memo metadata line', () => {
+  it('shows kind, date, author when known and the last edit date', async () => {
+    const { memoMeta } = await import('./entities')
+    expect(memoMeta({ kind: 'reflexive', created_at: '2026-11-23T17:02:40.774Z', author: 'AK' } as never, [])).toBe('reflexive memo · 2026-11-23 · AK')
+    expect(memoMeta({ created_at: '2026-11-20T09:00:00Z' } as never, [{ replaced_at: '2026-11-21T10:00:00Z' }, { replaced_at: '2026-11-22T10:00:00Z' }] as never)).toBe('analytic memo · 2026-11-20 · edited 2026-11-22')
+  })
+})

@@ -74,12 +74,12 @@ def register_workspace_routes(app: FastAPI, home: Path | None):
     @app.post('/api/projects/{slug}/memos', response_model=IdResult)
     def create_memo(slug: str, record: MemoInput):
         with Store(existing_project(slug, home) / 'project.db') as db:
-            return {'id': db.save_memo(record.model_dump())}
+            return {'id': db.save_memo(record.model_dump(exclude={'author'} if record.author is None else set()))}
 
     @app.put('/api/projects/{slug}/memos/{memo_id}', response_model=IdResult)
     def update_memo(slug: str, memo_id: int, record: MemoInput):
         with Store(existing_project(slug, home) / 'project.db') as db:
-            return {'id': db.save_memo(record.model_dump(), memo_id=memo_id)}
+            return {'id': db.save_memo(record.model_dump(exclude={'author'} if record.author is None else set()), memo_id=memo_id)}
 
     @app.post('/api/projects/{slug}/cases', response_model=IdResult)
     def create_case(slug: str, record: CaseInput):
