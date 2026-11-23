@@ -485,4 +485,30 @@ h1, h2, h3, h4 { font-variant-numeric: lining-nums; }
   .coding-panel > .code-shortcuts { order: -1; }
 }
 /* While a message shows, top-pinned panels start below the sticky message strip. */
-.messages:has(p) ~ main :is(.source-panel, .coding-panel, .review-controls) { top: var(--messages-height, 58px); max-height: calc(100vh - var(--messages-height, 58px)); }
+@media (min-width: 901px) {
+  .messages:has(p) ~ main :is(.source-panel, .coding-panel, .review-controls) { top: var(--messages-height, 58px); max-height: calc(100vh - var(--messages-height, 58px)); }
+}
+
+/* Design cycle 2 (scored review). */
+/* Analysis tables keep whole words and scroll sideways like the matrix. */
+.analysis-page table { overflow-wrap: normal; }
+.analysis-page .table-scroll table { width: max-content; min-width: 100%; }
+.analysis-page td { vertical-align: middle; }
+.analysis-page > details + .caption { margin-top: 12px; }
+/* Empty states: no dead band below the horizon, text clear of the rule. */
+.empty:has(> :nth-child(3)) { min-height: 300px; padding-bottom: 120px; }
+@media (min-width: 901px) {
+  /* Review: decision buttons beside the card, not below it. */
+  .review-page .suggestion { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 24px; }
+  .review-page .suggestion > * { grid-column: 1; }
+  .review-page .suggestion > .actions { grid-column: 2; grid-row: 1 / span 8; align-self: start; display: flex; flex-direction: column; gap: 8px; padding-top: 0; }
+  /* Experiments: the two forms side by side so the history rises. */
+  .experiments-page { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; }
+  .experiments-page > :not(.tune-form) { grid-column: 1 / -1; }
+  .experiments-page > .tune-form { max-width: none; margin: 24px 0 32px; }
+}
+@media (max-width: 500px) {
+  .brand .caption { display: none; }
+  .suggestion .actions .button { padding-left: 12px; padding-right: 12px; }
+}
+label > .caption { display: block; margin: 2px 0 6px; }
