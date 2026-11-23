@@ -77,3 +77,19 @@ def test_read_snapshot_does_not_block_a_writer(tmp_path):
             reader.rows('SELECT * FROM codes')
             writer.save_code({'name': 'Written during a read'})
         assert reader.one('SELECT count(*) AS n FROM codes')['n'] == 1
+
+
+def test_cli_export_output_file_keeps_stored_newlines(tmp_path, monkeypatch):
+    """Offsets index the stored text, so the export file must not rewrite LF as CRLF."""
+    monkeypatch.setenv('QUALIA_HOME', str(tmp_path / 'home'))
+    runner = CliRunner()
+    assert runner.invoke(app, ['init', 'study']).exit_code == 0
+    transcript = tmp_path / 'transcript.txt'
+    transcript.write_bytes(b'line one\nline two\n\nsecond para')
+    assert runner.invoke(app, ['import', str(transcript), '--project', 'study']).exit_code == 0
+    output = tmp_path / 'export.csv'
+    result = runner.invoke(app, ['export', '--project', 'study', '--format', 'csv',
+                                 '--include-text', '--output', str(output)])
+    assert result.exit_code == 0, result.output
+    assert b'\r\n' not in output.read_bytes()
+    assert b'line one\nline two\n\nsecond para' in output.read_bytes()

@@ -265,7 +265,7 @@ def export_command(project: str = 'demo', format: str = 'json',
     with Store(path / 'project.db') as db:
         content = export_data(db, path, format=format, no_text=no_text, bundle=bundle)
     if output:
-        output.write_text(content, encoding='utf-8')
+        output.write_text(content, encoding='utf-8', newline='')
         typer.echo(str(output))
     else:
         typer.echo(content)
