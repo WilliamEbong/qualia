@@ -7,6 +7,7 @@ The branch was merged into `main` as `e5b035c` and pushed. On the merge, 707 Pyt
 **Update (same day):** you approved both changes in the session. They are made on branch `claude/design-root-cause`; see "Design root-cause pass" below.
 
 - 2026-11-23: the design root-cause pass landed on `main` as merge `d38ed6e` and was pushed. On the merge, 707 Python tests passed (5 skipped), 76 web tests passed, the type check, build and static-demo e2e test pass.
+- 2026-11-23: the workflow changes (Review batches by code, Retrieval search and speaker filter) landed on `main` as merge `cc84d10` and were pushed. On the merge, 711 Python tests passed (5 skipped), 84 web tests passed, and the type check, build and static-demo e2e test pass.
 
 ## What changed for you
 
