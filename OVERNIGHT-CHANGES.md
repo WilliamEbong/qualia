@@ -41,7 +41,7 @@ These are the effects you can see when you use Qualia. The details and evidence 
 - At the start, fresh reviewers rated the main screens 7.1 out of 10 on desktop and 5.9 on phone.
 - At the final scoring (round 7, batch 3), two new reviewers gave 8.3 / 7.6 and 7.7 / 6.7 (desktop / phone).
 - Home and Retrieval reached 9.0 on desktop with one reviewer. No screen is at 9 with both reviewers.
-- Their remaining reasons are listed under Round 7. Mostly these are new features, plus two design-rule changes that only you can make.
+- Their remaining reasons are listed under Round 7. Mostly these are new features. The two design-rule changes (trust captions, code highlight) were approved by you on 2026-11-23 and are built and merged; see "Design root-cause pass" below.
 
 **New in round 6.**
 - **Home:** shows where the study stands and the next step.
@@ -52,7 +52,7 @@ These are the effects you can see when you use Qualia. The details and evidence 
 - **Memos:** show their date and author.
 - **The public demo:** hides what it cannot do.
 
-Two design-rule changes are waiting for your decision in `OWNER-NEEDED.md`.
+The two design-rule changes were approved by you on 2026-11-23 and are built and merged (trust captions folded behind a disclosure, code highlight changed to an underline over a tint).
 
 **Round 7 and the final review.**
 - **Round 7:** about fifteen smaller fixes that the scorers asked for. Among them: Codebook marks changed codes, Experiments names the next step, Review shows "Suggestion n of N", and phones pick views from one menu.
