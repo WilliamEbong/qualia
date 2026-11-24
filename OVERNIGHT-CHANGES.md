@@ -662,6 +662,21 @@ Phone Retrieval fell because the four stacked filters pushed every excerpt below
   None was styling, so none was reverted. The three without a test before (name field, unfrozen reason, heat maximum) are now pure helpers with unit tests (`da13d59`). This branch is feature work under the feature rules.
 - **`DESIGN.md`:** it now describes the approved review-queue disclosure and the underline highlight, with the date and William's approval (`da13d59`).
 
+## Public demo deploy fix (branch `claude/pages-deploy-fix`, 2026-11-24)
+
+**Symptom:** the "Public demo" workflow failed at `actions/deploy-pages@v4` with "Found 0 artifact(s)", even though `upload-pages-artifact@v3` reported a successful upload.
+
+**Root cause:** a version problem, not a flake.
+- In every first attempt today, `deploy-pages@v4` failed to list the artifact its own attempt had just uploaded. This happened in runs `45279052644`, `45295381500` and `45295641707`.
+- The two runs that "passed" (`45272235408` and `45291297324`) were second attempts. They found only the artifact from attempt 1, which means they deployed the earlier attempt's build.
+- The re-run of `45295236041` found both attempts' artifacts and failed with "Multiple artifacts named github-pages".
+- The artifact itself is fine: the API lists it afterwards (11.8 MB, not expired). githubstatus showed no Actions, Pages or API incident.
+- `deploy-pages@v4` dates from March 2024, and the runner warns that it and `upload-artifact@v4` are deprecated Node 20 actions.
+
+**Fix:** move to the currently released pair, `actions/upload-pages-artifact@v5` (which uploads with `upload-artifact` v7) and `actions/deploy-pages@v5.0.1`. Both run on Node 24. No build output or repository content changed.
+
+**Proof:** a green first-attempt Pages run after merging, and the live demo serving the new bundle. See the merge report.
+
 ## Found, not changed
 
 Reverted under your "tangible improvements only" bar: the round-2 `QUALIA_PORT` range check in the double-click launcher (`62dbad0`, reverted). It only helped a hand-edited `.env` value outside 1024–65535.

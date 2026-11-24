@@ -32,8 +32,10 @@ jobs:
         env:
           BASE_PATH: ${{ steps.pages.outputs.base_path }}
           PUBLIC_SITE_URL: ${{ steps.pages.outputs.base_url }}
-      - uses: actions/upload-pages-artifact@v3
+      # v5 pair (Node 24, upload-artifact v7): deploy-pages@v4 could not see the artifact its own
+      # attempt uploaded, so first attempts failed and re-runs deployed the previous attempt's build.
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: web/dist-demo
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
