@@ -675,7 +675,7 @@ Phone Retrieval fell because the four stacked filters pushed every excerpt below
 
 **Fix:** move to the currently released pair, `actions/upload-pages-artifact@v5` (which uploads with `upload-artifact` v7) and `actions/deploy-pages@v5.0.1`. Both run on Node 24. No build output or repository content changed.
 
-**Proof:** a green first-attempt Pages run after merging, and the live demo serving the new bundle. See the merge report.
+**Proof:** William approved the merge and push in the session. Merge `3d0fa13` was pushed to `main`. Pages run `45318947032` passed on its first attempt ("Found 1 artifact(s)", "Reported success!"). https://williamebong.github.io/qualia/ now serves `index-CYIk5R7v.js`, the same hash as the local build. In a browser, its Retrieval screen shows the new search ("0 of 24 excerpts" for a word that matches nothing) and a speaker filter listing client and therapist.
 
 ## Found, not changed
 
