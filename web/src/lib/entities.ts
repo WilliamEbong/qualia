@@ -21,7 +21,7 @@ export type Workspace = Omit<components['schemas']['Workspace'], 'sources' | 'se
 }
 export type Span = { segmentId: number; start: number; end: number }
 export type MatrixCell = { code_id: number; case_id: number; count: number }
-export type Retrieval = Coding & { source_id: number; segment_text: string; excerpt: string; source_name: string }
+export type Retrieval = Coding & { source_id: number; segment_text: string; excerpt: string; source_name: string; speaker?: string | null }
 export type View = 'home' | 'workspace' | 'codebook' | 'memos' | 'retrieval' | 'matrix' | 'review' | 'evaluation' | 'experiments' | 'analysis'
 
 const codePoints = new WeakMap<Source, string[]>()
@@ -189,3 +189,19 @@ export function splitSuggestions(applied: Coding[], suggestions: Coding[]) {
     separate: suggestions.filter(item => !first.has(key(item))),
   }
 }
+
+// Feature 020: Retrieval search. The speaker is the segment's own, else a leading "Name:" in its passage.
+export function speakerOf(row: { speaker?: string | null; segment_text: string }): string {
+  return row.speaker?.trim() || /^\s*([^:\n]{1,40}):/.exec(row.segment_text)?.[1].trim() || ''
+}
+const folded = (text: string) => text.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
+export function searchExcerpts<T extends { speaker?: string | null; excerpt: string; segment_text: string }>(rows: T[], query: string, speaker: string): T[] {
+  const needle = folded(query.trim())
+  return rows.filter(row => (!speaker || speakerOf(row) === speaker) && (!needle || folded(`${row.excerpt}\n${row.segment_text}`).includes(needle)))
+}
+
+// Design root-cause pass: the small logic behind causes 4, 6 and 7, kept pure so it is tested.
+export const actorFieldOpen = (stored: string | null) => !stored
+export const unfrozenReason = (frozenVersions: number) =>
+  frozenVersions ? '' : 'Freeze a codebook version first (Codebook > Freeze); experiments measure one frozen version.'
+export const heatMaximum = (counts: number[]) => Math.max(1, ...counts)

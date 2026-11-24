@@ -5,7 +5,7 @@ import { readOnly, request } from './client'
 import type { DemoSnapshot } from './demo'
 type MatrixTotalsResult = components['schemas']['MatrixTotals']
 import { useMatrix } from './matrix'
-import { codeDepth, counted, eventCodeName, exampleList, frozenCodes, hydrateWorkspace, isEditingTarget, orderedCodes, segmentText, shortcut } from './entities'
+import { codeDepth, counted, eventCodeName, exampleList, frozenCodes, hydrateWorkspace, isEditingTarget, orderedCodes, actorFieldOpen, searchExcerpts, segmentText, shortcut, speakerOf } from './entities'
 import type { Case, Code, Coding, MatrixCell, Memo, MemoKind, Project, Retrieval, Span, View, Workspace } from './entities'
 
 const field = (form: FormData, name: string) => String(form.get(name) ?? '').trim()
@@ -37,7 +37,7 @@ export function useWorkspace() {
   // The coder's name is provenance: remember it across reloads (per browser; nothing else is stored).
   const [actor, setActorState] = useState(() => { try { return localStorage.getItem('qualia-actor') || 'researcher' } catch { return 'researcher' } })
   // The name is set once and then shown as a line; first visit (nothing saved yet) opens the field.
-  const [actorOpen, setActorOpen] = useState(() => { try { return !localStorage.getItem('qualia-actor') } catch { return true } })
+  const [actorOpen, setActorOpen] = useState(() => { try { return actorFieldOpen(localStorage.getItem('qualia-actor')) } catch { return true } })
   const setActor = (value: string) => { setActorState(value); try { localStorage.setItem('qualia-actor', value) } catch { /* storage unavailable */ } }
   const [panel, setPanel] = useState<'import' | 'case' | 'export' | null>(null)
   const [editCode, setEditCode] = useState<Code | null>(null)
@@ -49,6 +49,11 @@ export function useWorkspace() {
   const [retrievalCode, setRetrievalCode] = useState<number | null>(null)
   const [retrievalCase, setRetrievalCase] = useState<number | null>(null)
   const [retrieval, setRetrieval] = useState<Retrieval[]>([])
+  // Feature 020: text search and speaker filter over the excerpts the code and case filters returned.
+  const [retrievalQuery, setRetrievalQuery] = useState('')
+  const [retrievalSpeaker, setRetrievalSpeaker] = useState('')
+  const retrievalShown = useMemo(() => searchExcerpts(retrieval, retrievalQuery, retrievalSpeaker), [retrieval, retrievalQuery, retrievalSpeaker])
+  const retrievalSpeakers = useMemo(() => [...new Set(retrieval.map(speakerOf).filter(Boolean))].sort(), [retrieval])
   const [matrixTotals, setMatrixTotals] = useState<MatrixTotalsResult | null>(null)
   const [queryLoading, setQueryLoading] = useState(false)
   const [matrix, setMatrix] = useState<MatrixCell[]>([])
@@ -60,7 +65,7 @@ export function useWorkspace() {
     if (scope.current === value) { setView('workspace'); return }
     setSlug(value); setData(null); setSourceId(null); setCaseId(null); setActiveId(null); setSpan(null); setVersionId(null)
     setEditCode(null); setEditMemo(null); setEditCase(null); setPanel(null); setView('workspace'); setError(''); setNotice('')
-    setRetrievalCode(null); setRetrievalCase(null); setRetrieval([]); setMatrix([]); setMatrixTotals(null); setQueryLoading(false)
+    setRetrievalCode(null); setRetrievalCase(null); setRetrieval([]); setRetrievalQuery(''); setRetrievalSpeaker(''); setMatrix([]); setMatrixTotals(null); setQueryLoading(false)
     const url = new URL(location.href)
     url.searchParams.set('project', value)
     history.replaceState(null, '', url)
@@ -278,7 +283,8 @@ export function useWorkspace() {
     caseName: (id: number) => data?.cases.find(item => item.id === id)?.name ?? `Case ${id}`, saveCase, exportData, retrieval, retrievalCode, setRetrievalCode, retrievalCase, setRetrievalCase,
     queryLoading, matrix, matrixView, drillDown, openSegment,
     matrixTotals,
-    retrievalSegmentCount: new Set(retrieval.map(item => item.segment_id)).size,
+    retrievalSegmentCount: new Set(retrievalShown.map(item => item.segment_id)).size,
+    retrievalShown, retrievalQuery, setRetrievalQuery, retrievalSpeaker, setRetrievalSpeaker, retrievalSpeakers,
     caseAttributes: data?.attributes.filter(item => item.case_id === editCase?.id).map(item => `${item.key}=${item.value}`).join('\n') ?? '',
     caseSources: data?.source_cases.filter(item => item.case_id === editCase?.id).map(item => item.source_id) ?? [],
     codeName: (id: number) => codes.find(item => item.id === id)?.name ?? `Code ${id}`,

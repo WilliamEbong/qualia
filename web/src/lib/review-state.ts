@@ -33,7 +33,22 @@ export function groupSuggestions(suggestions: Coding[]) {
   for (const suggestion of suggestions) {
     for (const reason of reviewReasons(suggestion.review_trigger)) groups.set(reason, [...(groups.get(reason) ?? []), suggestion])
   }
-  return [...groups].map(([reason, items]) => ({ reason, items: items.sort(leastCertainFirst) }))
+  return [...groups].map(([reason, items]) => ({ key: `reason:${reason}`, reason, items: items.sort(leastCertainFirst) }))
+}
+
+// The batch endpoint takes at most 500 ids; larger groups are decided in several confirmed batches.
+export const BATCH_LIMIT = 500
+export const batchOf = (items: Coding[]) => items.slice(0, BATCH_LIMIT)
+
+// Feature 020: one group per code (per frozen version, since names can change), largest first.
+export function groupByCode(suggestions: Coding[], nameOf: (item: Coding) => string) {
+  const groups = new Map<string, Coding[]>()
+  for (const item of suggestions) {
+    const key = `${item.code_id}:${item.codebook_version_id}`
+    groups.set(key, [...(groups.get(key) ?? []), item])
+  }
+  return [...groups].sort((a, b) => b[1].length - a[1].length)
+    .map(([key, items]) => ({ key: `code:${key}`, reason: nameOf(items[0]), items: [...items].sort(leastCertainFirst) }))
 }
 
 export function modelScore(score: number | null): string {

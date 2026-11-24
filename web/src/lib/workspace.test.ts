@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { codeStyle, eventCodeName, orderedCodes, shortcut, splitSuggestions, uniqueSegmentCount } from './entities'
+import { actorFieldOpen, codeStyle, eventCodeName, heatMaximum, orderedCodes, searchExcerpts, shortcut, speakerOf, splitSuggestions, unfrozenReason, uniqueSegmentCount } from './entities'
 import { annotationSpan, codingAnnotation, highlightStyle } from './annotation-offsets'
-import type { Code, Coding, Segment, Version } from './entities'
+import type { Code, Coding, Retrieval, Segment, Version } from './entities'
 
 const coding = (id: number, segment: number, code: number, start = 0, end = 1) => ({ id, segment_id: segment, code_id: code, span_start: start, span_end: end }) as Coding
 
@@ -171,5 +171,40 @@ describe('suggestions beside applied codes', () => {
     const { agreeing, separate } = splitSuggestions(applied, suggestions)
     expect(agreeing(applied[0])).toEqual([])
     expect(separate.map(item => item.id)).toEqual([10])
+  })
+})
+
+describe('retrieval search', () => {
+  const rows = [
+    { id: 1, speaker: 'client', excerpt: 'I waited three hours', segment_text: 'I waited three hours at the café.' },
+    { id: 2, speaker: null, excerpt: 'Nobody told us', segment_text: 'P01: Nobody told us why.' },
+    { id: 3, speaker: null, excerpt: 'How long', segment_text: 'Interviewer: How long did it take?' },
+  ] as unknown as Retrieval[]
+  it('takes the recorded speaker, else a leading "Name:" in the passage', () => {
+    expect(rows.map(speakerOf)).toEqual(['client', 'P01', 'Interviewer'])
+  })
+  it('matches excerpt or passage text ignoring case and accents, then the speaker', () => {
+    expect(searchExcerpts(rows, 'CAFE', '').map(row => row.id)).toEqual([1])
+    expect(searchExcerpts(rows, 'why', '').map(row => row.id)).toEqual([2])
+    expect(searchExcerpts(rows, '', 'Interviewer').map(row => row.id)).toEqual([3])
+    expect(searchExcerpts(rows, '  ', '').length).toBe(3)
+    expect(searchExcerpts(rows, 'zebra', '')).toEqual([])
+  })
+})
+
+describe('design-pass logic (causes 4, 6, 7)', () => {
+  it('opens the name field only when no name was saved', () => {
+    expect(actorFieldOpen(null)).toBe(true)
+    expect(actorFieldOpen('')).toBe(true)
+    expect(actorFieldOpen('W. Ebong')).toBe(false)
+  })
+  it('names an unfrozen codebook as the reason experiments cannot start', () => {
+    expect(unfrozenReason(0)).toMatch(/^Freeze a codebook version first/)
+    expect(unfrozenReason(2)).toBe('')
+  })
+  it('scales matrix heat to the largest cell, never below one', () => {
+    expect(heatMaximum([0, 3, 2])).toBe(3)
+    expect(heatMaximum([])).toBe(1)
+    expect(heatMaximum([0])).toBe(1)
   })
 })

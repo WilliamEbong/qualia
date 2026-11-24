@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { eceCaption, groupSuggestions, isAcceptedModel, modelScore, reasonCaption, reviewReasons, reviewShortcut, thresholdCaption } from './review-state'
+import { eceCaption, BATCH_LIMIT, batchOf, groupByCode, groupSuggestions, isAcceptedModel, modelScore, reasonCaption, reviewReasons, reviewShortcut, thresholdCaption } from './review-state'
 import type { Coding } from './entities'
 
 describe('review trust semantics', () => {
@@ -37,5 +37,33 @@ describe('review trust semantics', () => {
     expect(reviewShortcut('a')).toBe('accept')
     expect(reviewShortcut('r')).toBe('reject')
     expect(reviewShortcut('Enter')).toBeNull()
+  })
+})
+
+describe('review queue grouped by code', () => {
+  it('lists each code once, per frozen version, largest group first, least certain first inside', () => {
+    const items = [
+      { id: 1, code_id: 7, codebook_version_id: 1, score: 0.6 }, { id: 2, code_id: 8, codebook_version_id: 1, score: 0.4 },
+      { id: 3, code_id: 7, codebook_version_id: 1, score: 0.3 }, { id: 4, code_id: 7, codebook_version_id: 2, score: 0.5 },
+    ] as Coding[]
+    const groups = groupByCode(items, item => `code ${item.code_id} v${item.codebook_version_id}`)
+    expect(groups.map(group => [group.reason, group.items.map(item => item.id)])).toEqual([
+      ['code 7 v1', [3, 1]], ['code 8 v1', [2]], ['code 7 v2', [4]],
+    ])
+  })
+})
+
+describe('review batches stay within the server limit and keys stay unique', () => {
+  it('keys code groups by code and frozen version even when names repeat', () => {
+    const items = [{ id: 1, code_id: 7, codebook_version_id: 1, score: 0.5 }, { id: 2, code_id: 7, codebook_version_id: 2, score: 0.5 }] as Coding[]
+    const groups = groupByCode(items, () => 'Same name')
+    expect(new Set(groups.map(group => group.key)).size).toBe(2)
+    expect(groupSuggestions(items).every(group => group.key.startsWith('reason:'))).toBe(true)
+  })
+  it('takes at most the limit, least certain first as the group lists them', () => {
+    const many = Array.from({ length: BATCH_LIMIT + 20 }, (_, index) => ({ id: index + 1 })) as Coding[]
+    expect(batchOf(many).length).toBe(BATCH_LIMIT)
+    expect(batchOf(many)[0].id).toBe(1)
+    expect(batchOf(many.slice(0, 3)).length).toBe(3)
   })
 })

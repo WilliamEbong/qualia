@@ -59,7 +59,7 @@ def test_human_workflow_and_exports(tmp_path):
     matrix = client.get(prefix + '/matrix').json()
     assert any(c['code_id'] == code_id and c['count'] == 1 for c in matrix)
     excerpts = client.get(prefix + '/retrieval', params={'code_id': code_id}).json()
-    assert excerpts
+    assert excerpts and 'speaker' in excerpts[0]  # feature 020: Retrieval filters by speaker
     exported = client.get(prefix + '/export').json()
     assert 'Hello' not in exported['content']
     assert '😀' not in exported['content']

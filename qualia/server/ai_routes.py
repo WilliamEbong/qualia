@@ -9,7 +9,10 @@ from qualia.server.api_models import (
     ClassifyInput,
     ClassifyResult,
     IdResult,
+    IdsResult,
+    ReviewBatchInput,
     ReviewInput,
+    ReviewUndoInput,
 )
 from qualia.server.workspace_routes import existing_project
 from qualia.store.db import Store
@@ -37,3 +40,17 @@ def register_ai_routes(app: FastAPI, home: Path | None):
         with Store(path / 'project.db') as db:
             return {'id': db.review(record.suggestion_id, record.decision, record.actor,
                                     pipeline_hash(path), record.note)}
+
+    @app.post('/api/projects/{slug}/review/batch', response_model=IdsResult)
+    def review_batch(slug: str, record: ReviewBatchInput):
+        # Feature 020: one transaction, one coding and one feedback record per suggestion.
+        path = existing_project(slug, home)
+        with Store(path / 'project.db') as db:
+            return {'ids': db.review_batch(record.suggestion_ids, record.decision, record.actor,
+                                           pipeline_hash(path), record.note)}
+
+    @app.post('/api/projects/{slug}/review/batch/undo', response_model=IdsResult)
+    def undo_review_batch(slug: str, record: ReviewUndoInput):
+        path = existing_project(slug, home)
+        with Store(path / 'project.db') as db:
+            return {'ids': db.undo_review_batch(record.event_ids, record.actor, pipeline_hash(path))}

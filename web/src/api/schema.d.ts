@@ -328,6 +328,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/projects/{slug}/review/batch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Review Batch */
+        post: operations["review_batch_api_projects__slug__review_batch_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/projects/{slug}/review/batch/undo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Undo Review Batch */
+        post: operations["undo_review_batch_api_projects__slug__review_batch_undo_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/projects/{slug}/benchmarks": {
         parameters: {
             query?: never;
@@ -1031,6 +1065,11 @@ export interface components {
             /** Id */
             id: number;
         };
+        /** IdsResult */
+        IdsResult: {
+            /** Ids */
+            ids: number[];
+        };
         /** ImportInput */
         ImportInput: {
             /** Name */
@@ -1253,6 +1292,23 @@ export interface components {
             /** Run Ids */
             run_ids: string[];
         };
+        /** ReviewBatchInput */
+        ReviewBatchInput: {
+            /** Suggestion Ids */
+            suggestion_ids: number[];
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "accept" | "reject";
+            /** Actor */
+            actor: string;
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+        };
         /** ReviewInput */
         ReviewInput: {
             /** Suggestion Id */
@@ -1272,6 +1328,13 @@ export interface components {
              * @default
              */
             note: string;
+        };
+        /** ReviewUndoInput */
+        ReviewUndoInput: {
+            /** Event Ids */
+            event_ids: number[];
+            /** Actor */
+            actor: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -2004,6 +2067,76 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["IdResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    review_batch_api_projects__slug__review_batch_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewBatchInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdsResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    undo_review_batch_api_projects__slug__review_batch_undo_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewUndoInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdsResult"];
                 };
             };
             /** @description Validation Error */

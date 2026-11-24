@@ -2,10 +2,10 @@ import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import type { components } from '../api/schema'
 import { request } from './client'
-import { eventCodeName, isEditingTarget, segmentText } from './entities'
+import { counted, eventCodeName, isEditingTarget, segmentText } from './entities'
 import type { Coding } from './entities'
 import type { WorkspaceController } from './workspace'
-import { groupSuggestions, isAcceptedModel, modelScore, reasonCaption, reviewReasons, reviewShortcut } from './review-state'
+import { BATCH_LIMIT, batchOf, groupByCode, groupSuggestions, isAcceptedModel, modelScore, reasonCaption, reviewReasons, reviewShortcut } from './review-state'
 import { calibrationCaption, parseEvaluations } from './evaluation-state'
 import type { EvaluationRecord } from './evaluation-state'
 import { useModelChoice } from './models'
@@ -19,7 +19,7 @@ export function useReview(w: WorkspaceController) {
   const [note, setNote] = useState('')
   const [result, setResult] = useState<components['schemas']['ClassifyResult'] | null>(null)
   useEffect(() => {
-    setAvailability(null); setBackend('rules'); setSelectedId(null); setNote(''); setResult(null)
+    setAvailability(null); setBackend('rules'); setSelectedId(null); setNote(''); setResult(null); setLastBatch(null)
   }, [w.slug])
   // Refetch when routing changes too (e.g. a kept model experiment), so "Task default" stays true.
   const routingKey = JSON.stringify(w.data?.routing ?? null)
@@ -34,7 +34,37 @@ export function useReview(w: WorkspaceController) {
   }, [w.slug, routingKey])
   const suggestions = w.data?.suggestions ?? []
   const activeSuggestions = suggestions.filter(item => item.segment_id === w.active?.id)
-  const groups = useMemo(() => groupSuggestions(suggestions), [suggestions])
+  const [groupBy, setGroupBy] = useState<'reason' | 'code'>('reason')
+  const [lastBatch, setLastBatch] = useState<{ eventIds: number[]; code: string; count: number } | null>(null)
+  const codeName = (item: Coding) => eventCodeName(item, w.data?.codebook_versions ?? [])
+  const groups = useMemo(() => groupBy === 'code' ? groupByCode(suggestions, codeName) : groupSuggestions(suggestions), [suggestions, groupBy, w.data])
+  // Feature 020: decide a whole code group; the server writes one audited record per suggestion.
+  const batch = (group: Coding[], decision: 'accept' | 'reject') => {
+    const items = batchOf(group)
+    if (!items.length) return
+    const code = codeName(items[0])
+    const question = decision === 'accept'
+      ? `Accept all ${items.length} suggestions of ${code}? Each is recorded separately as accepted by ${w.actor.trim()}. You can undo this right after.`
+      : `Reject all ${items.length} suggestions of ${code}? Each is recorded separately as rejected by ${w.actor.trim()}. Rejections cannot be undone; you can still apply the code by hand.`
+    if (!window.confirm(question)) return
+    void w.run(async () => {
+      const input: components['schemas']['ReviewBatchInput'] = { suggestion_ids: items.map(item => item.id), decision, actor: w.actor, note }
+      const value = await request<components['schemas']['IdsResult']>(`projects/${encodeURIComponent(w.slug)}/review/batch`, { method: 'POST', body: JSON.stringify(input) })
+      await w.reload(); setSelectedId(null); setNote('')
+      setLastBatch(decision === 'accept' ? { eventIds: value.ids, code, count: value.ids.length } : null)
+      w.setNotice(`${decision === 'accept' ? 'Accepted' : 'Rejected'} ${counted(value.ids.length, 'suggestion')} of ${code}, each recorded separately.`)
+    })
+  }
+  const undoBatch = () => {
+    if (!lastBatch) return
+    const done = lastBatch
+    void w.run(async () => {
+      const input: components['schemas']['ReviewUndoInput'] = { event_ids: done.eventIds, actor: w.actor }
+      const value = await request<components['schemas']['IdsResult']>(`projects/${encodeURIComponent(w.slug)}/review/batch/undo`, { method: 'POST', body: JSON.stringify(input) })
+      await w.reload(); setLastBatch(null)
+      w.setNotice(`Undone: removed ${counted(value.ids.length, 'assignment')} of ${done.code}. The accept records and the removals both stay in the audit trail.`)
+    })
+  }
   // Without a selection, a/r act on the first card shown (least certain first), not on raw order.
   const candidates = w.view === 'workspace' ? activeSuggestions : groups.flatMap(group => group.items)
   const selected = candidates.find(item => item.id === selectedId) ?? candidates[0]
@@ -75,7 +105,7 @@ export function useReview(w: WorkspaceController) {
     model,
     suggestions, activeSuggestions, groups, note, setNote, result, review, classify, excerpt, modelScore, reviewReasons,
     reasonCaption: (value: string | null) => reasonCaption(value, w.data?.routing?.human_review_below), eceCaption: (item: Coding) => calibrationCaption(item, evaluations), isAcceptedModel,
-    codeName: (item: Coding) => eventCodeName(item, w.data?.codebook_versions ?? []),
+    codeName, groupBy, setGroupBy, batch, batchLabel: (verb: string, size: number) => size > BATCH_LIMIT ? `${verb} first ${BATCH_LIMIT} of ${size}` : `${verb} all ${size}`, lastBatch, undoBatch,
   }
 }
 export type ReviewController = ReturnType<typeof useReview>

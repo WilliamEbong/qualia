@@ -4,6 +4,7 @@ import type { components } from '../api/schema'
 import type { WorkspaceController } from './workspace'
 import type { ReviewController } from './review'
 import { request } from './client'
+import { unfrozenReason } from './entities'
 import { backendBlockedReason, benchmarkReason, experimentPrerequisites } from './evaluation-state'
 import type { BenchmarksController } from './evaluation'
 import { experimentHistory } from './experiment-state'
@@ -22,7 +23,7 @@ export function useExperiments(w: WorkspaceController, review: ReviewController,
   const history = useMemo(() => experimentHistory((w.data?.experiments ?? []) as ExperimentRecord[]), [w.data])
   const selected = history.find(item => item.id === selectedId) ?? history[0]
   const provider = review.availability?.backends.find(item => item.name === backend)
-  const unfrozen = w.data && !w.data.codebook_versions.length ? 'Freeze a codebook version first (Codebook > Freeze); experiments measure one frozen version.' : ''
+  const unfrozen = w.data ? unfrozenReason(w.data.codebook_versions.length) : ''
   const blockedReason = backendBlockedReason(w.readOnly, provider, review.availability?.allow_external, 'Tuning is unavailable in this read-only public snapshot.') || unfrozen || benchmarkReason(benchmarks.status, ['dev', 'validation'])
   const tune = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()

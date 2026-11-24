@@ -1,8 +1,8 @@
 """Public API boundary models, deliberately rejecting unexpected fields."""
 
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class Record(BaseModel):
@@ -158,6 +158,29 @@ class ReviewInput(Record):
     decision: Literal['accept', 'reject']
     actor: str = Field(default='researcher', min_length=1, max_length=200)
     note: str = Field(default='', max_length=10000)
+
+
+class ReviewBatchInput(Record):
+    suggestion_ids: list[Annotated[int, Field(gt=0)]] = Field(min_length=1, max_length=500)
+    decision: Literal['accept', 'reject']
+    actor: str = Field(min_length=1, max_length=200)
+    note: str = Field(default='', max_length=10000)
+
+    @field_validator('suggestion_ids')
+    @classmethod
+    def distinct(cls, value: list[int]) -> list[int]:
+        if len(set(value)) != len(value):
+            raise ValueError('suggestion ids must be distinct')
+        return value
+
+
+class ReviewUndoInput(Record):
+    event_ids: list[Annotated[int, Field(gt=0)]] = Field(min_length=1, max_length=500)
+    actor: str = Field(min_length=1, max_length=200)
+
+
+class IdsResult(Record):
+    ids: list[int]
 
 
 class EvaluateInput(Record):

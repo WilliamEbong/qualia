@@ -98,7 +98,7 @@ export function demoResponse(snapshot: DemoSnapshot, path: string, method = 'GET
       if (!segment || !source || (codeId !== null && coding.code_id !== codeId)
         || (caseId !== null && !data.source_cases.some(link => link.source_id === source.id && link.case_id === caseId))) return []
       const text = segmentText(data, segment)
-      return [{ ...coding, source_id: source.id, source_name: source.name, segment_start: segment.start, segment_end: segment.end,
+      return [{ ...coding, source_id: source.id, source_name: source.name, speaker: segment.speaker ?? null, segment_start: segment.start, segment_end: segment.end,
         segment_text: text, excerpt: Array.from(text).slice(coding.span_start, coding.span_end).join('') }]
     })
   }

@@ -405,17 +405,52 @@ class Store:
         if not actor.strip():
             raise ValueError('reviewer identity required')
         with self.immediate():
-            suggestion = self.one('SELECT * FROM pending_suggestions WHERE id=?', (suggestion_id,))
-            if suggestion is None:
-                raise ValueError(f'suggestion {suggestion_id} is absent or already reviewed')
-            values = {k: v for k, v in suggestion.items() if k not in ('id', 'created_at')}
-            values.update(action=decision, actor_type='human', actor=actor, suggestion_id=suggestion_id,
-                          reviewed_by=actor, review_status='accepted' if decision == 'accept' else 'rejected',
-                          pipeline_version=pipeline)
-            event = self.add('coding_events', values)
-            self.add('feedback_events', {'coding_event_id': event, 'decision': decision,
-                                        'actor': actor, 'note': note})
+            return self._record_review(suggestion_id, decision, actor, pipeline, note)
+
+    def _record_review(self, suggestion_id: int, decision: str, actor: str, pipeline: str, note: str) -> int:
+        suggestion = self.one('SELECT * FROM pending_suggestions WHERE id=?', (suggestion_id,))
+        if suggestion is None:
+            raise ValueError(f'suggestion {suggestion_id} is absent or already reviewed')
+        values = {k: v for k, v in suggestion.items() if k not in ('id', 'created_at')}
+        values.update(action=decision, actor_type='human', actor=actor, suggestion_id=suggestion_id,
+                      reviewed_by=actor, review_status='accepted' if decision == 'accept' else 'rejected',
+                      pipeline_version=pipeline)
+        event = self.add('coding_events', values)
+        self.add('feedback_events', {'coding_event_id': event, 'decision': decision,
+                                    'actor': actor, 'note': note})
         return event
+
+    def review_batch(self, suggestion_ids: list[int], decision: str, actor: str, pipeline: str,
+                     note='') -> list[int]:
+        """Review many suggestions in one transaction; each gets its own records, exactly as review() writes."""
+        if decision not in ('accept', 'reject'):
+            raise ValueError('review must accept or reject')
+        if not actor.strip():
+            raise ValueError('reviewer identity required')
+        if not suggestion_ids or len(set(suggestion_ids)) != len(suggestion_ids):
+            raise ValueError('a batch needs distinct suggestion ids')
+        with self.immediate():
+            return [self._record_review(item, decision, actor, pipeline, note) for item in suggestion_ids]
+
+    def undo_review_batch(self, event_ids: list[int], actor: str, pipeline: str) -> list[int]:
+        """Append a human removal for each accept event that is still its span's current coding.
+
+        The accept records stay: the audit trail is append-only. Non-accept ids are refused."""
+        if not actor.strip():
+            raise ValueError('reviewer identity required')
+        removals = []
+        with self.immediate():
+            for event_id in event_ids:
+                accept = self.one("SELECT * FROM coding_events WHERE id=? AND action='accept'", (event_id,))
+                if accept is None:
+                    raise ValueError(f'event {event_id} is not an accepted suggestion')
+                if self.one('SELECT id FROM current_codings WHERE id=?', (event_id,)) is None:
+                    continue
+                removals.append(self.add('coding_events', {
+                    field: accept[field] for field in ('segment_id', 'code_id', 'span_start', 'span_end',
+                                                       'codebook_version_id')} | {
+                    'action': 'remove', 'actor_type': 'human', 'actor': actor, 'pipeline_version': pipeline}))
+        return removals
 
     def import_sources(self, records: list[dict], version_of: int | None = None) -> dict:
         """Commit a validated import and its case metadata as one unit."""
@@ -570,7 +605,7 @@ class Store:
 
     def retrieve(self, code_id: int | None = None, case_id: int | None = None) -> list[dict]:
         """Current coded spans; a multi-case source appears once per span in each filter."""
-        query = ('SELECT c.*, g.source_id, s.name AS source_name, '
+        query = ('SELECT c.*, g.source_id, g.speaker, s.name AS source_name, '
                  'g.start AS segment_start, g.end AS segment_end, '
                  'substr(s.text,g.start+1,g.end-g.start) AS segment_text, '
                  'substr(s.text,g.start+c.span_start+1,c.span_end-c.span_start) AS excerpt '
