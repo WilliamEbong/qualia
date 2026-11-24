@@ -608,6 +608,57 @@ Codex reviewed all 91 commits since `2978c5d`. I checked each finding against th
 
 **What would move the number:** fewer, larger workflow changes that a researcher feels: grouping by code with batch review, and search in Retrieval. More polish of what is already there would not. Scoring the same scorer before and after would also give a cleaner measure.
 
+## Workflow changes (branch `claude/workflow-review-retrieval`, 2026-11-23)
+
+William asked for this ("so proceed") after the design root-cause pass. It is feature work under spec `specs/020-review-batches-and-search`.
+
+**Same reviewers, before and after.** Two Opus reviewers each scored the two screens first, then scored them again afterwards with both sets of screenshots side by side. Both sets used the synthetic study with a saved coder name, not the first-visit state.
+
+| Screen | Width | Reviewer 1 | Reviewer 2 |
+|---|---|---|---|
+| Review | desktop | 4 → 5 | 5 → 6.5 |
+| Review | phone | 3 → 4 | 4 → 5 |
+| Retrieval | desktop | 5 → 6 | 6 → 7 |
+| Retrieval | phone | 5 → 5 | 5 → 4.5 |
+
+Phone Retrieval fell because the four stacked filters pushed every excerpt below the first screen. The filters now sit two by two (`bb743dc`): the box is 241 px instead of 374, and the first quote is on the first screen. That fix has not been re-scored.
+
+**1. Review grouped by code, with batch decisions** (`bc04ac2`, `f2ed5ae`, `4c75471`)
+- **Grouping:** "Group by: Reason | Code". Reason remains the default. Code groups are compact and offer "Accept all n" and "Reject all n". A batch holds at most 500 suggestions, labelled "first 500 of n".
+- **Confirmation:** it names the count, the code and who is recorded. For rejections it says they cannot be undone.
+- **Audit:** `POST /review/batch` runs in one transaction and writes each suggestion through the same code path as a single review: its own coding event and feedback event, with the actor, time, copied provenance and model-reported score. If one id is unknown or already reviewed, nothing is written. In the browser, 15 accepts gave 15 coding rows and 15 feedback rows, each carrying the original model, score and prompt hash.
+- **Undo:** after an accept batch, an Undo bar calls `POST /review/batch/undo`. That appends a human removal for each accept that is still current, and the accept records stay.
+- **Rejected batches cannot be undone.** Undoing one would mean writing a model "suggest" event the model never made, and the audit trail is append-only.
+- **Tests:** audit rows, all-or-nothing, input bounds and duplicates, undo, grouping, keys and the 500 limit.
+
+**2. Retrieval search and speaker filter** (`e93e726`, `bb743dc`)
+- **Search:** filters the loaded excerpts by the quote or its whole passage, ignoring case and accents.
+- **Speaker filter:** uses the segment's speaker, or else a leading "Name:" in the passage, and can hide interviewer turns.
+- **Counts and states:** the count reads "n of m excerpts". When nothing matches, the screen names the search and offers Clear search.
+- **Tests:** speaker derivation, accents, no match, and the API's speaker field.
+
+**What the reviewers say is still missing:**
+- **Review:** surrounding passage context on each card, choosing a subset for a batch, and a fixed Accept/Reject bar on phones.
+- **Retrieval:** a code-by-interview comparison, the search term highlighted in results, and copy-as-quote or export of excerpts.
+
+**Codex review** of this branch found 2 real defects, both fixed in `4c75471`, with tests:
+- Groups shared React keys when one code name spans frozen versions, which left stale cards after switching grouping.
+- Code groups over 500 sent more ids than the endpoint accepts.
+
+**Checks:** Python 711 passed (5 skipped), ruff clean, web 84 passed, the type check and build pass, and the demo e2e test passes.
+
+**Merge-check points from the design pass:**
+- **`web/src/lib` changes:** the design pass changed these files in `web/src/lib/`. Each one carried logic its fix needed:
+  - `annotation-offsets.ts` and `annotations.ts`: the highlight style.
+  - `entities.ts`: the suggestion split.
+  - `experiments.ts`: the unfrozen-codebook reason.
+  - `matrix.ts`: the heat maximum for the legend.
+  - `workspace.ts`: the name field's open state.
+  - `workspace.test.ts`: tests.
+
+  None was styling, so none was reverted. The three without a test before (name field, unfrozen reason, heat maximum) are now pure helpers with unit tests (`da13d59`). This branch is feature work under the feature rules.
+- **`DESIGN.md`:** it now describes the approved review-queue disclosure and the underline highlight, with the date and William's approval (`da13d59`).
+
 ## Found, not changed
 
 Reverted under your "tangible improvements only" bar: the round-2 `QUALIA_PORT` range check in the double-click launcher (`62dbad0`, reverted). It only helped a hand-edited `.env` value outside 1024–65535.
